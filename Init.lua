@@ -274,17 +274,13 @@ function WoWeuCN_Scanner_ScanItemAuto(startIndex, attempt, counter)
           print(i)
         end
       end
-    else
-      if (classId==nil) then
-        print(i .. " skip")
-      else
-        print(i .. " gear")
-      end
     end
   end
+
   print(attempt)
   print('index ' .. startIndex)
   WoWeuCN_Scanner_Index = startIndex
+
   if (counter >= 5) then
     WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanItemAuto, startIndex + 150, attempt + 1, 0)
   else
@@ -468,10 +464,9 @@ function WoWeuCN_Scanner_ScanCacheAuto(startIndex, attempt, counter)
     end
 
     for i = startIndex, startIndex + 150 do
-        local title= C_QuestLog.GetTitleForQuestID(tostring(i))
+        local title= C_QuestLog.GetTitleForQuestID(i)
         --if C_QuestLog.GetQuestInfo then
-            --title = C_QuestLog.GetQuestInfo(i)
-        
+            --title = C_QuestLog.GetQuestInfo(i)        
         if title then
             print(title)
         end
