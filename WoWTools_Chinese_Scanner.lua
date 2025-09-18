@@ -34,42 +34,20 @@ local function EnumerateTooltipStyledLines(tooltip) -- good for script handlers 
   return EnumerateTooltipStyledLines_helper(tooltip:GetRegions())
 end
 
-function WoWeuCN_Scanner_ScanClear()
-    WoWeuCN_Scanner_SpellToolIndex = 1
-    WoWeuCN_Scanner_SpellToolTips0 = {}
-    WoWeuCN_Scanner_SpellToolTips100000 = {}
-    WoWeuCN_Scanner_SpellToolTips200000 = {}
-    WoWeuCN_Scanner_SpellToolTips300000 = {}
-    WoWeuCN_Scanner_SpellToolTips400000 = {}
-    WoWeuCN_Scanner_ItemToolTips0 = {}
-    WoWeuCN_Scanner_ItemToolTips100000 = {}
-    WoWeuCN_Scanner_ItemToolTips200000 = {}
-    WoWeuCN_Scanner_ItemIndex = 1
-    WoWeuCN_Scanner_UnitToolTips0 = {}
-    WoWeuCN_Scanner_UnitToolTips100000 = {}
-    WoWeuCN_Scanner_UnitToolTips200000 = {}
-    WoWeuCN_Scanner_UnitIndex = 1
-    WoWeuCN_Scanner_Achivements0 = {}
-    WoWeuCN_Scanner_AchivementsIndex = 1
-    WoWeuCN_Scanner_QuestToolTips = {}
-    WoWeuCN_Scanner_QuestIndex = 1
-    print("清除")
-end
 
-function WoWeuCN_Scanner_ScanInit()
-   
 
-end
 
-function WoWeuCN_Scanner_ScanIndex(index)
+local function WoWeuCN_Scanner_ScanIndex(index)
     WoWeuCN_Scanner_Index = tonumber(index)
     print(index)
 end
 
-function WoWeuCN_Scanner_wait(delay, func, ...)
+local function WoWeuCN_Scanner_wait(delay, func, ...)
+
   if(type(delay)~="number" or type(func)~="function") then
     return false
   end
+
   if (WaitFrame == nil) then
     WaitFrame = CreateFrame("Frame","WoWeuCN_Scanner_waitFrame", UIParent)
     WaitFrame:SetScript("onUpdate",function (self, elapse)
@@ -90,7 +68,9 @@ function WoWeuCN_Scanner_wait(delay, func, ...)
       end
     end)
   end
+
   tinsert(WoWeuCN_Scanner_waitTable,{delay,func,{...}})
+
   return true
 end
 
@@ -113,7 +93,7 @@ end
 
 
 
-function WoWeuCN_Scanner_ScanSpellAuto(startIndex, attempt, counter)
+local function S_Spell(startIndex, attempt, counter)
 
     if (startIndex > 500000) then
         return
@@ -154,9 +134,9 @@ function WoWeuCN_Scanner_ScanSpellAuto(startIndex, attempt, counter)
   print('index ' .. startIndex)
   WoWeuCN_Scanner_Index = startIndex
   if (counter >= 5) then
-    WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanSpellAuto, startIndex + 150, attempt + 1, 0)
+    WoWeuCN_Scanner_wait(0.5, S_Spell, startIndex + 150, attempt + 1, 0)
   else
-    WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanSpellAuto, startIndex, attempt + 1, counter + 1)
+    WoWeuCN_Scanner_wait(0.5, S_Spell, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -181,7 +161,7 @@ end
 
 
 
-function WoWeuCN_Scanner_ScanUnitAuto(startIndex, attempt, counter)
+local function S_Unit(startIndex, attempt, counter)
 
 
     if (startIndex > 300000) then
@@ -218,9 +198,9 @@ function WoWeuCN_Scanner_ScanUnitAuto(startIndex, attempt, counter)
     WoWeuCN_Scanner_Index = startIndex
 
     if (counter >= 3) then
-        WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanUnitAuto, startIndex + 250, attempt + 1, 0)
+        WoWeuCN_Scanner_wait(0.5, S_Unit, startIndex + 250, attempt + 1, 0)
     else
-        WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanUnitAuto, startIndex, attempt + 1, counter + 1)
+        WoWeuCN_Scanner_wait(0.5, S_Unit, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -239,7 +219,7 @@ end
 
 
 
-function WoWeuCN_Scanner_ScanItemAuto(startIndex, attempt, counter)
+local function S_Item(startIndex, attempt, counter)
   startIndex= startIndex or 1
   attempt= attempt or 0
   counter= counter or 0
@@ -282,9 +262,9 @@ function WoWeuCN_Scanner_ScanItemAuto(startIndex, attempt, counter)
   WoWeuCN_Scanner_Index = startIndex
 
   if (counter >= 5) then
-    WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanItemAuto, startIndex + 150, attempt + 1, 0)
+    WoWeuCN_Scanner_wait(0.5, S_Item, startIndex + 150, attempt + 1, 0)
   else
-    WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanItemAuto, startIndex, attempt + 1, counter + 1)
+    WoWeuCN_Scanner_wait(0.5, S_Item, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -304,7 +284,7 @@ end
 
 
 
-function WoWeuCN_Scanner_ScanAchivementAuto(startIndex, attempt, counter)
+local function S_Achivement(startIndex, attempt, counter)
   if (startIndex > 30000) then
     return
   end
@@ -325,9 +305,9 @@ function WoWeuCN_Scanner_ScanAchivementAuto(startIndex, attempt, counter)
   WoWeuCN_Scanner_Index = startIndex
 
   if (counter >= 5) then
-    WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanAchivementAuto, startIndex + 150, attempt + 1, 0)
+    WoWeuCN_Scanner_wait(0.5, S_Achivement, startIndex + 150, attempt + 1, 0)
   else
-    WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanAchivementAuto, startIndex, attempt + 1, counter + 1)
+    WoWeuCN_Scanner_wait(0.5, S_Achivement, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -346,7 +326,7 @@ end
 
 
 
-function WoWeuCN_Scanner_ScanQuestAuto(startIndex, attempt, counter)
+local function S_Quest(startIndex, attempt, counter)
   if (startIndex > 90000) then
     return
   end
@@ -365,9 +345,9 @@ function WoWeuCN_Scanner_ScanQuestAuto(startIndex, attempt, counter)
   print('index ' .. startIndex)
   WoWeuCN_Scanner_Index = startIndex
   if (counter >= 5) then
-     WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanQuestAuto, startIndex + 100, attempt + 1, 0)
+     WoWeuCN_Scanner_wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
   else
-     WoWeuCN_Scanner_wait(0.5, WoWeuCN_Scanner_ScanQuestAuto, startIndex, attempt + 1, counter + 1)
+     WoWeuCN_Scanner_wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -378,7 +358,7 @@ end
 
 
 
-function WoWeuCN_Scanner_ScanEncounterAuto(startIndex, attempt, counter)
+local function S_Encounter(startIndex, attempt, counter)
   if (startIndex > 25000) then
     WoWeuCN_Scanner_Index = 0
     return
@@ -396,9 +376,9 @@ function WoWeuCN_Scanner_ScanEncounterAuto(startIndex, attempt, counter)
   print('index ' .. startIndex)
   WoWeuCN_Scanner_Index = startIndex
   if (counter >= 2) then
-     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterAuto, startIndex + 100, attempt + 1, 0)
+     WoWeuCN_Scanner_wait(0.1, S_Encounter, startIndex + 100, attempt + 1, 0)
   else
-     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterAuto, startIndex, attempt + 1, counter + 1)
+     WoWeuCN_Scanner_wait(0.1, S_Encounter, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -412,7 +392,7 @@ end
 
 
 --EncounterSection
-function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
+local function S_EncounterSection(startIndex, attempt, counter)
   if (startIndex > 50000) then
     WoWeuCN_Scanner_Index = 0
     return
@@ -437,9 +417,9 @@ function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
   WoWeuCN_Scanner_Index = startIndex
 
   if (counter >= 2) then
-     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex + 100, attempt + 1, 0)
+     WoWeuCN_Scanner_wait(0.1, S_EncounterSection, startIndex + 100, attempt + 1, 0)
   else
-     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex, attempt + 1, counter + 1)
+     WoWeuCN_Scanner_wait(0.1, S_EncounterSection, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -454,7 +434,7 @@ end
 
 
 --任务
-function WoWeuCN_Scanner_ScanCacheAuto(startIndex, attempt, counter)
+local function S_CacheQuest(startIndex, attempt, counter)
     if (startIndex > 90000) then
         return
     end
@@ -465,18 +445,17 @@ function WoWeuCN_Scanner_ScanCacheAuto(startIndex, attempt, counter)
 
     for i = startIndex, startIndex + 150 do
         local title= C_QuestLog.GetTitleForQuestID(i)
-        --if C_QuestLog.GetQuestInfo then
-            --title = C_QuestLog.GetQuestInfo(i)        
         if title then
             print(title)
         end
     end
 
     WoWeuCN_Scanner_Index = startIndex
+
     if (counter >= 5) then
-      WoWeuCN_Scanner_wait(0.2, WoWeuCN_Scanner_ScanCacheAuto, startIndex + 150, attempt + 1, 0)
+      WoWeuCN_Scanner_wait(0.2, S_CacheQuest, startIndex + 150, attempt + 1, 0)
     else
-      WoWeuCN_Scanner_wait(0.2, WoWeuCN_Scanner_ScanCacheAuto, startIndex, attempt + 1, counter + 1)
+      WoWeuCN_Scanner_wait(0.2, S_CacheQuest, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -536,57 +515,69 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWeuCN_Scanner_EncounterData = WoWeuCN_Scanner_EncounterData or {}
 
     SlashCmdList["WoWeuCN_Scanner"] = function(msg)
+
         if (string.sub(msg,1,string.len("index"))~="index") then
+
             local index = string.sub(msg,string.len("index")+2)
             WoWeuCN_Scanner_ScanIndex(index)
 
             --clear
         elseif (msg=="clear" or msg=="CLEAR") then
-            WoWeuCN_Scanner_ScanClear()
+            WoWeuCN_Scanner_SpellToolIndex = 1
+            WoWeuCN_Scanner_SpellToolTips0 = {}
+            WoWeuCN_Scanner_SpellToolTips100000 = {}
+            WoWeuCN_Scanner_SpellToolTips200000 = {}
+            WoWeuCN_Scanner_SpellToolTips300000 = {}
+            WoWeuCN_Scanner_SpellToolTips400000 = {}
+            WoWeuCN_Scanner_ItemToolTips0 = {}
+            WoWeuCN_Scanner_ItemToolTips100000 = {}
+            WoWeuCN_Scanner_ItemToolTips200000 = {}
+            WoWeuCN_Scanner_ItemIndex = 1
+            WoWeuCN_Scanner_UnitToolTips0 = {}
+            WoWeuCN_Scanner_UnitToolTips100000 = {}
+            WoWeuCN_Scanner_UnitToolTips200000 = {}
+            WoWeuCN_Scanner_UnitIndex = 1
+            WoWeuCN_Scanner_Achivements0 = {}
+            WoWeuCN_Scanner_AchivementsIndex = 1
+            WoWeuCN_Scanner_QuestToolTips = {}
+            WoWeuCN_Scanner_QuestIndex = 1
+            print("清除")
 
             -- spell auto scan
         elseif (msg=="spellscanauto" or msg=="SPELLSCANAUTO") then
-            WoWeuCN_Scanner_ScanInit()    
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanSpellAuto, WoWeuCN_Scanner_Index, 1, 0)
-    
+            WoWeuCN_Scanner_wait(0.1, S_Spell, WoWeuCN_Scanner_Index, 1, 0)
+
             -- unit auto scan
         elseif (msg=="unitscanauto" or msg=="UNITSCANAUTO") then
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanUnitAuto, WoWeuCN_Scanner_Index, 1, 0)
+            WoWeuCN_Scanner_wait(0.1, S_Unit, WoWeuCN_Scanner_Index, 1, 0)
 
             -- item auto scan
-        elseif (msg=="itemscanauto" or msg=="ITEMSCANAUTO") then      
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanItemAuto, WoWeuCN_Scanner_Index, 1, 0)
+        elseif (msg=="itemscanauto" or msg=="ITEMSCANAUTO") then
+            WoWeuCN_Scanner_wait(0.1, S_Item, WoWeuCN_Scanner_Index, 1, 0)
 
             -- achivement auto scan
-        elseif (msg=="achievescanauto" or msg=="ACHIVESCANAUTO") then      
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanAchivementAuto, WoWeuCN_Scanner_Index, 1, 0)
+        elseif (msg=="achievescanauto" or msg=="ACHIVESCANAUTO") then
+            WoWeuCN_Scanner_wait(0.1, S_Achivement, WoWeuCN_Scanner_Index, 1, 0)
 
             -- quest scan  
-        elseif (msg=="questscanauto" or msg=="QUESTSCANAUTO") then     
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanQuestAuto, WoWeuCN_Scanner_Index, 1, 0)
+        elseif (msg=="questscanauto" or msg=="QUESTSCANAUTO") then
+            WoWeuCN_Scanner_wait(0.1, S_Quest, WoWeuCN_Scanner_Index, 1, 0)
 
             -- encounter scan  
-        elseif (msg=="encounterscanauto" or msg=="ENCOUNTERSCANAUTO") then     
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterAuto, WoWeuCN_Scanner_Index, 1, 0)
+        elseif (msg=="encounterscanauto" or msg=="ENCOUNTERSCANAUTO") then
+            WoWeuCN_Scanner_wait(0.1, S_Encounter, WoWeuCN_Scanner_Index, 1, 0)
 
             -- encounter scan  
-        elseif (msg=="encountersectionscanauto" or msg=="ENCOUNTERSECTIONSCANAUTO") then     
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, WoWeuCN_Scanner_Index, 1, 0)
+        elseif (msg=="encountersectionscanauto" or msg=="ENCOUNTERSECTIONSCANAUTO") then
+            WoWeuCN_Scanner_wait(0.1, S_EncounterSection, WoWeuCN_Scanner_Index, 1, 0)
 
             -- quest cache scan
-        elseif (msg=="cachescanauto" or msg=="CACHESCANAUTO") then     
-            WoWeuCN_Scanner_ScanInit()
-            WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanCacheAuto, WoWeuCN_Scanner_Index, 1, 0)
+        elseif (msg=="cachescanauto" or msg=="CACHESCANAUTO") then
+            WoWeuCN_Scanner_wait(0.1, S_CacheQuest, WoWeuCN_Scanner_Index, 1, 0)
 
         end
     end
-    SLASH_WoWeuCN_Scanner1 = "/WoWeuCN-Scanner";
+    SLASH_WoWeuCN_Scanner1 = "/WoWeuCN-Scanner"
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
