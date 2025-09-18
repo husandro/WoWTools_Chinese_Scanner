@@ -2,6 +2,14 @@
 --https://github.com/husandro/WoWTranslator/commits?author=qqytqqyt
 
 
+
+
+
+
+
+
+
+
 local WaitFrame = nil
 local WaitTabs = {}
 
@@ -357,76 +365,6 @@ end
 
 
 
-local function S_Encounter(startIndex, attempt, counter)
-  if (startIndex > 25000) then
-    WoWTools_SC_Index = 0
-    return
-  end
-  for i = startIndex, startIndex + 100 do
-    local sectionInfo = EJ_GetEncounterInfo(i)
-    if (sectionInfo) then
-      local ename, description, _, rootSectionID = EJ_GetEncounterInfo(i)
-      WoWTools_SC_Encounter[i] = {}
-      WoWTools_SC_Encounter[i]["Title"] = ename
-      WoWTools_SC_Encounter[i]["Description"] = description
-    end
-  end
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWTools_SC_Index = startIndex
-  if (counter >= 2) then
-     SC_Wait(0.1, S_Encounter, startIndex + 100, attempt + 1, 0)
-  else
-     SC_Wait(0.1, S_Encounter, startIndex, attempt + 1, counter + 1)
-  end
-end
-
-
-
-
-
-
-
-
-
-
---EncounterSection
-local function S_EncounterSection(startIndex, attempt, counter)
-    if (startIndex > 50000) then
-        WoWTools_SC_Index = 0
-        return
-    end
-
-    for difficultyID = 1, 45 do
-        EJ_SetDifficulty(difficultyID)
-
-        for i = startIndex, startIndex + 100 do
-            local sectionInfo =  C_EncounterJournal.GetSectionInfo(i)
-            if (sectionInfo and not sectionInfo.filteredByDifficulty) then
-                local difficulty= EJ_GetDifficulty()
-                WoWTools_SC_SectionEncounter[difficulty .. 'x' .. i] = {}
-                WoWTools_SC_SectionEncounter[difficulty .. 'x' .. i]["Title"] = sectionInfo.title
-
-
-                WoWTools_SC_SectionEncounter[difficulty .. 'x' .. i]["Description"] = sectionInfo.description
-                print(sectionInfo.title)
-            end
-        end
-    end
-
-    print(attempt)
-    print('index ' .. startIndex)
-    WoWTools_SC_Index = startIndex
-
-    if (counter >= 2) then
-        SC_Wait(0.1, S_EncounterSection, startIndex + 100, attempt + 1, 0)
-    else
-        SC_Wait(0.1, S_EncounterSection, startIndex, attempt + 1, counter + 1)
-    end
-end
-
-
-
 
 
 
@@ -488,6 +426,234 @@ end
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+local numEncounter= 0
+local function S_Encounter(startIndex, attempt, counter)
+    if (startIndex > 25000) then
+        print('Encounter', '|cnRED_FONT_COLOR:结束|r', numEncounter..'条')
+        WoWTools_SC_Index = 0
+        numEncounter= 0
+        return
+    end
+
+
+    for journalEncounterID = startIndex, startIndex + 100 do
+        local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
+
+        name= name~='' and name or nil
+        desc= desc~='' and desc or nil
+
+        if name or desc then
+            WoWTools_SC_Encounter[journalEncounterID] = {}
+
+            if name then
+                WoWTools_SC_Encounter[journalEncounterID].T = name
+            end
+            if desc then
+                WoWTools_SC_Encounter[journalEncounterID].D = desc
+            end
+
+            numEncounter= numEncounter+1
+
+            print('Encounter', journalEncounterID, link)
+        end
+    end
+
+
+    print('Encounter', startIndex, format('|cnGREEN_FONT_COLOR:%.1f%%|r', startIndex/25000*100), attempt, '|cnGREEN_FONT_COLOR:'..numEncounter..'条')
+
+    WoWTools_SC_Index = startIndex
+    if (counter >= 2) then
+        SC_Wait(0.1, S_Encounter, startIndex + 100, attempt + 1, 0)
+    else
+        SC_Wait(0.1, S_Encounter, startIndex, attempt + 1, counter + 1)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+--EncounterSection
+local numEncounterSection= 0
+local function S_EncounterSection(startIndex, attempt, counter)
+    if (startIndex > 50000) then
+        print('EncounterSection', '|cnRED_FONT_COLOR:结束|r', numEncounterSection)
+        WoWTools_SC_Index = 0
+        numEncounterSection= 0
+        return
+    end
+
+
+    for index = 1, 45 do
+        local name= GetDifficultyInfo(index)
+        if name then
+            do
+                EJ_SetDifficulty(index)
+            end
+
+            for sectionID = startIndex, startIndex + 100 do
+                local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
+                if sectionInfo and not sectionInfo.filteredByDifficulty then
+
+                    local difficultyID= EJ_GetDifficulty() or index
+                    local title= sectionInfo.title
+                    local desc= sectionInfo.description
+
+                    title= title~='' and title or nil
+                    desc= desc~='' and desc or nil
+
+                    if title or desc then
+                        local t= sectionID..'x'..difficultyID
+
+                        WoWTools_SC_SectionEncounter[t] = {}
+
+                        if title then
+                            WoWTools_SC_SectionEncounter[t].T = title
+                        end
+                        if desc then
+                            WoWTools_SC_SectionEncounter[t].D = desc
+                        end
+
+                        numEncounterSection= numEncounterSection+1
+                        print(
+                            sectionID..'|cnGREEN_FONT_COLOR:x|r'..index,
+                            sectionInfo.link
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+    print(
+        'EncounterSection',
+        startIndex,
+        format('|cnGREEN_FONT_COLOR:%.1f%%|r', startIndex/50000*100),
+        attempt,
+        '|cnGREEN_FONT_COLOR:'..numEncounterSection..'条'
+    )
+
+    WoWTools_SC_Index = startIndex
+
+    if (counter >= 2) then
+        SC_Wait(0.1, S_EncounterSection, startIndex + 100, attempt + 1, 0)
+    else
+        SC_Wait(0.1, S_EncounterSection, startIndex, attempt + 1, counter + 1)
+    end
+end
+
+
+
+
+
+
+
+
+
+   
+
+
+
+local function Init()
+
+    local Frame= CreateFrame('Frame', 'WoWTools_Chinese_ScannerFrame', UIParent)
+    Frame:SetFrameStrata('HIGH')
+    Frame:SetFrameLevel(501)
+    Frame:SetSize(500,500)
+    Frame:SetPoint('CENTER')
+    Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
+    Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
+    Frame.Header:Setup('WoWTools_Chinese_Scanner 取得数据')
+
+    Frame:SetMovable(true)
+    Frame:RegisterForDrag("LeftButton", "RightButton")
+    Frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    Frame:SetScript("OnDragStop", function(self) ResetCursor() self:StopMovingOrSizing() end)
+    Frame:SetScript("OnMouseDown", function() SetCursor('UI_MOVE_CURSOR') end)
+    Frame:SetScript("OnMouseUp", function() ResetCursor() end)
+    Frame:SetScript("OnLeave", function() ResetCursor() end)
+
+    local ClearButton= CreateFrame('Button', nil, Frame, 'UIPanelButtonTemplate')
+    ClearButton:SetSize(180, 28)
+    ClearButton:SetPoint('TOP', Frame, 0, -32)
+    ClearButton:SetText('清除所有数据')
+    ClearButton:SetScript('OnMouseDown', function()
+        WoWTools_SC_SpellIndex = nil
+        WoWTools_SC_Spell0 = {}
+        WoWTools_SC_Spell100000 = {}
+        WoWTools_SC_Spell200000 = {}
+        WoWTools_SC_Spell300000 = {}
+        WoWTools_SC_Spell400000 = {}
+
+        WoWTools_SC_ItemIndex = nil
+        WoWTools_SC_Item0 = {}
+        WoWTools_SC_Item100000 = {}
+        WoWTools_SC_Item200000 = {}
+
+        WoWTools_SC_UnitIndex=1
+        WoWTools_SC_Unit0 = {}
+        WoWTools_SC_Unit100000 = {}
+        WoWTools_SC_Unit200000 = {}
+
+        WoWTools_SC_AchivementsIndex = nil
+        WoWTools_SC_Achivements0 = {}
+
+        WoWTools_SC_QuestIndex = nil
+        WoWTools_SC_Quest = {}
+
+        WoWTools_SC_EncounterIndex= nil
+        WoWTools_SC_Encounter={}
+
+        WoWTools_SC_SectionEncounter = nil
+        WoWTools_SC_SectionEncounter={}
+    end)
+
+
+    local y= 40
+    local function Create_Button()
+        local bar= CreateFrame('StatusBar', nil, Frame, 'ReputationStatusBarTemplate')
+        bar:SetPoint('TOPLEFT', 12, y)
+        bar:SetPoint('LEFT', -12, y)
+        bar:SetWidth(Frame:GetWidth()-34)
+
+        bar.btn= CreateFrame('Button', nil, Frame, 'UIPanelButtonTemplate')
+        bar.btn:SetSize(23, 23)
+        bar.btn:SetPoint('LEFT', bar, 'RIGHT', 2, 0)
+        return bar
+    end
+
+
+    local EncounterBar= Create_Button()
+
+
+
+
+
+
+    Init=function()end
+end
+
+
+
+
+
+
 EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1)
   if arg1~='WoWTools_Chinese_Scanner' then
     return
@@ -495,62 +661,44 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
 
 
-    WoWTools_SC_Index = 1--WoWTools_SC_Index or 1
 
-    --[[WoWTools_SC_Spell0 = WoWTools_SC_Spell0 or {}
+    --WoWTools_SC_Index = WoWTools_SC_Index or 1
+
+    WoWTools_SC_SpellIndex = WoWTools_SC_SpellIndex or 1
+    WoWTools_SC_Spell0 = WoWTools_SC_Spell0 or {}
     WoWTools_SC_Spell100000 = WoWTools_SC_Spell100000 or {}
     WoWTools_SC_Spell200000 = WoWTools_SC_Spell200000 or {}
     WoWTools_SC_Spell300000 = WoWTools_SC_Spell300000 or {}
     WoWTools_SC_Spell400000 = WoWTools_SC_Spell400000 or {}
 
-    WoWTools_SC_Unit0 = WoWTools_SC_Unit0 or {}
-    WoWTools_SC_Unit100000 = WoWTools_SC_Unit100000 or {}
-    WoWTools_SC_Unit200000 = WoWTools_SC_Unit200000 or {}
-
+    WoWTools_SC_ItemIndex = WoWTools_SC_ItemIndex or 1
     WoWTools_SC_Item0 = WoWTools_SC_Item0 or {}
     WoWTools_SC_Item100000 = WoWTools_SC_Item100000 or {}
     WoWTools_SC_Item200000 = WoWTools_SC_Item200000 or {}
 
+    WoWTools_SC_UnitIndex = WoWTools_SC_UnitIndex or 1
+    WoWTools_SC_Unit0 = WoWTools_SC_Unit0 or {}
+    WoWTools_SC_Unit100000 = WoWTools_SC_Unit100000 or {}
+    WoWTools_SC_Unit200000 = WoWTools_SC_Unit200000 or {}
+
+    WoWTools_SC_AchivementsIndex = WoWTools_SC_AchivementsIndex or 1
     WoWTools_SC_Achivements0 = WoWTools_SC_Achivements0 or {}
 
+    WoWTools_SC_QuestIndex = WoWTools_SC_QuestIndex or 1
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
 
-    WoWTools_SC_SectionEncounter = WoWTools_SC_SectionEncounter or {}
-    WoWTools_SC_Encounter = WoWTools_SC_Encounter or {}]]
+    WoWTools_SC_EncounterIndex= WoWTools_SC_EncounterIndex or 1
+    WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
+
+    WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or 1
+    WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
 
 
+    Init()
 
-            WoWTools_SC_SpellIndex = 1
-            WoWTools_SC_Spell0 = {}
-            WoWTools_SC_Spell100000 = {}
-            WoWTools_SC_Spell200000 = {}
-            WoWTools_SC_Spell300000 = {}
-            WoWTools_SC_Spell400000 = {}
-
-            WoWTools_SC_ItemIndex = 1
-            WoWTools_SC_Item0 = {}
-            WoWTools_SC_Item100000 = {}
-            WoWTools_SC_Item200000 = {}
-
-
-            WoWTools_SC_Unit0 = {}
-            WoWTools_SC_Unit100000 = {}
-            WoWTools_SC_Unit200000 = {}
-            WoWTools_SC_UnitIndex = 1
-
-            WoWTools_SC_Achivements0 = {}
-            WoWTools_SC_AchivementsIndex = 1
-
-            WoWTools_SC_Quest = {}
-            WoWTools_SC_QuestIndex = 1
-
-            WoWTools_SC_Encounter={}
-            WoWTools_SC_SectionEncounter={}
-
-            print("清除")
-
-     SC_Wait(0.1, S_Spell, WoWTools_SC_Index, 1, 0)
-
+    EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
+end)
+--[[
     SlashCmdList["WoWToolsSC"] = function(msg)
 
         if string.sub(msg, 1 , string.len("index")) ~= "index" then
@@ -600,9 +748,8 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
     SLASH_WoWToolsSC1= '/WoWSC'
 
-    EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
-end)
 
---[[
+
+
 /SC spellscanauto
 ]]

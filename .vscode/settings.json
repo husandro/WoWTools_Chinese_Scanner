@@ -17,6 +17,8 @@
     "Lua.type.weakUnionCheck": true,
     "Lua.diagnostics.globals": [
         "SlashCmdList",
-        "TooltipUtil"
+        "TooltipUtil",
+        "UISpecialFrames",
+        "EncounterBar"
     ]
 }
