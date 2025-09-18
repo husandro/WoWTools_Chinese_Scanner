@@ -9,21 +9,20 @@ local qcInformationTooltip = CreateFrame("GameTooltip", "qcInformationTooltip", 
 qcInformationTooltip:SetFrameStrata("TOOLTIP")
 
 local function EnumerateTooltipStyledLines_helper(...)
-  local texts = ''
+    local texts = ''
     for i = 1, select("#", ...) do
         local region = select(i, ...)
         if region and region:GetObjectType() == "FontString" then
-      local text = region:GetText() -- string or nil
+            local text = region:GetText() -- string or nil
 			if (text ~= nil) then
-        if (text ~= " ")
-          then
-            text = "{{" .. text .. "}}"
-            local r, g, b, a = region:GetTextColor()
-            text = text .. "[[" .. r .. "]]" .. "[[" .. g .. "]]" .. "[[" .. b .. "]]"
-          end
-        print(i)
-        print(text)
-        texts = texts .. text
+                if (text ~= " ") then
+                        text = "{{" .. text .. "}}"
+                        local r, g, b, a = region:GetTextColor()
+                        text = text .. "[[" .. r .. "]]" .. "[[" .. g .. "]]" .. "[[" .. b .. "]]"
+                end
+                print(i)
+                print(text)
+                texts = texts .. text
 			end
         end
 	end
@@ -514,7 +513,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWeuCN_Scanner_EncounterSectionData = WoWeuCN_Scanner_EncounterSectionData or {}
     WoWeuCN_Scanner_EncounterData = WoWeuCN_Scanner_EncounterData or {}
 
-    SlashCmdList["WoWeuCN_Scanner"] = function(msg)
+    SlashCmdList["S"] = function(msg)
 
         if (string.sub(msg,1,string.len("index"))~="index") then
 
@@ -581,3 +580,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
+
+--[[
+/S spellscanauto
+]]
