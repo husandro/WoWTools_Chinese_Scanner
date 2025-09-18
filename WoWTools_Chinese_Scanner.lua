@@ -3,10 +3,10 @@
 
 
 local WaitFrame = nil
-local WoWeuCN_Scanner_waitTable = {}
+local WaitTabs = {}
 
-local qcInformationTooltip = CreateFrame("GameTooltip", "qcInformationTooltip", UIParent, "GameTooltipTemplate")
-qcInformationTooltip:SetFrameStrata("TOOLTIP")
+local Tooltip = CreateFrame("GameTooltip", "Tooltip", UIParent, "GameTooltipTemplate")
+Tooltip:SetFrameStrata("TOOLTIP")
 
 local function EnumerateTooltipStyledLines_helper(...)
     local texts = ''
@@ -36,7 +36,7 @@ end
 
 
 
-local function WoWeuCN_Scanner_ScanIndex(index)
+local function Scanner_Index(index)
     WoWeuCN_Scanner_Index = tonumber(index)
     print(index)
 end
@@ -48,17 +48,17 @@ local function WoWeuCN_Scanner_wait(delay, func, ...)
   end
 
   if (WaitFrame == nil) then
-    WaitFrame = CreateFrame("Frame","WoWeuCN_Scanner_waitFrame", UIParent)
+    WaitFrame = CreateFrame("Frame", nil, UIParent)
     WaitFrame:SetScript("onUpdate",function (self, elapse)
-      local count = #WoWeuCN_Scanner_waitTable
+      local count = #WaitTabs
       local i = 1
       while(i<=count) do
-        local waitRecord = tremove(WoWeuCN_Scanner_waitTable,i)
+        local waitRecord = tremove(WaitTabs,i)
         local d = tremove(waitRecord,1)
         local f = tremove(waitRecord,1)
         local p = tremove(waitRecord,1)
         if(d>elapse) then
-          tinsert(WoWeuCN_Scanner_waitTable,i,{d-elapse,f,p})
+          tinsert(WaitTabs,i,{d-elapse,f,p})
           i = i + 1
         else
           count = count - 1
@@ -68,7 +68,7 @@ local function WoWeuCN_Scanner_wait(delay, func, ...)
     end)
   end
 
-  tinsert(WoWeuCN_Scanner_waitTable,{delay,func,{...}})
+  tinsert(WaitTabs,{delay,func,{...}})
 
   return true
 end
@@ -99,11 +99,11 @@ local function S_Spell(startIndex, attempt, counter)
     end
 
     for i = startIndex, startIndex + 150 do
-        qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-        qcInformationTooltip:ClearLines()
-        qcInformationTooltip:SetHyperlink('spell:' .. i)
-        qcInformationTooltip:Show()
-        local text =  EnumerateTooltipStyledLines(qcInformationTooltip)
+        Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        Tooltip:ClearLines()
+        Tooltip:SetHyperlink('spell:' .. i)
+        Tooltip:Show()
+        local text =  EnumerateTooltipStyledLines(Tooltip)
         if (text ~= '' and text ~= nil) then
         if (i >=0 and i < 100000) then
             if (WoWeuCN_Scanner_SpellToolTips0[i .. ''] == nil or string.len(WoWeuCN_Scanner_SpellToolTips0[i .. '']) < string.len(text)) then
@@ -167,12 +167,12 @@ local function S_Unit(startIndex, attempt, counter)
         return
     end
     for i = startIndex, startIndex + 250 do
-        qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-        qcInformationTooltip:ClearLines()
+        Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        Tooltip:ClearLines()
         local guid = "Creature-0-0-0-0-"..i.."-0000000000"
-        qcInformationTooltip:SetHyperlink('unit:' .. guid)
-        qcInformationTooltip:Show()
-        local text =  EnumerateTooltipStyledLines(qcInformationTooltip)
+        Tooltip:SetHyperlink('unit:' .. guid)
+        Tooltip:Show()
+        local text =  EnumerateTooltipStyledLines(Tooltip)
         if (text ~= '' and text ~= nil) then
         if (i >=0 and i < 100000) then
         if (WoWeuCN_Scanner_UnitToolTips0[i .. ''] == nil or string.len(WoWeuCN_Scanner_UnitToolTips0[i .. '']) < string.len(text)) then
@@ -231,11 +231,11 @@ local function S_Item(startIndex, attempt, counter)
     --local itemType, itemSubType, _, _, _, _, classID, subclassID = select(6, C_Item.GetItemInfo(i))
     local classID= C_Item.GetItemInfoInstant(i)
     if classID then
-      qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-      qcInformationTooltip:ClearLines()
-      qcInformationTooltip:SetHyperlink('item:' .. i .. ':0:0:0:0:0:0:0')
-      qcInformationTooltip:Show()
-      local text = EnumerateTooltipStyledLines(qcInformationTooltip)
+      Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+      Tooltip:ClearLines()
+      Tooltip:SetHyperlink('item:' .. i .. ':0:0:0:0:0:0:0')
+      Tooltip:Show()
+      local text = EnumerateTooltipStyledLines(Tooltip)
       text = text .. '{{{' .. classID .. '}}}'
       if (text ~= '' and text ~= nil) then
         if (i >=0 and i < 100000) then
@@ -288,11 +288,11 @@ local function S_Achivement(startIndex, attempt, counter)
     return
   end
   for i = startIndex, startIndex + 150 do
-    qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-    qcInformationTooltip:ClearLines()
-    qcInformationTooltip:SetHyperlink('achievement:' .. i .. ':0:0:0:0:0:0:0:0')
-    qcInformationTooltip:Show()
-    local text = EnumerateTooltipStyledLines(qcInformationTooltip)
+    Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    Tooltip:ClearLines()
+    Tooltip:SetHyperlink('achievement:' .. i .. ':0:0:0:0:0:0:0:0')
+    Tooltip:Show()
+    local text = EnumerateTooltipStyledLines(Tooltip)
     if (text ~= '' and text ~= nil) then
       if (WoWeuCN_Scanner_Achivements0[i .. ''] == nil or string.len(WoWeuCN_Scanner_Achivements0[i .. '']) < string.len(text)) then
         WoWeuCN_Scanner_Achivements0[i .. ''] = text
@@ -330,11 +330,11 @@ local function S_Quest(startIndex, attempt, counter)
     return
   end
   for i = startIndex, startIndex + 100 do
-    qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-    qcInformationTooltip:ClearLines()
-    qcInformationTooltip:SetHyperlink('quest:' .. i)
-    qcInformationTooltip:Show()
-    local text =  EnumerateTooltipStyledLines(qcInformationTooltip)
+    Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    Tooltip:ClearLines()
+    Tooltip:SetHyperlink('quest:' .. i)
+    Tooltip:Show()
+    local text =  EnumerateTooltipStyledLines(Tooltip)
     if (text ~= '' and text ~= nil) then
       WoWeuCN_Scanner_QuestToolTips[i .. ''] = text
       print(i)
@@ -522,7 +522,7 @@ print('b', msg)
         if string.sub(msg, 1 , string.len("index")) ~= "index" then
 
             local index = string.sub(msg,string.len("index")+2)
-            WoWeuCN_Scanner_ScanIndex(index)
+            Scanner_Index(index)
 
             --clear
         elseif (msg=="clear" or msg=="CLEAR") then
@@ -562,15 +562,15 @@ print('b', msg)
         elseif (msg=="achievescanauto" or msg=="ACHIVESCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_Achivement, WoWeuCN_Scanner_Index, 1, 0)
 
-            -- quest scan
+            -- quest scan  
         elseif (msg=="questscanauto" or msg=="QUESTSCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_Quest, WoWeuCN_Scanner_Index, 1, 0)
 
-            -- encounter scan
+            -- encounter scan  
         elseif (msg=="encounterscanauto" or msg=="ENCOUNTERSCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_Encounter, WoWeuCN_Scanner_Index, 1, 0)
 
-            -- encounter scan
+            -- encounter scan  
         elseif (msg=="encountersectionscanauto" or msg=="ENCOUNTERSECTIONSCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_EncounterSection, WoWeuCN_Scanner_Index, 1, 0)
 
