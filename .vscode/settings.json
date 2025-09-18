@@ -19,6 +19,10 @@
         "SlashCmdList",
         "TooltipUtil",
         "UISpecialFrames",
-        "EncounterBar"
+        "EncounterBar",
+        "StaticPopupDialogs",
+        "OKAY",
+        "CANCEL",
+        "StaticPopup_Show"
     ]
 }
