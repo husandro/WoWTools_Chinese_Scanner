@@ -5,10 +5,10 @@
 local WaitFrame = nil
 local WaitTabs = {}
 
-local Tooltip = CreateFrame("GameTooltip", "Tooltip", UIParent, "GameTooltipTemplate")
+local Tooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
 Tooltip:SetFrameStrata("TOOLTIP")
 
-local function EnumerateTooltipStyledLines_helper(...)
+local function GetLinesText_helper(...)
     local texts = ''
     for i = 1, select("#", ...) do
         local region = select(i, ...)
@@ -17,31 +17,31 @@ local function EnumerateTooltipStyledLines_helper(...)
             if (text ~= nil) then
                 if (text ~= " ") then
                     text = "{{" .. text .. "}}"
-                    local r, g, b, a = region:GetTextColor()
+                    local r, g, b = region:GetTextColor()
                     text = text .. "[[" .. r .. "]]" .. "[[" .. g .. "]]" .. "[[" .. b .. "]]"
                 end
                 print(i)
                 print(text)
                 texts = texts .. text
-      end
+          end
         end
   end
   return texts
 end
 
-local function EnumerateTooltipStyledLines(tooltip) -- good for script handlers that pass the tooltip as the first argument.
-  return EnumerateTooltipStyledLines_helper(tooltip:GetRegions())
+local function GetLinesText(tooltip) -- good for script handlers that pass the tooltip as the first argument.
+  return GetLinesText_helper(tooltip:GetRegions())
 end
 
 
 
 
 local function Scanner_Index(index)
-    WoWeuCN_Scanner_Index = tonumber(index)
+    WoWTools_SC_Index = tonumber(index)
     print(index)
 end
 
-local function WoWeuCN_Scanner_wait(delay, func, ...)
+local function SC_Wait(delay, func, ...)
 
   if(type(delay)~="number" or type(func)~="function") then
     return false
@@ -98,44 +98,44 @@ local function S_Spell(startIndex, attempt, counter)
         return
     end
 
-    for i = startIndex, startIndex + 150 do
+    for spellID = startIndex, startIndex + 150 do
         Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
         Tooltip:ClearLines()
-        Tooltip:SetHyperlink('spell:' .. i)
+        Tooltip:SetHyperlink('spell:' .. spellID)
         Tooltip:Show()
-        local text =  EnumerateTooltipStyledLines(Tooltip)
+        local text =  GetLinesText(Tooltip)
         if (text ~= '' and text ~= nil) then
-        if (i >=0 and i < 100000) then
-            if (WoWeuCN_Scanner_SpellToolTips0[i .. ''] == nil or string.len(WoWeuCN_Scanner_SpellToolTips0[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_SpellToolTips0[i .. ''] = text
+        if (spellID >=0 and spellID < 100000) then
+            if (WoWTools_SC_Spell0[spellID .. ''] == nil or string.len(WoWTools_SC_Spell0[spellID .. '']) < string.len(text)) then
+                WoWTools_SC_Spell0[spellID .. ''] = text
             end
-        elseif (i >=100000 and i < 200000) then
-            if (WoWeuCN_Scanner_SpellToolTips100000[i .. ''] == nil or string.len(WoWeuCN_Scanner_SpellToolTips100000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_SpellToolTips100000[i .. ''] = text
+        elseif (spellID >=100000 and spellID < 200000) then
+            if (WoWTools_SC_Spell100000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell100000[spellID .. '']) < string.len(text)) then
+            WoWTools_SC_Spell100000[spellID .. ''] = text
             end
-        elseif (i >=200000 and i < 300000) then
-            if (WoWeuCN_Scanner_SpellToolTips200000[i .. ''] == nil or string.len(WoWeuCN_Scanner_SpellToolTips200000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_SpellToolTips200000[i .. ''] = text
+        elseif (spellID >=200000 and spellID < 300000) then
+            if (WoWTools_SC_Spell200000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell200000[spellID .. '']) < string.len(text)) then
+            WoWTools_SC_Spell200000[spellID .. ''] = text
             end
-        elseif (i >=300000 and i < 400000) then
-            if (WoWeuCN_Scanner_SpellToolTips300000[i .. ''] == nil or string.len(WoWeuCN_Scanner_SpellToolTips300000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_SpellToolTips300000[i .. ''] = text
+        elseif (spellID >=300000 and spellID < 400000) then
+            if (WoWTools_SC_Spell300000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell300000[spellID .. '']) < string.len(text)) then
+            WoWTools_SC_Spell300000[spellID .. ''] = text
             end
-        elseif (i >=400000 and i < 500000) then
-            if (WoWeuCN_Scanner_SpellToolTips400000[i .. ''] == nil or string.len(WoWeuCN_Scanner_SpellToolTips400000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_SpellToolTips400000[i .. ''] = text
+        elseif (spellID >=400000 and spellID < 500000) then
+            if (WoWTools_SC_Spell400000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell400000[spellID .. '']) < string.len(text)) then
+            WoWTools_SC_Spell400000[spellID .. ''] = text
             end
         end
-        print(i)
+        print(spellID)
         end
     end
   print(attempt)
   print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
+  WoWTools_SC_Index = startIndex
   if (counter >= 5) then
-    WoWeuCN_Scanner_wait(0.5, S_Spell, startIndex + 150, attempt + 1, 0)
+    SC_Wait(0.5, S_Spell, startIndex + 150, attempt + 1, 0)
   else
-    WoWeuCN_Scanner_wait(0.5, S_Spell, startIndex, attempt + 1, counter + 1)
+    SC_Wait(0.5, S_Spell, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -166,40 +166,40 @@ local function S_Unit(startIndex, attempt, counter)
     if (startIndex > 300000) then
         return
     end
-    for i = startIndex, startIndex + 250 do
+    for unit = startIndex, startIndex + 250 do
         Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
         Tooltip:ClearLines()
-        local guid = "Creature-0-0-0-0-"..i.."-0000000000"
+        local guid = "Creature-0-0-0-0-"..unit.."-0000000000"
         Tooltip:SetHyperlink('unit:' .. guid)
         Tooltip:Show()
-        local text =  EnumerateTooltipStyledLines(Tooltip)
+        local text =  GetLinesText(Tooltip)
         if (text ~= '' and text ~= nil) then
-        if (i >=0 and i < 100000) then
-        if (WoWeuCN_Scanner_UnitToolTips0[i .. ''] == nil or string.len(WoWeuCN_Scanner_UnitToolTips0[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_UnitToolTips0[i .. ''] = text
+        if (unit >=0 and unit < 100000) then
+        if (WoWTools_SC_Unit0[unit .. ''] == nil or string.len(WoWTools_SC_Unit0[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit0[unit .. ''] = text
         end
-        elseif (i >=100000 and i < 200000) then
-        if (WoWeuCN_Scanner_UnitToolTips100000[i .. ''] == nil or string.len(WoWeuCN_Scanner_UnitToolTips100000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_UnitToolTips100000[i .. ''] = text
+        elseif (unit >=100000 and unit < 200000) then
+        if (WoWTools_SC_Unit100000[unit .. ''] == nil or string.len(WoWTools_SC_Unit100000[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit100000[unit .. ''] = text
         end
-        elseif (i >=200000 and i < 300000) then
-        if (WoWeuCN_Scanner_UnitToolTips200000[i .. ''] == nil or string.len(WoWeuCN_Scanner_UnitToolTips200000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_UnitToolTips200000[i .. ''] = text
+        elseif (unit >=200000 and unit < 300000) then
+        if (WoWTools_SC_Unit200000[unit .. ''] == nil or string.len(WoWTools_SC_Unit200000[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit200000[unit .. ''] = text
         end
         end
         end
-        print(i)
+        print(unit)
     end
 
     print(attempt)
     print('index ' .. startIndex)
 
-    WoWeuCN_Scanner_Index = startIndex
+    WoWTools_SC_Index = startIndex
 
     if (counter >= 3) then
-        WoWeuCN_Scanner_wait(0.5, S_Unit, startIndex + 250, attempt + 1, 0)
+        SC_Wait(0.5, S_Unit, startIndex + 250, attempt + 1, 0)
     else
-        WoWeuCN_Scanner_wait(0.5, S_Unit, startIndex, attempt + 1, counter + 1)
+        SC_Wait(0.5, S_Unit, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -227,30 +227,30 @@ local function S_Item(startIndex, attempt, counter)
     return
   end
 
-  for i = startIndex, startIndex + 150 do
-    --local itemType, itemSubType, _, _, _, _, classID, subclassID = select(6, C_Item.GetItemInfo(i))
-    local classID= C_Item.GetItemInfoInstant(i)
+  for itemID = startIndex, startIndex + 150 do
+    --local itemType, itemSubType, _, _, _, _, classID, subclassID = select(6, C_Item.GetItemInfo(itemID))
+    local classID= C_Item.GetItemInfoInstant(itemID)
     if classID then
       Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
       Tooltip:ClearLines()
-      Tooltip:SetHyperlink('item:' .. i .. ':0:0:0:0:0:0:0')
+      Tooltip:SetHyperlink('item:' .. itemID .. ':0:0:0:0:0:0:0')
       Tooltip:Show()
-      local text = EnumerateTooltipStyledLines(Tooltip)
+      local text = GetLinesText(Tooltip)
       text = text .. '{{{' .. classID .. '}}}'
       if (text ~= '' and text ~= nil) then
-        if (i >=0 and i < 100000) then
-          if (WoWeuCN_Scanner_ItemToolTips0[i .. ''] == nil or string.len(WoWeuCN_Scanner_ItemToolTips0[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_ItemToolTips0[i .. ''] = text
+        if (itemID >=0 and itemID < 100000) then
+          if (WoWTools_SC_Item0[itemID .. ''] == nil or string.len(WoWTools_SC_Item0[itemID .. '']) < string.len(text)) then
+            WoWTools_SC_Item0[itemID .. ''] = text
           end
-        elseif (i >=100000 and i < 200000) then
-          if (WoWeuCN_Scanner_ItemToolTips100000[i .. ''] == nil or string.len(WoWeuCN_Scanner_ItemToolTips100000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_ItemToolTips100000[i .. ''] = text
+        elseif (itemID >=100000 and itemID < 200000) then
+          if (WoWTools_SC_Item100000[itemID .. ''] == nil or string.len(WoWTools_SC_Item100000[itemID .. '']) < string.len(text)) then
+            WoWTools_SC_Item100000[itemID .. ''] = text
           end
-        elseif (i >=200000 and i < 300000) then
-          if (WoWeuCN_Scanner_ItemToolTips200000[i .. ''] == nil or string.len(WoWeuCN_Scanner_ItemToolTips200000[i .. '']) < string.len(text)) then
-            WoWeuCN_Scanner_ItemToolTips200000[i .. ''] = text
+        elseif (itemID >=200000 and itemID < 300000) then
+          if (WoWTools_SC_Item200000[itemID .. ''] == nil or string.len(WoWTools_SC_Item200000[itemID .. '']) < string.len(text)) then
+            WoWTools_SC_Item200000[itemID .. ''] = text
           end
-          print(i)
+          print(itemID)
         end
       end
     end
@@ -258,12 +258,12 @@ local function S_Item(startIndex, attempt, counter)
 
   print(attempt)
   print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
+  WoWTools_SC_Index = startIndex
 
   if (counter >= 5) then
-    WoWeuCN_Scanner_wait(0.5, S_Item, startIndex + 150, attempt + 1, 0)
+    SC_Wait(0.5, S_Item, startIndex + 150, attempt + 1, 0)
   else
-    WoWeuCN_Scanner_wait(0.5, S_Item, startIndex, attempt + 1, counter + 1)
+    SC_Wait(0.5, S_Item, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -287,26 +287,26 @@ local function S_Achivement(startIndex, attempt, counter)
   if (startIndex > 30000) then
     return
   end
-  for i = startIndex, startIndex + 150 do
+  for achievementID = startIndex, startIndex + 150 do
     Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
     Tooltip:ClearLines()
-    Tooltip:SetHyperlink('achievement:' .. i .. ':0:0:0:0:0:0:0:0')
+    Tooltip:SetHyperlink('achievement:' .. achievementID .. ':0:0:0:0:0:0:0:0')
     Tooltip:Show()
-    local text = EnumerateTooltipStyledLines(Tooltip)
+    local text = GetLinesText(Tooltip)
     if (text ~= '' and text ~= nil) then
-      if (WoWeuCN_Scanner_Achivements0[i .. ''] == nil or string.len(WoWeuCN_Scanner_Achivements0[i .. '']) < string.len(text)) then
-        WoWeuCN_Scanner_Achivements0[i .. ''] = text
+      if (WoWTools_SC_Achivements0[achievementID .. ''] == nil or string.len(WoWTools_SC_Achivements0[achievementID .. '']) < string.len(text)) then
+        WoWTools_SC_Achivements0[achievementID .. ''] = text
       end
     end
   end
   print(attempt)
   print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
+  WoWTools_SC_Index = startIndex
 
   if (counter >= 5) then
-    WoWeuCN_Scanner_wait(0.5, S_Achivement, startIndex + 150, attempt + 1, 0)
+    SC_Wait(0.5, S_Achivement, startIndex + 150, attempt + 1, 0)
   else
-    WoWeuCN_Scanner_wait(0.5, S_Achivement, startIndex, attempt + 1, counter + 1)
+    SC_Wait(0.5, S_Achivement, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -329,24 +329,24 @@ local function S_Quest(startIndex, attempt, counter)
   if (startIndex > 90000) then
     return
   end
-  for i = startIndex, startIndex + 100 do
+  for questID = startIndex, startIndex + 100 do
     Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
     Tooltip:ClearLines()
-    Tooltip:SetHyperlink('quest:' .. i)
+    Tooltip:SetHyperlink('quest:' .. questID)
     Tooltip:Show()
-    local text =  EnumerateTooltipStyledLines(Tooltip)
+    local text =  GetLinesText(Tooltip)
     if (text ~= '' and text ~= nil) then
-      WoWeuCN_Scanner_QuestToolTips[i .. ''] = text
-      print(i)
+      WoWTools_SC_Quest[questID .. ''] = text
+      print(questID)
     end
   end
   print(attempt)
   print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
+  WoWTools_SC_Index = startIndex
   if (counter >= 5) then
-     WoWeuCN_Scanner_wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
+     SC_Wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
   else
-     WoWeuCN_Scanner_wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
+     SC_Wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -359,25 +359,25 @@ end
 
 local function S_Encounter(startIndex, attempt, counter)
   if (startIndex > 25000) then
-    WoWeuCN_Scanner_Index = 0
+    WoWTools_SC_Index = 0
     return
   end
   for i = startIndex, startIndex + 100 do
     local sectionInfo = EJ_GetEncounterInfo(i)
     if (sectionInfo) then
       local ename, description, _, rootSectionID = EJ_GetEncounterInfo(i)
-      WoWeuCN_Scanner_EncounterData[i] = {}
-      WoWeuCN_Scanner_EncounterData[i]["Title"] = ename
-      WoWeuCN_Scanner_EncounterData[i]["Description"] = description
+      WoWTools_SC_Encounter[i] = {}
+      WoWTools_SC_Encounter[i]["Title"] = ename
+      WoWTools_SC_Encounter[i]["Description"] = description
     end
   end
   print(attempt)
   print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
+  WoWTools_SC_Index = startIndex
   if (counter >= 2) then
-     WoWeuCN_Scanner_wait(0.1, S_Encounter, startIndex + 100, attempt + 1, 0)
+     SC_Wait(0.1, S_Encounter, startIndex + 100, attempt + 1, 0)
   else
-     WoWeuCN_Scanner_wait(0.1, S_Encounter, startIndex, attempt + 1, counter + 1)
+     SC_Wait(0.1, S_Encounter, startIndex, attempt + 1, counter + 1)
   end
 end
 
@@ -392,34 +392,37 @@ end
 
 --EncounterSection
 local function S_EncounterSection(startIndex, attempt, counter)
-  if (startIndex > 50000) then
-    WoWeuCN_Scanner_Index = 0
-    return
-  end
-
-  for difficultyId = 1, 45 do
-    EJ_SetDifficulty(difficultyId)
-    for i = startIndex, startIndex + 100 do
-      local sectionInfo =  C_EncounterJournal.GetSectionInfo(i)
-      if (sectionInfo and not sectionInfo.filteredByDifficulty) then
-        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i] = {}
-        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Title"] = sectionInfo.title
-
-        print(sectionInfo.title)
-        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Description"] = sectionInfo.description
-      end
+    if (startIndex > 50000) then
+        WoWTools_SC_Index = 0
+        return
     end
-  end
 
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
+    for difficultyID = 1, 45 do
+        EJ_SetDifficulty(difficultyID)
 
-  if (counter >= 2) then
-     WoWeuCN_Scanner_wait(0.1, S_EncounterSection, startIndex + 100, attempt + 1, 0)
-  else
-     WoWeuCN_Scanner_wait(0.1, S_EncounterSection, startIndex, attempt + 1, counter + 1)
-  end
+        for i = startIndex, startIndex + 100 do
+            local sectionInfo =  C_EncounterJournal.GetSectionInfo(i)
+            if (sectionInfo and not sectionInfo.filteredByDifficulty) then
+                local difficulty= EJ_GetDifficulty()
+                WoWTools_SC_SectionEncounter[difficulty .. 'x' .. i] = {}
+                WoWTools_SC_SectionEncounter[difficulty .. 'x' .. i]["Title"] = sectionInfo.title
+
+
+                WoWTools_SC_SectionEncounter[difficulty .. 'x' .. i]["Description"] = sectionInfo.description
+                print(sectionInfo.title)
+            end
+        end
+    end
+
+    print(attempt)
+    print('index ' .. startIndex)
+    WoWTools_SC_Index = startIndex
+
+    if (counter >= 2) then
+        SC_Wait(0.1, S_EncounterSection, startIndex + 100, attempt + 1, 0)
+    else
+        SC_Wait(0.1, S_EncounterSection, startIndex, attempt + 1, counter + 1)
+    end
 end
 
 
@@ -449,12 +452,12 @@ local function S_CacheQuest(startIndex, attempt, counter)
         end
     end
 
-    WoWeuCN_Scanner_Index = startIndex
+    WoWTools_SC_Index = startIndex
 
     if (counter >= 5) then
-      WoWeuCN_Scanner_wait(0.2, S_CacheQuest, startIndex + 150, attempt + 1, 0)
+      SC_Wait(0.2, S_CacheQuest, startIndex + 150, attempt + 1, 0)
     else
-      WoWeuCN_Scanner_wait(0.2, S_CacheQuest, startIndex, attempt + 1, counter + 1)
+      SC_Wait(0.2, S_CacheQuest, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -490,35 +493,66 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     return
   end
 
-  print('a')
 
-    WoWeuCN_Scanner_Index = WoWeuCN_Scanner_Index or 1
 
-    WoWeuCN_Scanner_SpellToolTips0 = WoWeuCN_Scanner_SpellToolTips0 or {}
-    WoWeuCN_Scanner_SpellToolTips100000 = WoWeuCN_Scanner_SpellToolTips100000 or {}
-    WoWeuCN_Scanner_SpellToolTips200000 = WoWeuCN_Scanner_SpellToolTips200000 or {}
-    WoWeuCN_Scanner_SpellToolTips300000 = WoWeuCN_Scanner_SpellToolTips300000 or {}
-    WoWeuCN_Scanner_SpellToolTips400000 = WoWeuCN_Scanner_SpellToolTips400000 or {}
+    WoWTools_SC_Index = 1--WoWTools_SC_Index or 1
 
-    WoWeuCN_Scanner_UnitToolTips0 = WoWeuCN_Scanner_UnitToolTips0 or {}
-    WoWeuCN_Scanner_UnitToolTips100000 = WoWeuCN_Scanner_UnitToolTips100000 or {}
-    WoWeuCN_Scanner_UnitToolTips200000 = WoWeuCN_Scanner_UnitToolTips200000 or {}
+    --[[WoWTools_SC_Spell0 = WoWTools_SC_Spell0 or {}
+    WoWTools_SC_Spell100000 = WoWTools_SC_Spell100000 or {}
+    WoWTools_SC_Spell200000 = WoWTools_SC_Spell200000 or {}
+    WoWTools_SC_Spell300000 = WoWTools_SC_Spell300000 or {}
+    WoWTools_SC_Spell400000 = WoWTools_SC_Spell400000 or {}
 
-    WoWeuCN_Scanner_ItemToolTips0 = WoWeuCN_Scanner_ItemToolTips0 or {}
-    WoWeuCN_Scanner_ItemToolTips100000 = WoWeuCN_Scanner_ItemToolTips100000 or {}
-    WoWeuCN_Scanner_ItemToolTips200000 = WoWeuCN_Scanner_ItemToolTips200000 or {}
+    WoWTools_SC_Unit0 = WoWTools_SC_Unit0 or {}
+    WoWTools_SC_Unit100000 = WoWTools_SC_Unit100000 or {}
+    WoWTools_SC_Unit200000 = WoWTools_SC_Unit200000 or {}
 
-    WoWeuCN_Scanner_Achivements0 = WoWeuCN_Scanner_Achivements0 or {}
+    WoWTools_SC_Item0 = WoWTools_SC_Item0 or {}
+    WoWTools_SC_Item100000 = WoWTools_SC_Item100000 or {}
+    WoWTools_SC_Item200000 = WoWTools_SC_Item200000 or {}
 
-    WoWeuCN_Scanner_QuestToolTips = WoWeuCN_Scanner_QuestToolTips or {}
+    WoWTools_SC_Achivements0 = WoWTools_SC_Achivements0 or {}
 
-    WoWeuCN_Scanner_EncounterSectionData = WoWeuCN_Scanner_EncounterSectionData or {}
-    WoWeuCN_Scanner_EncounterData = WoWeuCN_Scanner_EncounterData or {}
+    WoWTools_SC_Quest = WoWTools_SC_Quest or {}
 
-     WoWeuCN_Scanner_wait(0.1, S_Spell, WoWeuCN_Scanner_Index, 1, 0)
+    WoWTools_SC_SectionEncounter = WoWTools_SC_SectionEncounter or {}
+    WoWTools_SC_Encounter = WoWTools_SC_Encounter or {}]]
+
+
+
+            WoWTools_SC_SpellIndex = 1
+            WoWTools_SC_Spell0 = {}
+            WoWTools_SC_Spell100000 = {}
+            WoWTools_SC_Spell200000 = {}
+            WoWTools_SC_Spell300000 = {}
+            WoWTools_SC_Spell400000 = {}
+
+            WoWTools_SC_ItemIndex = 1
+            WoWTools_SC_Item0 = {}
+            WoWTools_SC_Item100000 = {}
+            WoWTools_SC_Item200000 = {}
+
+
+            WoWTools_SC_Unit0 = {}
+            WoWTools_SC_Unit100000 = {}
+            WoWTools_SC_Unit200000 = {}
+            WoWTools_SC_UnitIndex = 1
+
+            WoWTools_SC_Achivements0 = {}
+            WoWTools_SC_AchivementsIndex = 1
+
+            WoWTools_SC_Quest = {}
+            WoWTools_SC_QuestIndex = 1
+
+            WoWTools_SC_Encounter={}
+            WoWTools_SC_SectionEncounter={}
+
+            print("清除")
+
+     SC_Wait(0.1, S_Spell, WoWTools_SC_Index, 1, 0)
 
     SlashCmdList["WoWToolsSC"] = function(msg)
-print('b', msg)
+
         if string.sub(msg, 1 , string.len("index")) ~= "index" then
 
             local index = string.sub(msg,string.len("index")+2)
@@ -526,61 +560,45 @@ print('b', msg)
 
             --clear
         elseif (msg=="clear" or msg=="CLEAR") then
-            WoWeuCN_Scanner_SpellToolIndex = 1
-            WoWeuCN_Scanner_SpellToolTips0 = {}
-            WoWeuCN_Scanner_SpellToolTips100000 = {}
-            WoWeuCN_Scanner_SpellToolTips200000 = {}
-            WoWeuCN_Scanner_SpellToolTips300000 = {}
-            WoWeuCN_Scanner_SpellToolTips400000 = {}
-            WoWeuCN_Scanner_ItemToolTips0 = {}
-            WoWeuCN_Scanner_ItemToolTips100000 = {}
-            WoWeuCN_Scanner_ItemToolTips200000 = {}
-            WoWeuCN_Scanner_ItemIndex = 1
-            WoWeuCN_Scanner_UnitToolTips0 = {}
-            WoWeuCN_Scanner_UnitToolTips100000 = {}
-            WoWeuCN_Scanner_UnitToolTips200000 = {}
-            WoWeuCN_Scanner_UnitIndex = 1
-            WoWeuCN_Scanner_Achivements0 = {}
-            WoWeuCN_Scanner_AchivementsIndex = 1
-            WoWeuCN_Scanner_QuestToolTips = {}
-            WoWeuCN_Scanner_QuestIndex = 1
-            print("清除")
+
+
 
             -- spell auto scan
         elseif (msg=="spellscanauto" or msg=="SPELLSCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_Spell, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_Spell, WoWTools_SC_Index, 1, 0)
 
             -- unit auto scan
         elseif (msg=="unitscanauto" or msg=="UNITSCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_Unit, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_Unit, WoWTools_SC_Index, 1, 0)
 
             -- item auto scan
         elseif (msg=="itemscanauto" or msg=="ITEMSCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_Item, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_Item, WoWTools_SC_Index, 1, 0)
 
             -- achivement auto scan
         elseif (msg=="achievescanauto" or msg=="ACHIVESCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_Achivement, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_Achivement, WoWTools_SC_Index, 1, 0)
 
-            -- quest scan  
+            -- quest scan
         elseif (msg=="questscanauto" or msg=="QUESTSCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_Quest, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_Quest, WoWTools_SC_Index, 1, 0)
 
-            -- encounter scan  
+            -- encounter scan
         elseif (msg=="encounterscanauto" or msg=="ENCOUNTERSCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_Encounter, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_Encounter, WoWTools_SC_Index, 1, 0)
 
-            -- encounter scan  
+            -- encounter scan
         elseif (msg=="encountersectionscanauto" or msg=="ENCOUNTERSECTIONSCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_EncounterSection, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_EncounterSection, WoWTools_SC_Index, 1, 0)
 
             -- quest cache scan
         elseif (msg=="cachescanauto" or msg=="CACHESCANAUTO") then
-            WoWeuCN_Scanner_wait(0.1, S_CacheQuest, WoWeuCN_Scanner_Index, 1, 0)
+            SC_Wait(0.1, S_CacheQuest, WoWTools_SC_Index, 1, 0)
 
         end
     end
-SLASH_WoWToolsSC1= '/SC'
+
+    SLASH_WoWToolsSC1= '/WoWSC'
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)

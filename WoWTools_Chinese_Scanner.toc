@@ -4,8 +4,7 @@
 ## Version: @project-version@
 ## Notes: |A:Icon-WoW:0:0|aWoW |cff28a3ff中文化|r|n|cffffd100|A:communities-icon-invitemail:0:0|ahusandro@qq.com|r|n|A:WoWShare-TwitterLogo:0:0|a|cff00ccffhttps://www.curseforge.com/wow/addons/wowtools_chinese|r
 ## DefaultState: disabled
-## SavedVariables: WoWeuCN_Scanner_PS, WoWeuCN_Scanner_SpellToolTips0, WoWeuCN_Scanner_SpellToolTips100000, WoWeuCN_Scanner_SpellToolTips200000, WoWeuCN_Scanner_SpellToolTips300000, WoWeuCN_Scanner_SpellToolTips400000, WoWeuCN_Scanner_Index, WoWeuCN_Scanner_ItemToolTips0, WoWeuCN_Scanner_ItemToolTips100000, WoWeuCN_Scanner_ItemToolTips200000, WoWeuCN_Scanner_UnitToolTips0, WoWeuCN_Scanner_UnitToolTips100000, WoWeuCN_Scanner_UnitToolTips200000, WoWeuCN_Scanner_Achivements0, WoWeuCN_Scanner_QuestToolTips, WoWeuCN_Scanner_EncounterData, WoWeuCN_Scanner_EncounterSectionData
-## SavedVariablesPerCharacter: WoWeuCN_Scanner_PC
+## SavedVariables: WoWTools_SC_Spell0, WoWTools_SC_Spell100000, WoWTools_SC_Spell200000, WoWTools_SC_Spell300000, WoWTools_SC_Spell400000, WoWTools_SC_Index, WoWTools_SC_Item0, WoWTools_SC_Item100000, WoWTools_SC_Item200000, WoWTools_SC_Unit0, WoWTools_SC_Unit100000, WoWTools_SC_Unit200000, WoWTools_SC_Achivements0, WoWTools_SC_Quest, WoWTools_SC_Encounter, WoWTools_SC_SectionEncounter
 ## IconTexture: Interface\AddOns\WoWTools_Chinese_Scanner\WoWtools.tga
 
 WoWTools_Chinese_Scanner.lua
