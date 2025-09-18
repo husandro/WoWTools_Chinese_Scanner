@@ -14,19 +14,19 @@ local function EnumerateTooltipStyledLines_helper(...)
         local region = select(i, ...)
         if region and region:GetObjectType() == "FontString" then
             local text = region:GetText() -- string or nil
-			if (text ~= nil) then
+            if (text ~= nil) then
                 if (text ~= " ") then
-                        text = "{{" .. text .. "}}"
-                        local r, g, b, a = region:GetTextColor()
-                        text = text .. "[[" .. r .. "]]" .. "[[" .. g .. "]]" .. "[[" .. b .. "]]"
+                    text = "{{" .. text .. "}}"
+                    local r, g, b, a = region:GetTextColor()
+                    text = text .. "[[" .. r .. "]]" .. "[[" .. g .. "]]" .. "[[" .. b .. "]]"
                 end
                 print(i)
                 print(text)
                 texts = texts .. text
-			end
+      end
         end
-	end
-	return texts
+  end
+  return texts
 end
 
 local function EnumerateTooltipStyledLines(tooltip) -- good for script handlers that pass the tooltip as the first argument.
@@ -365,7 +365,7 @@ local function S_Encounter(startIndex, attempt, counter)
   for i = startIndex, startIndex + 100 do
     local sectionInfo = EJ_GetEncounterInfo(i)
     if (sectionInfo) then
-	    local ename, description, _, rootSectionID = EJ_GetEncounterInfo(i)
+      local ename, description, _, rootSectionID = EJ_GetEncounterInfo(i)
       WoWeuCN_Scanner_EncounterData[i] = {}
       WoWeuCN_Scanner_EncounterData[i]["Title"] = ename
       WoWeuCN_Scanner_EncounterData[i]["Description"] = description
@@ -486,9 +486,11 @@ end
 
 
 EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1)
-  if arg1~='WoWeuCN_Scanner' then
+  if arg1~='WoWTools_Chinese_Scanner' then
     return
   end
+
+  print('a')
 
     WoWeuCN_Scanner_Index = WoWeuCN_Scanner_Index or 1
 
@@ -513,9 +515,11 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWeuCN_Scanner_EncounterSectionData = WoWeuCN_Scanner_EncounterSectionData or {}
     WoWeuCN_Scanner_EncounterData = WoWeuCN_Scanner_EncounterData or {}
 
-    SlashCmdList["S"] = function(msg)
+     WoWeuCN_Scanner_wait(0.1, S_Spell, WoWeuCN_Scanner_Index, 1, 0)
 
-        if (string.sub(msg,1,string.len("index"))~="index") then
+    SlashCmdList["WoWToolsSC"] = function(msg)
+print('b', msg)
+        if string.sub(msg, 1 , string.len("index")) ~= "index" then
 
             local index = string.sub(msg,string.len("index")+2)
             WoWeuCN_Scanner_ScanIndex(index)
@@ -558,15 +562,15 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         elseif (msg=="achievescanauto" or msg=="ACHIVESCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_Achivement, WoWeuCN_Scanner_Index, 1, 0)
 
-            -- quest scan  
+            -- quest scan
         elseif (msg=="questscanauto" or msg=="QUESTSCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_Quest, WoWeuCN_Scanner_Index, 1, 0)
 
-            -- encounter scan  
+            -- encounter scan
         elseif (msg=="encounterscanauto" or msg=="ENCOUNTERSCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_Encounter, WoWeuCN_Scanner_Index, 1, 0)
 
-            -- encounter scan  
+            -- encounter scan
         elseif (msg=="encountersectionscanauto" or msg=="ENCOUNTERSECTIONSCANAUTO") then
             WoWeuCN_Scanner_wait(0.1, S_EncounterSection, WoWeuCN_Scanner_Index, 1, 0)
 
@@ -576,11 +580,11 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
         end
     end
-    SLASH_WoWeuCN_Scanner1 = "/WoWeuCN-Scanner"
+SLASH_WoWToolsSC1= '/SC'
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
 
 --[[
-/S spellscanauto
+/SC spellscanauto
 ]]
