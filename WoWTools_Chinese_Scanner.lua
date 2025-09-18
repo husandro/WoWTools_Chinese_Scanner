@@ -474,7 +474,7 @@ local function S_Encounter(self, startIndex, attempt, counter)
 
             numEncounter= numEncounter+1
 
-            print('Encounter', journalEncounterID, link)
+            --print('Encounter', journalEncounterID, link)
         end
     end
 
@@ -627,6 +627,8 @@ local function Init()
 
     local StopButton= CreateFrame('Button', nil, Frame)
     StopButton:SetNormalAtlas('common-dropdown-icon-stop')
+    StopButton:SetPushedAtlas('PetList-ButtonSelect')
+    StopButton:SetHighlightAtlas('PetList-ButtonHighlight')
     StopButton:SetSize(23, 23)
     StopButton:SetPoint('LEFT', ClearButton, 'RIGHT', 8, 0)
     StopButton:SetScript('OnMouseDown', function()
