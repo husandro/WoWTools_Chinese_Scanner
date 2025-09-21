@@ -580,7 +580,7 @@ function QuestTooltip:Get_Text(questID, ...)
     for i = 1, select("#", ...) do
         local text = GetLineText(select(i, ...), false)
         if text and text~=' ' and text~=QUEST_TOOLTIP_ACTIVE then
-            if text:find('要求：') or text:find('DNT') then
+            if text:find('要求：') or text:find('DNT') or text:find('UNUSED') then
                 return
 
             elseif not title then
