@@ -1,7 +1,6 @@
 -- wait functions from QTR
 --https://github.com/husandro/WoWTranslator/commits?author=qqytqqyt
-local IsStopRun= true
-local numEncounter= 0
+
 
 
 
@@ -439,19 +438,22 @@ end
 
 
 local function S_Encounter(self, startIndex, attempt, counter)
-   
-    if IsStopRun then
+
+    if self.isStop then
         local va= startIndex/25000*100
-        self.Value:SetFormattedText('停止, %d条, %.1f%%', numEncounter, va)
+        self.Value:SetFormattedText('暂停, %d, %.1f%%', startIndex, va)
         self.bar:SetValue(va)
+        self.Name:SetText(self.name)
         return
 
     elseif (startIndex > 25000) then
         self.bar:SetValue(100)
-        self.Value:SetFormattedText('结束, %d条', numEncounter)
+        self.Value:SetFormattedText('结束, %d条', self.num)
         self.bar:SetValue(0)
+        self.Name:SetText(self.name)
         WoWTools_SC_EncounterIndex = nil
-        numEncounter= 0
+        self:settings()
+        self.num= 0
         return
     end
 
@@ -472,17 +474,15 @@ local function S_Encounter(self, startIndex, attempt, counter)
                 WoWTools_SC_Encounter[journalEncounterID].D = desc
             end
 
-            numEncounter= numEncounter+1
-
-            --print('Encounter', journalEncounterID, link)
+            self.num= self.num+1
+            self.Name:SetText(link or name or '')
         end
     end
 
 
     local va= startIndex/25000*100
-    self.Value:SetFormattedText('%d条 %.1f%%', numEncounter, va)
+    self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
     self.bar:SetValue(va)
-    
 
     WoWTools_SC_EncounterIndex = startIndex
 
@@ -506,11 +506,22 @@ end
 
 --EncounterSection
 local numEncounterSection= 0
-local function S_EncounterSection(startIndex, attempt, counter)
-    if (startIndex > 50000) then
-        print('EncounterSection', '|cnRED_FONT_COLOR:结束|r', numEncounterSection)
-        WoWTools_SC_Index = 0
-        numEncounterSection= 0
+local function S_SectionEncounter(self, startIndex, attempt, counter)
+    if self.isStop then
+        local va= startIndex/25000*100
+        self.Value:SetFormattedText('暂停, %d条, %.1f%%', startIndex, va)
+        self.bar:SetValue(va)
+        self.Name:SetText(self.name)
+        return
+
+    elseif (startIndex > 50000) then
+        self.bar:SetValue(100)
+        self.Value:SetFormattedText('结束, %d条', self.num)
+        self.bar:SetValue(0)
+        self.Name:SetText(self.name)
+        WoWTools_SC_SectionEncounterIndex = nil
+        self:settings()
+        self.num= 0
         return
     end
 
@@ -545,31 +556,27 @@ local function S_EncounterSection(startIndex, attempt, counter)
                             WoWTools_SC_SectionEncounter[t].D = desc
                         end
 
+                        self.num= self.num+1
+                        self.Name:SetText(sectionInfo.link or name or '')
                         numEncounterSection= numEncounterSection+1
-                        print(
-                            sectionID..'|cnGREEN_FONT_COLOR:x|r'..index,
-                            sectionInfo.link
-                        )
                     end
                 end
             end
         end
     end
 
-    print(
-        'EncounterSection',
-        startIndex,
-        format('|cnGREEN_FONT_COLOR:%.1f%%|r', startIndex/50000*100),
-        attempt,
-        '|cnGREEN_FONT_COLOR:'..numEncounterSection..'条'
-    )
+    local va= startIndex/25000*100
+    self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
+    self.bar:SetValue(va)
 
-    WoWTools_SC_Index = startIndex
+    WoWTools_SC_SectionEncounterIndex = startIndex
 
     if (counter >= 2) then
-        SC_Wait(0.1, S_EncounterSection, startIndex + 100, attempt + 1, 0)
+        --SC_Wait(0.1, S_SectionEncounter, startIndex + 100, attempt + 1, 0)
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
     else
-        SC_Wait(0.1, S_EncounterSection, startIndex, attempt + 1, counter + 1)
+        --SC_Wait(0.1, S_SectionEncounter, startIndex, attempt + 1, counter + 1)
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -594,10 +601,56 @@ end
 
 
 
+local function clear_data(t)
+    if t=='Spell' or not t then
+        WoWTools_SC_SpellIndex = nil
+        WoWTools_SC_Spell0 = {}
+        WoWTools_SC_Spell100000 = {}
+        WoWTools_SC_Spell200000 = {}
+        WoWTools_SC_Spell300000 = {}
+        WoWTools_SC_Spell400000 = {}
+    end
+    if t=='Item' or not t then
+        WoWTools_SC_ItemIndex = nil
+        WoWTools_SC_Item0 = {}
+        WoWTools_SC_Item100000 = {}
+        WoWTools_SC_Item200000 = {}
+    end
+    if t=='Unit' or not t then
+        WoWTools_SC_UnitIndex= nil
+        WoWTools_SC_Unit0 = {}
+        WoWTools_SC_Unit100000 = {}
+        WoWTools_SC_Unit200000 = {}
+    end
+    if t=='Achivements' or not t then
+        WoWTools_SC_AchivementsIndex = nil
+        WoWTools_SC_Achivements0 = {}
+    end
+    if t=='Quest' or not t then
+        WoWTools_SC_QuestIndex = nil
+        WoWTools_SC_Quest = {}
+    end
+    if t=='Encounter' then
+        WoWTools_SC_EncounterIndex= nil
+        WoWTools_SC_Encounter={}
+    end
+    if t=='SectionEncounter' or not t then
+        WoWTools_SC_SectionEncounterIndex = nil
+        WoWTools_SC_SectionEncounter={}
+    end
+
+    print('清除数据', t or '全部', '|cnGREEN_FONT_COLOR:完成')
+end
 
 
-
-StaticPopupDialogs['WoWTools_SC']={text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗', button1 = '确定', button2 = '取消', OnAccept=function(_, func) func() end, whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true, acceptDelay=1}
+StaticPopupDialogs['WoWTools_SC']={
+    text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗',
+    button1 = '确定', button2 = '取消',
+    whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true, acceptDelay=1,
+    OnAccept=function(_, data)
+        clear_data(data)
+    end
+}
 
 
 
@@ -624,99 +677,95 @@ local function Init()
     ClearButton:SetSize(180, 23)
     ClearButton:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -8)
     ClearButton:SetText('清除所有数据')
-
-    local StopButton= CreateFrame('Button', nil, Frame)
-    StopButton:SetNormalAtlas('common-dropdown-icon-stop')
-    StopButton:SetPushedAtlas('PetList-ButtonSelect')
-    StopButton:SetHighlightAtlas('PetList-ButtonHighlight')
-    StopButton:SetSize(23, 23)
-    StopButton:SetPoint('LEFT', ClearButton, 'RIGHT', 8, 0)
-    StopButton:SetScript('OnMouseDown', function()
-        IsStopRun= true
-    end)
-
-
     ClearButton:SetScript('OnMouseDown', function()
-        StaticPopup_Show('WoWTools_SC', '全部', nil, function()
-            WoWTools_SC_SpellIndex = nil
-            WoWTools_SC_Spell0 = {}
-            WoWTools_SC_Spell100000 = {}
-            WoWTools_SC_Spell200000 = {}
-            WoWTools_SC_Spell300000 = {}
-            WoWTools_SC_Spell400000 = {}
-
-            WoWTools_SC_ItemIndex = nil
-            WoWTools_SC_Item0 = {}
-            WoWTools_SC_Item100000 = {}
-            WoWTools_SC_Item200000 = {}
-
-            WoWTools_SC_UnitIndex= nil
-            WoWTools_SC_Unit0 = {}
-            WoWTools_SC_Unit100000 = {}
-            WoWTools_SC_Unit200000 = {}
-
-            WoWTools_SC_AchivementsIndex = nil
-            WoWTools_SC_Achivements0 = {}
-
-            WoWTools_SC_QuestIndex = nil
-            WoWTools_SC_Quest = {}
-
-            WoWTools_SC_EncounterIndex= nil
-            WoWTools_SC_Encounter={}
-
-            WoWTools_SC_SectionEncounter = nil
-            WoWTools_SC_SectionEncounter={}
-
-            print('清除数据', '|cnGREEN_FONT_COLOR:完成')
-        end)
+        StaticPopup_Show('WoWTools_SC', '全部', nil, nil)
     end)
+
 
     local y= -52- 8
 
     local function Create_Button(name)
-        local btn= CreateFrame('Button', nil, Frame)--, 'UIPanelButtonTemplate')
+        local va= _G['WoWTools_SC_'..name..'Index'] or 0
+        local btn= CreateFrame('Button', nil, Frame)
         btn:SetNormalAtlas('common-dropdown-icon-next')
         btn:SetPushedAtlas('PetList-ButtonSelect')
         btn:SetHighlightAtlas('PetList-ButtonHighlight')
+        btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        btn:SetScript('OnEnter', function(self)
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            GameTooltip:SetText(self.isStop and '运行' or '暂停')
+            GameTooltip:Show()
+        end)
+        function btn:settings()
+            self.isStop= not self.isStop and true or nil
+            if self.isStop then
+                self.num= 0
+                self:SetNormalAtlas('common-dropdown-icon-next')
+            else
+                self:SetNormalAtlas('common-dropdown-icon-stop')
+                self.num= _G['WoWTools_SC_'..self.name..'Index'] or 0
+            end
+        end
+        btn:settings()
 
         btn:SetSize(23, 23)
-        btn:SetPoint('TOPRIGHT', -12, y)
+        btn:SetPoint('TOPRIGHT', -45, y)
         btn.name= name
 
-        btn.bar= CreateFrame('StatusBar', nil, Frame)
+        btn.bar= CreateFrame('StatusBar', nil, btn)
         btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
-        btn.bar:SetSize(Frame:GetWidth()-24-23-2, 18)
+        btn.bar:SetSize(Frame:GetWidth()-48-23*2, 18)
 
         btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOn-Bar-Health')
         btn.bar:SetMinMaxValues(0, 100)
-        btn.bar:SetValue(80)
+        btn.bar:SetValue(0)
 
         btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
         btn.bar.texture:SetAllPoints(btn.bar)
         btn.bar.texture:SetAtlas('UI-HUD-UnitFrame-Player-PortraitOff-Bar-TempHPLoss-2x')
 
-        btn.Value= btn.bar:CreateFontString(nil, "ARTWORK")
+        btn.Value= btn.bar:CreateFontString(nil, "OVERLAY")
         btn.Value:SetFontObject("GameFontWhite")
         btn.Value:SetPoint('RIGHT', btn.bar)
-        btn.Value:SetText('0%')
+        btn.Value:SetFormattedText('%d', _G['WoWTools_SC_'..name..'Index'] or 0)
 
-        btn.Name= btn.bar:CreateFontString(nil, "ARTWORK")
+        btn.Name= btn.bar:CreateFontString(nil, "OVERLAY")
         btn.Name:SetFontObject('GameFontWhite')
         btn.Name:SetPoint('LEFT', btn.bar)
         btn.Name:SetText(name)
 
+        btn.clear= CreateFrame('Button', nil, btn)
+        btn.clear:SetNormalAtlas('bags-button-autosort-up')
+        btn.clear:SetPushedAtlas('PetList-ButtonSelect')
+        btn.clear:SetHighlightAtlas('PetList-ButtonHighlight')
+        btn.clear:SetPoint('LEFT', btn, 'RIGHT', 2, 0)
+        btn.clear:SetSize(23,23)
+        btn.clear:SetScript('OnMouseDown', function(self)
+            local p= self:GetParent()
+            if not p.isStop then
+                p:settings()
+            end
+            local n= self:GetParent().name
+            StaticPopup_Show('WoWTools_SC', n, nil, n)
+        end)
         y= y- 23- 8
 
         return btn
     end
 
-
-
-    local Encounter= Create_Button('Encounter')
-    Encounter:SetScript('OnMouseDown', function(self)
-        IsStopRun= false
-        S_Encounter(self, WoWTools_SC_EncounterIndex or 1, 1, 0)
-    end)
+    for name, func in pairs({
+        ['Encounter']= S_Encounter,
+        ['SectionEncounter']= S_SectionEncounter,
+    }) do
+        local btn= Create_Button(name)
+        btn.func= func
+        btn:SetScript('OnMouseDown', function(self)
+            self:settings()
+            if not self.isStop then
+                self.func(self, _G['WoWTools_SC_'..self.name..'Index'] or 1, 1, 0)
+            end
+        end)
+    end
 
 
 

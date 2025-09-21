@@ -6,7 +6,7 @@
 ## DefaultState: disabled
 ## IconTexture: Interface\AddOns\WoWTools_Chinese_Scanner\WoWtools.tga
 ## SavedVariables: WoWTools_SC_Spell0, WoWTools_SC_Spell100000, WoWTools_SC_Spell200000, WoWTools_SC_Spell300000, WoWTools_SC_Spell400000, WoWTools_SC_Item0, WoWTools_SC_Item100000, WoWTools_SC_Item200000, WoWTools_SC_Unit0, WoWTools_SC_Unit100000, WoWTools_SC_Unit200000, WoWTools_SC_Achivements0, WoWTools_SC_Quest, WoWTools_SC_Encounter, WoWTools_SC_SectionEncounter
-## SavedVariablesPerCharacter: WoWTools_SC_SpellIndex, WoWTools_SC_ItemIndex, WoWTools_SC_UnitIndex, WoWTools_SC_AchivementsIndex, WoWTools_SC_QuestIndex
+## SavedVariablesPerCharacter: WoWTools_SC_SpellIndex, WoWTools_SC_ItemIndex, WoWTools_SC_UnitIndex, WoWTools_SC_AchivementsIndex, WoWTools_SC_QuestIndex, WoWTools_SC_EncounterIndex, WoWTools_SC_SectionEncounterIndex
 
 
 WoWTools_Chinese_Scanner.lua
