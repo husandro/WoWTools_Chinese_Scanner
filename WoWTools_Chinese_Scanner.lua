@@ -423,6 +423,21 @@ EJ_GetEncounterInfo(3139)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 --EncounterSection
 local function S_SectionEncounter(self, startIndex, attempt, counter)
     if self.isStop then
@@ -504,6 +519,16 @@ end
 
 
 
+
+
+
+
+
+
+
+
+
+
 --任务
 local function S_CacheQuest(self, startIndex, attempt, counter)
     if (startIndex > MaxQuestID) then
@@ -569,6 +594,11 @@ function QuestTooltip:Get_Text(questID, ...)
     end
 end
 
+
+
+
+
+
 local function S_Quest(self, startIndex, attempt, counter)
      if self.isStop then
         self.Value:SetFormattedText('|cffff8200暂停|r, %d条, %.1f%%', startIndex, startIndex/MaxQuestID*100)
@@ -627,11 +657,27 @@ end
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local function clear_data(name)
     _G['WoWTools_SC_'..name..'Index']= nil
     _G['WoWTools_SC_'..name]= {}
 
-    local btn= _G['WoWToolsSCItemButton']
+    local btn= _G['WoWToolsSC'..name..'Button']
     if not btn.isStop then
         btn:settings()
     end
@@ -657,6 +703,28 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local function Init()
 
     local Frame= CreateFrame('Frame', 'WoWTools_SCFrame', UIParent)
@@ -667,7 +735,15 @@ local function Init()
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
     Frame.Header:Setup('WoWTools_Chinese_Scanner 取得数据')
-    
+    Frame:RegisterEvent('PLAYER_REGEN_ENABLED')
+    Frame:SetScript('OnEvent', function()
+        for _, name in pairs(Buttons) do
+            local btn= _G['WoWToolsSC'..name..'Button']
+            if not btn.isStop then
+                btn:settings()
+            end
+        end
+    end)
 
     Frame:SetMovable(true)
     Frame:RegisterForDrag("LeftButton", "RightButton")
