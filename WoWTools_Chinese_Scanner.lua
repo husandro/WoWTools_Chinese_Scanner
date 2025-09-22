@@ -10,7 +10,7 @@ local MaxAchivementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://w
 local function GetLineText(region, isColor)
     if region and region:GetObjectType() == "FontString" then
         local text = region:GetText()
-        if text and string.find(text, '[\228-\233]') then
+        if text and text~=' ' then-- string.find(text, '[\228-\233]') then
             if isColor then
                 local r,g,b= region:GetTextColor()
                 if r and g and b then
@@ -404,7 +404,7 @@ local function S_Encounter(self, startIndex, attempt, counter)
         end
     end
     local va= startIndex/25000*100
-    self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
+    self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
     WoWTools_SC_EncounterIndex = startIndex
     if (counter >= 2) then
@@ -495,7 +495,7 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
     end
 
     local va= startIndex/50000*100
-    self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
+    self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
 
     WoWTools_SC_SectionEncounterIndex = startIndex
@@ -542,8 +542,9 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
     end
 
     for questID = startIndex, startIndex + 150 do
-        --if not HaveQuestData(questID) then
-        C_QuestLog.RequestLoadQuestByID(questID)
+        if not HaveQuestData(questID) then
+            C_QuestLog.RequestLoadQuestByID(questID)
+        end
         local va= questID/MaxQuestID*100
         self.bar2:SetValue(va)
     end
@@ -564,7 +565,7 @@ function QuestTooltip:Get_Objectives(questID)
     for index, info in pairs(C_QuestLog.GetQuestObjectives(questID) or {}) do
         if info.text and string.find(info.text, '[\228-\233]') then
             local t= info.text:match('%d+/%d+ (.+)') or info.text
-            t= t:gsub(' %(%d+%)', '')
+            t= t:gsub(' %(%d+%%%)', '')
             tab[index]= t
             find=true
         end
@@ -574,22 +575,29 @@ function QuestTooltip:Get_Objectives(questID)
     end
 end
 function QuestTooltip:Get_Text(questID, ...)
-    local title, desc
+    local title, objec
+
     for i = 1, select("#", ...) do
         local text = GetLineText(select(i, ...), false)
-        if text and text~=' ' then
-            if not title then
+        if text and text~=' ' and text~=QUEST_TOOLTIP_ACTIVE then
+            if text:find('要求：') or text:find('DNT') then
+                return
+
+            elseif not title then
+
                 title= text
             else
-                desc= (desc and desc..'|n' or '')..text
+                objec= text
+                break
+                --desc= (desc and desc..'|n' or '')..text
             end
         end
     end
     if title then
         return {
             ['T']= title,
-            ['D']= desc,
-            ['O']= self:Get_Objectives(questID),
+            ['O']= objec,
+            ['S']= self:Get_Objectives(questID),
         }
     end
 end
@@ -630,7 +638,7 @@ local function S_Quest(self, startIndex, attempt, counter)
 
     WoWTools_SC_QuestIndex = startIndex
     local va= startIndex/MaxQuestID*100
-    self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
+    self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
 
     if (counter >= 5) then
@@ -680,9 +688,12 @@ local function clear_data(name)
     local btn= _G['WoWToolsSC'..name..'Button']
     if not btn.isStop then
         btn:settings()
+    else
+        btn.time=nil
     end
     btn.bar:SetValue(0)
     btn.Value:SetText("")
+    
 
     print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
 end
@@ -787,9 +798,11 @@ local function Init()
             if self.isStop then
                 self.num= 0
                 self:SetNormalAtlas('common-dropdown-icon-next')
+                self.time=nil
             else
                 self:SetNormalAtlas('common-dropdown-icon-stop')
                 self.num= _G['WoWTools_SC_'..self.name..'Index'] or 0
+                self.time= GetTime()
             end
         end
         btn:settings()

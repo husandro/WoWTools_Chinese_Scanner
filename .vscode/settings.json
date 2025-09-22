@@ -23,6 +23,7 @@
         "StaticPopupDialogs",
         "OKAY",
         "CANCEL",
-        "StaticPopup_Show"
+        "StaticPopup_Show",
+        "QUEST_TOOLTIP_ACTIVE"
     ]
 }
