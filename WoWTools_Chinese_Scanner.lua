@@ -569,7 +569,7 @@ function QuestTooltip:Get_Objectives(questID)
     local tab= {}
     local find
     for index, info in pairs(C_QuestLog.GetQuestObjectives(questID) or {}) do
-        if IsCN(info.text) then
+        if info.text then
             local t= info.text:match('%d+/%d+ (.+)') or info.text
             t= t:gsub(' %(%d+%%%)', '')
             tab[index]= t
