@@ -6,15 +6,21 @@ local Buttons={}
 ( ) . % + - * ? [ ^ $
 local MaxAchivementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 ]]
-
+local function IsCN(text)
+    return
+        text
+        and text:find('[\228-\233]')
+        and not text:find('DNT')
+        and not text:find('UNUSED')
+end
 local function GetLineText(region, isColor)
     if region and region:GetObjectType() == "FontString" then
         local text = region:GetText()
-        if text and text~=' ' then-- string.find(text, '[\228-\233]') then
+        if IsCN(text) then--text~=' ' then-- 
             if isColor then
                 local r,g,b= region:GetTextColor()
                 if r and g and b then
-                    text=  format("|cff%02x%02x%02x", r*255, g*255, b*255)..text..'|r'
+                    text= format("|cff%02x%02x%02x%s|r", r*255, g*255, b*255, text)
                 end
             end
             return text
@@ -563,7 +569,7 @@ function QuestTooltip:Get_Objectives(questID)
     local tab= {}
     local find
     for index, info in pairs(C_QuestLog.GetQuestObjectives(questID) or {}) do
-        if info.text and string.find(info.text, '[\228-\233]') then
+        if IsCN(info.text) then
             local t= info.text:match('%d+/%d+ (.+)') or info.text
             t= t:gsub(' %(%d+%%%)', '')
             tab[index]= t
@@ -632,7 +638,7 @@ local function S_Quest(self, startIndex, attempt, counter)
         if tab then
             WoWTools_SC_Quest[questID] = tab
             self.num= self.num+1
-            self.Name:SetText(GetQuestLink(questID) or ('questID '..questID))
+            self.Name:SetText(GetQuestLink(questID) or C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
         end
     end
 
@@ -747,6 +753,12 @@ local function Init()
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
     Frame.Header:Setup('WoWTools_Chinese_Scanner 取得数据')
     Frame:RegisterEvent('PLAYER_REGEN_ENABLED')
+    Frame:SetScript('OnShow', function(self)
+        self:RegisterEvent('PLAYER_REGEN_ENABLED')
+    end)
+    Frame:SetScript('OnHide', function(self)
+        self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+    end)
     Frame:SetScript('OnEvent', function()
         for _, name in pairs(Buttons) do
             local btn= _G['WoWToolsSC'..name..'Button']
