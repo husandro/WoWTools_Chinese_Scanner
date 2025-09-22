@@ -542,18 +542,18 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
     end
 
     for questID = startIndex, startIndex + 150 do
-        if not HaveQuestData(questID) then
-            C_QuestLog.RequestLoadQuestByID(questID)
-        end
+        --if not HaveQuestData(questID) then
+        C_QuestLog.RequestLoadQuestByID(questID)
         local va= questID/MaxQuestID*100
         self.bar2:SetValue(va)
     end
 
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(0.3, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(0.3, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
     end
+
 end
 
 local QuestTooltip = CreateFrame("GameTooltip", 'WoWToolsSCQuestTooltip', UIParent, "GameTooltipTemplate")
