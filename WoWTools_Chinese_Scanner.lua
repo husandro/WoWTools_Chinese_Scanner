@@ -1,11 +1,26 @@
--- wait functions from QTR
---https://github.com/husandro/WoWTranslator/commits?author=qqytqqyt
+local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
+local MaxQuestID= (GameVer-1)*10000 --11.2.5 版本 93516
+local Buttons={}
 
+--[[
+( ) . % + - * ? [ ^ $
+local MaxAchivementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+]]
 
-
-
-
-
+local function GetLineText(region, isColor)
+    if region and region:GetObjectType() == "FontString" then
+        local text = region:GetText()
+        if text and string.find(text, '[\228-\233]') then
+            if isColor then
+                local r,g,b= region:GetTextColor()
+                if r and g and b then
+                    text=  format("|cff%02x%02x%02x", r*255, g*255, b*255)..text..'|r'
+                end
+            end
+            return text
+        end
+    end
+end
 
 
 
@@ -32,12 +47,12 @@ local function GetLinesText_helper(...)
                 texts = texts .. text
           end
         end
-  end
-  return texts
+    end
+    return texts
 end
 
 local function GetLinesText(tooltip) -- good for script handlers that pass the tooltip as the first argument.
-  return GetLinesText_helper(tooltip:GetRegions())
+    return GetLinesText_helper(tooltip:GetRegions())
 end
 
 
@@ -290,32 +305,6 @@ end
 
 
 
-local function S_Achivement(startIndex, attempt, counter)
-  if (startIndex > 30000) then
-    return
-  end
-  for achievementID = startIndex, startIndex + 150 do
-    Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-    Tooltip:ClearLines()
-    Tooltip:SetHyperlink('achievement:' .. achievementID .. ':0:0:0:0:0:0:0:0')
-    Tooltip:Show()
-    local text = GetLinesText(Tooltip)
-    if (text ~= '' and text ~= nil) then
-      if (WoWTools_SC_Achivements0[achievementID .. ''] == nil or string.len(WoWTools_SC_Achivements0[achievementID .. '']) < string.len(text)) then
-        WoWTools_SC_Achivements0[achievementID .. ''] = text
-      end
-    end
-  end
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWTools_SC_Index = startIndex
-
-  if (counter >= 5) then
-    SC_Wait(0.5, S_Achivement, startIndex + 150, attempt + 1, 0)
-  else
-    SC_Wait(0.5, S_Achivement, startIndex, attempt + 1, counter + 1)
-  end
-end
 
 
 
@@ -332,30 +321,6 @@ end
 
 
 
-local function S_Quest(startIndex, attempt, counter)
-  if (startIndex > 90000) then
-    return
-  end
-  for questID = startIndex, startIndex + 100 do
-    Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-    Tooltip:ClearLines()
-    Tooltip:SetHyperlink('quest:' .. questID)
-    Tooltip:Show()
-    local text =  GetLinesText(Tooltip)
-    if (text ~= '' and text ~= nil) then
-      WoWTools_SC_Quest[questID .. ''] = text
-      print(questID)
-    end
-  end
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWTools_SC_Index = startIndex
-  if (counter >= 5) then
-     SC_Wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
-  else
-     SC_Wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
-  end
-end
 
 
 
@@ -367,36 +332,6 @@ end
 
 
 
-
-
-
-
-
---任务
-local function S_CacheQuest(startIndex, attempt, counter)
-    if (startIndex > 90000) then
-        return
-    end
-
-    if (counter == 0) then
-        print(startIndex)
-    end
-
-    for i = startIndex, startIndex + 150 do
-        local title= C_QuestLog.GetTitleForQuestID(i)
-        if title then
-            print(title)
-        end
-    end
-
-    WoWTools_SC_Index = startIndex
-
-    if (counter >= 5) then
-      SC_Wait(0.2, S_CacheQuest, startIndex + 150, attempt + 1, 0)
-    else
-      SC_Wait(0.2, S_CacheQuest, startIndex, attempt + 1, counter + 1)
-    end
-end
 
 
 
@@ -438,64 +373,48 @@ end
 
 
 local function S_Encounter(self, startIndex, attempt, counter)
-
     if self.isStop then
-        local va= startIndex/25000*100
-        self.Value:SetFormattedText('暂停, %d, %.1f%%', startIndex, va)
-        self.bar:SetValue(va)
+        self.Value:SetFormattedText('|cffff8200暂停|r, %d, %.1f%%', startIndex, startIndex/25000*100)
         self.Name:SetText(self.name)
         return
 
     elseif (startIndex > 25000) then
         self.bar:SetValue(100)
-        self.Value:SetFormattedText('结束, %d条', self.num)
-        self.bar:SetValue(0)
+        self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
         WoWTools_SC_EncounterIndex = nil
         self:settings()
         self.num= 0
         return
     end
-
-
     for journalEncounterID = startIndex, startIndex + 100 do
         local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
-
         name= name~='' and name or nil
         desc= desc~='' and desc or nil
-
         if name or desc then
             WoWTools_SC_Encounter[journalEncounterID] = {}
-
             if name then
                 WoWTools_SC_Encounter[journalEncounterID].T = name
             end
             if desc then
                 WoWTools_SC_Encounter[journalEncounterID].D = desc
             end
-
             self.num= self.num+1
             self.Name:SetText(link or name or '')
         end
     end
-
-
     local va= startIndex/25000*100
     self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
     self.bar:SetValue(va)
-
     WoWTools_SC_EncounterIndex = startIndex
-
     if (counter >= 2) then
         C_Timer.After(0.1, function() S_Encounter(self, startIndex + 100, attempt + 1, 0) end)
-        --SC_Wait(0.1, S_Encounter, startIndex + 100, attempt + 1, 0)
     else
         C_Timer.After(0.1, function() S_Encounter(self, startIndex, attempt + 1, counter + 1) end)
-        --SC_Wait(0.1, S_Encounter, startIndex, attempt + 1, counter + 1)
     end
 end
 
-
+EJ_GetEncounterInfo(3139)
 
 
 
@@ -505,19 +424,15 @@ end
 
 
 --EncounterSection
-local numEncounterSection= 0
 local function S_SectionEncounter(self, startIndex, attempt, counter)
     if self.isStop then
-        local va= startIndex/25000*100
-        self.Value:SetFormattedText('暂停, %d条, %.1f%%', startIndex, va)
-        self.bar:SetValue(va)
+        self.Value:SetFormattedText('|cffff8200暂停, %d条, %.1f%%', startIndex, startIndex/50000*100)
         self.Name:SetText(self.name)
         return
 
     elseif (startIndex > 50000) then
         self.bar:SetValue(100)
-        self.Value:SetFormattedText('结束, %d条', self.num)
-        self.bar:SetValue(0)
+        self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
         WoWTools_SC_SectionEncounterIndex = nil
         self:settings()
@@ -557,25 +472,22 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
                         end
 
                         self.num= self.num+1
-                        self.Name:SetText(sectionInfo.link or name or '')
-                        numEncounterSection= numEncounterSection+1
+                        self.Name:SetText(sectionInfo.link or title or '')
                     end
                 end
             end
         end
     end
 
-    local va= startIndex/25000*100
+    local va= startIndex/50000*100
     self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
     self.bar:SetValue(va)
 
     WoWTools_SC_SectionEncounterIndex = startIndex
 
     if (counter >= 2) then
-        --SC_Wait(0.1, S_SectionEncounter, startIndex + 100, attempt + 1, 0)
         C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
     else
-        --SC_Wait(0.1, S_SectionEncounter, startIndex, attempt + 1, counter + 1)
         C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
@@ -592,63 +504,154 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-local function clear_data(t)
-    if t=='Spell' or not t then
-        WoWTools_SC_SpellIndex = nil
-        WoWTools_SC_Spell0 = {}
-        WoWTools_SC_Spell100000 = {}
-        WoWTools_SC_Spell200000 = {}
-        WoWTools_SC_Spell300000 = {}
-        WoWTools_SC_Spell400000 = {}
+--任务
+local function S_CacheQuest(self, startIndex, attempt, counter)
+    if (startIndex > MaxQuestID) then
+        self.Name:SetText('获取任务数据|cnGREEN_FONT_COLOR:完成')
+        self.bar2:SetValue(0)
+        self.bar2:Hide()
+        return
+    elseif startIndex==1 then
+        self.Name:SetText('正在获取任务数据')
+        self.bar2:Show()
     end
-    if t=='Item' or not t then
-        WoWTools_SC_ItemIndex = nil
-        WoWTools_SC_Item0 = {}
-        WoWTools_SC_Item100000 = {}
-        WoWTools_SC_Item200000 = {}
+
+    for questID = startIndex, startIndex + 150 do
+        if not HaveQuestData(questID) then
+            C_QuestLog.RequestLoadQuestByID(questID)
+        end
+        local va= questID/MaxQuestID*100
+        self.bar2:SetValue(va)
     end
-    if t=='Unit' or not t then
-        WoWTools_SC_UnitIndex= nil
-        WoWTools_SC_Unit0 = {}
-        WoWTools_SC_Unit100000 = {}
-        WoWTools_SC_Unit200000 = {}
+
+    if (counter >= 5) then
+        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
+    else
+        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
     end
-    if t=='Achivements' or not t then
-        WoWTools_SC_AchivementsIndex = nil
-        WoWTools_SC_Achivements0 = {}
+end
+
+local QuestTooltip = CreateFrame("GameTooltip", 'WoWToolsSCQuestTooltip', UIParent, "GameTooltipTemplate")
+QuestTooltip:SetFrameStrata("TOOLTIP")
+function QuestTooltip:Get_Objectives(questID)
+    local tab= {}
+    local find
+    for index, info in pairs(C_QuestLog.GetQuestObjectives(questID) or {}) do
+        if info.text and string.find(info.text, '[\228-\233]') then
+            local t= info.text:match('%d+/%d+ (.+)') or info.text
+            t= t:gsub(' %(%d+%)', '')
+            tab[index]= t
+            find=true
+        end
     end
-    if t=='Quest' or not t then
-        WoWTools_SC_QuestIndex = nil
-        WoWTools_SC_Quest = {}
+    if find then
+        return tab
     end
-    if t=='Encounter' then
-        WoWTools_SC_EncounterIndex= nil
-        WoWTools_SC_Encounter={}
+end
+function QuestTooltip:Get_Text(questID, ...)
+    local title, desc
+    for i = 1, select("#", ...) do
+        local text = GetLineText(select(i, ...), false)
+        if text and text~=' ' then
+            if not title then
+                title= text
+            else
+                desc= (desc and desc..'|n' or '')..text
+            end
+        end
     end
-    if t=='SectionEncounter' or not t then
+    if title then
+        return {
+            ['T']= title,
+            ['D']= desc,
+            ['O']= self:Get_Objectives(questID),
+        }
+    end
+end
+
+local function S_Quest(self, startIndex, attempt, counter)
+     if self.isStop then
+        self.Value:SetFormattedText('|cffff8200暂停|r, %d条, %.1f%%', startIndex, startIndex/MaxQuestID*100)
+        self.Name:SetText(self.name)
+        return
+
+    elseif (startIndex > MaxQuestID) then
+        self.bar:SetValue(100)
+        self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
+        self.Name:SetText(self.name)
         WoWTools_SC_SectionEncounterIndex = nil
-        WoWTools_SC_SectionEncounter={}
+        self:settings()
+        self.num= 0
+        return
+
+    end
+    for questID = startIndex, startIndex + 100 do
+        QuestTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        QuestTooltip:ClearLines()
+        QuestTooltip:SetHyperlink('quest:' .. questID)
+        QuestTooltip:Show()
+        local tab = QuestTooltip:Get_Text(questID, QuestTooltip:GetRegions())
+        if tab then
+            WoWTools_SC_Quest[questID] = tab
+            self.num= self.num+1
+            self.Name:SetText(GetQuestLink(questID) or ('questID '..questID))
+        end
     end
 
-    print('清除数据', t or '全部', '|cnGREEN_FONT_COLOR:完成')
+    WoWTools_SC_QuestIndex = startIndex
+    local va= startIndex/MaxQuestID*100
+    self.Value:SetFormattedText('%d条 %.1f%%', self.num, va)
+    self.bar:SetValue(va)
+
+    if (counter >= 5) then
+        C_Timer.After(0.3, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
+        --SC_Wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
+    else
+        C_Timer.After(0.3, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
+        --SC_Wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
+    end
 end
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function clear_data(name)
+    _G['WoWTools_SC_'..name..'Index']= nil
+    _G['WoWTools_SC_'..name]= {}
+
+    local btn= _G['WoWToolsSCItemButton']
+    if not btn.isStop then
+        btn:settings()
+    end
+    btn.bar:SetValue(0)
+    btn.Value:SetText("")
+
+    print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
+end
 StaticPopupDialogs['WoWTools_SC']={
     text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗',
     button1 = '确定', button2 = '取消',
     whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true, acceptDelay=1,
     OnAccept=function(_, data)
-        clear_data(data)
+        if data then
+            clear_data(data)
+        else
+            for _, name in pairs(Buttons) do
+                clear_data(name)
+            end
+        end
     end
 }
 
@@ -656,14 +659,15 @@ StaticPopupDialogs['WoWTools_SC']={
 
 local function Init()
 
-    local Frame= CreateFrame('Frame', 'WoWTools_Chinese_ScannerFrame', UIParent)
+    local Frame= CreateFrame('Frame', 'WoWTools_SCFrame', UIParent)
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
-    Frame:SetSize(500,500)
+    Frame:SetSize(520, 500)
     Frame:SetPoint('CENTER')
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
     Frame.Header:Setup('WoWTools_Chinese_Scanner 取得数据')
+    
 
     Frame:SetMovable(true)
     Frame:RegisterForDrag("LeftButton", "RightButton")
@@ -673,20 +677,26 @@ local function Init()
     Frame:SetScript("OnMouseUp", function() ResetCursor() end)
     Frame:SetScript("OnLeave", function() ResetCursor() end)
 
+    local note= Frame:CreateFontString(nil, "OVERLAY")
+    note:SetFontObject('GameFontNormal')
+    note:SetPoint('BOTTOM', 0, 12)
+    note:SetText('|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua')
+
     local ClearButton= CreateFrame('Button', nil, Frame, 'UIPanelButtonTemplate')
     ClearButton:SetSize(180, 23)
-    ClearButton:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -8)
+    ClearButton:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
     ClearButton:SetText('清除所有数据')
     ClearButton:SetScript('OnMouseDown', function()
         StaticPopup_Show('WoWTools_SC', '全部', nil, nil)
     end)
 
 
-    local y= -52- 8
+
+    local y= -70
+
 
     local function Create_Button(name)
-        local va= _G['WoWTools_SC_'..name..'Index'] or 0
-        local btn= CreateFrame('Button', nil, Frame)
+        local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
         btn:SetNormalAtlas('common-dropdown-icon-next')
         btn:SetPushedAtlas('PetList-ButtonSelect')
         btn:SetHighlightAtlas('PetList-ButtonHighlight')
@@ -715,14 +725,21 @@ local function Init()
         btn.bar= CreateFrame('StatusBar', nil, btn)
         btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
         btn.bar:SetSize(Frame:GetWidth()-48-23*2, 18)
-
         btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOn-Bar-Health')
         btn.bar:SetMinMaxValues(0, 100)
         btn.bar:SetValue(0)
-
         btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
         btn.bar.texture:SetAllPoints(btn.bar)
         btn.bar.texture:SetAtlas('UI-HUD-UnitFrame-Player-PortraitOff-Bar-TempHPLoss-2x')
+
+        btn.bar2= CreateFrame('StatusBar', nil, btn)
+        btn.bar2:SetPoint('TOPLEFT', btn.bar, 'BOTTOMLEFT')
+        btn.bar2:SetPoint('TOPRIGHT', btn.bar, 'BOTTOMRIGHT')
+        btn.bar2:SetHeight(4)
+        btn.bar2:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOn-Bar-Health')
+        btn.bar2:SetMinMaxValues(0, 100)
+        btn.bar2:SetValue(0)
+        btn.bar2:Hide()
 
         btn.Value= btn.bar:CreateFontString(nil, "OVERLAY")
         btn.Value:SetFontObject("GameFontWhite")
@@ -756,15 +773,22 @@ local function Init()
     for name, func in pairs({
         ['Encounter']= S_Encounter,
         ['SectionEncounter']= S_SectionEncounter,
+        ['Quest']= S_Quest,
     }) do
         local btn= Create_Button(name)
         btn.func= func
         btn:SetScript('OnMouseDown', function(self)
             self:settings()
             if not self.isStop then
-                self.func(self, _G['WoWTools_SC_'..self.name..'Index'] or 1, 1, 0)
+                self.func(self, _G['WoWTools_SC_'..self.name..'Index'] or 1, 0, 0)
             end
         end)
+
+        if name=='Quest' then
+            S_CacheQuest(btn, 1, 0, 0)
+        end
+
+        table.insert(Buttons, name)
     end
 
 
@@ -781,101 +805,101 @@ end
 
 
 EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1)
-  if arg1~='WoWTools_Chinese_Scanner' then
-    return
-  end
+    if arg1~='WoWTools_Chinese_Scanner' then
+        return
+    end
 
+    --WoWTools_SC_SpellIndex = WoWTools_SC_SpellIndex or 0
+    WoWTools_SC_Spell = WoWTools_SC_Spell or {}
 
+    --WoWTools_SC_ItemIndex = WoWTools_SC_ItemIndex or 0
+    WoWTools_SC_Item = WoWTools_SC_Item or {}
 
+    --WoWTools_SC_UnitIndex = WoWTools_SC_UnitIndex or 0
+    WoWTools_SC_Unit = WoWTools_SC_Unit or {}
 
-    --WoWTools_SC_Index = WoWTools_SC_Index or 1
+    --WoWTools_SC_AchivementIndex = WoWTools_SC_AchivementIndex or 0
+    WoWTools_SC_Achivement = WoWTools_SC_Achivement or {}
 
-    WoWTools_SC_SpellIndex = WoWTools_SC_SpellIndex or 1
-    WoWTools_SC_Spell0 = WoWTools_SC_Spell0 or {}
-    WoWTools_SC_Spell100000 = WoWTools_SC_Spell100000 or {}
-    WoWTools_SC_Spell200000 = WoWTools_SC_Spell200000 or {}
-    WoWTools_SC_Spell300000 = WoWTools_SC_Spell300000 or {}
-    WoWTools_SC_Spell400000 = WoWTools_SC_Spell400000 or {}
-
-    WoWTools_SC_ItemIndex = WoWTools_SC_ItemIndex or 1
-    WoWTools_SC_Item0 = WoWTools_SC_Item0 or {}
-    WoWTools_SC_Item100000 = WoWTools_SC_Item100000 or {}
-    WoWTools_SC_Item200000 = WoWTools_SC_Item200000 or {}
-
-    WoWTools_SC_UnitIndex = WoWTools_SC_UnitIndex or 1
-    WoWTools_SC_Unit0 = WoWTools_SC_Unit0 or {}
-    WoWTools_SC_Unit100000 = WoWTools_SC_Unit100000 or {}
-    WoWTools_SC_Unit200000 = WoWTools_SC_Unit200000 or {}
-
-    WoWTools_SC_AchivementsIndex = WoWTools_SC_AchivementsIndex or 1
-    WoWTools_SC_Achivements0 = WoWTools_SC_Achivements0 or {}
-
-    WoWTools_SC_QuestIndex = WoWTools_SC_QuestIndex or 1
+    --WoWTools_SC_QuestIndex = WoWTools_SC_QuestIndex or 0
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
 
-    WoWTools_SC_EncounterIndex= WoWTools_SC_EncounterIndex or 1
+    --WoWTools_SC_EncounterIndex= WoWTools_SC_EncounterIndex or 0
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
 
-    WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or 1
+    --WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or 0
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
-
 
     Init()
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
+
+
+
+
+
+
+
+
+
 --[[
-    SlashCmdList["WoWToolsSC"] = function(msg)
-
-        if string.sub(msg, 1 , string.len("index")) ~= "index" then
-
-            local index = string.sub(msg,string.len("index")+2)
-            Scanner_Index(index)
-
-            --clear
-        elseif (msg=="clear" or msg=="CLEAR") then
 
 
+local AchivementTooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
+AchivementTooltip:SetFrameStrata("TOOLTIP")
+function AchivementTooltip:Get_Lines(...)
+    local t
+    for i = 1, select("#", ...) do
+        local text= GetLineText(select(i, ...))
+        if text then
+            print(text)
+            t= (t and t..'|n' or '')..text
+        end
+    end
+    return t
+end
 
-            -- spell auto scan
-        elseif (msg=="spellscanauto" or msg=="SPELLSCANAUTO") then
-            SC_Wait(0.1, S_Spell, WoWTools_SC_Index, 1, 0)
+local function S_Achivement(self, startIndex, attempt, counter)
+    if self.isStop then
+        local va= startIndex/25000*100
+        self.Value:SetFormattedText('暂停, %d, %.1f%%', startIndex, va)
+        self.bar:SetValue(va)
+        self.Name:SetText(self.name)
+        return
 
-            -- unit auto scan
-        elseif (msg=="unitscanauto" or msg=="UNITSCANAUTO") then
-            SC_Wait(0.1, S_Unit, WoWTools_SC_Index, 1, 0)
-
-            -- item auto scan
-        elseif (msg=="itemscanauto" or msg=="ITEMSCANAUTO") then
-            SC_Wait(0.1, S_Item, WoWTools_SC_Index, 1, 0)
-
-            -- achivement auto scan
-        elseif (msg=="achievescanauto" or msg=="ACHIVESCANAUTO") then
-            SC_Wait(0.1, S_Achivement, WoWTools_SC_Index, 1, 0)
-
-            -- quest scan
-        elseif (msg=="questscanauto" or msg=="QUESTSCANAUTO") then
-            SC_Wait(0.1, S_Quest, WoWTools_SC_Index, 1, 0)
-
-            -- encounter scan
-        elseif (msg=="encounterscanauto" or msg=="ENCOUNTERSCANAUTO") then
-            SC_Wait(0.1, S_Encounter, WoWTools_SC_Index, 1, 0)
-
-            -- encounter scan
-        elseif (msg=="encountersectionscanauto" or msg=="ENCOUNTERSECTIONSCANAUTO") then
-            SC_Wait(0.1, S_EncounterSection, WoWTools_SC_Index, 1, 0)
-
-            -- quest cache scan
-        elseif (msg=="cachescanauto" or msg=="CACHESCANAUTO") then
-            SC_Wait(0.1, S_CacheQuest, WoWTools_SC_Index, 1, 0)
-
+    elseif (startIndex > 30000) then
+        self.bar:SetValue(100)
+        self.Value:SetFormattedText('|cffff00ff结束, %d条', self.num)
+        self.bar:SetValue(0)
+        self.Name:SetText(self.name)
+        WoWTools_SC_AchivementIndex = nil
+        self:settings()
+        self.num= 0
+        return
+    end
+    for achievementID = startIndex, startIndex + 150 do
+        AchivementTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        AchivementTooltip:ClearLines()
+        AchivementTooltip:SetHyperlink('achievement:' .. achievementID .. ':0:0:0:0:0:0:0:0')
+        AchivementTooltip:Show()
+        local text = AchivementTooltip:Get_Lines(AchivementTooltip:GetRegions())
+        if text and (WoWTools_SC_Achivement0[achievementID .. ''] == nil or string.len(WoWTools_SC_Achivement0[achievementID .. '']) < string.len(text)) then
+            WoWTools_SC_Achivement0[achievementID .. ''] = text
+            self.num= self.num+1
+            self.Name:SetText(GetAchievementLink(achievementID) or ('achievementID'..achievementID))
+            print(text)
         end
     end
 
-    SLASH_WoWToolsSC1= '/WoWSC'
+    WoWTools_SC_AchivementIndex = startIndex
 
-
-
-
-/SC spellscanauto
+    if (counter >= 5) then
+        --SC_Wait(0.3, S_Achivement, startIndex + 150, attempt + 1, 0)
+        C_Timer.After(0.3, function() S_Achivement(self, startIndex + 150, attempt + 1, 0) end)
+    else
+        --SC_Wait(0.5, S_Achivement, startIndex, attempt + 1, counter + 1)
+        C_Timer.After(0.3, function() S_Achivement(self, startIndex, attempt + 1, counter + 1) end)
+    end
+end
 ]]
