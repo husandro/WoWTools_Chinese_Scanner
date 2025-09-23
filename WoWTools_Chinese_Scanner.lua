@@ -1,11 +1,30 @@
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
+
+local MaxEncounterID= 25000
+local MaxSectionEncounterID= 50000
 local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxUnitID= 300000
 local MaxItemID= 300000
 
 local Frame
 local Buttons={}
+local P_Save= {
+    Spell=1,
+    Unit=1,
+    Encounter=1,
 
+    Quest=1,
+    QuestCache=1,
+
+    Achivement=1,
+    AchivementCache=1,
+
+    Item=1,
+    ItemCache=1,
+}
+local function Save()
+    return WoWTools_SC
+end
 
 
 
@@ -20,93 +39,8 @@ local function IsCN(text)
         and not text:find('DNT')
         and not text:find('UNUSED')
 end
-local function GetLineText(region, isColor)
-    if region and region:GetObjectType() == "FontString" then
-        local text = region:GetText()
-        if IsCN(text) then--text~=' ' then-- 
-            if isColor then
-                local r,g,b= region:GetTextColor()
-                if r and g and b then
-                    text= format("|cff%02x%02x%02x%s|r", r*255, g*255, b*255, text)
-                end
-            end
-            return text
-        end
-    end
-end
 
 
-
-local WaitFrame = nil
-local WaitTabs = {}
-
-local Tooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
-Tooltip:SetFrameStrata("TOOLTIP")
-
-local function GetLinesText_helper(...)
-    local texts = ''
-    for i = 1, select("#", ...) do
-        local region = select(i, ...)
-        if region and region:GetObjectType() == "FontString" then
-            local text = region:GetText() -- string or nil
-            if (text ~= nil) then
-                if (text ~= " ") then
-                    text = "{{" .. text .. "}}"
-                    local r, g, b = region:GetTextColor()
-                    text = text .. "[[" .. r .. "]]" .. "[[" .. g .. "]]" .. "[[" .. b .. "]]"
-                end
-                print(i)
-                print(text)
-                texts = texts .. text
-          end
-        end
-    end
-    return texts
-end
-
-local function GetLinesText(tooltip) -- good for script handlers that pass the tooltip as the first argument.
-    return GetLinesText_helper(tooltip:GetRegions())
-end
-
-
-
-
-local function Scanner_Index(index)
-    WoWTools_SC_Index = tonumber(index)
-    print(index)
-end
-
-local function SC_Wait(delay, func, ...)
-
-  if(type(delay)~="number" or type(func)~="function") then
-    return false
-  end
-
-  if (WaitFrame == nil) then
-    WaitFrame = CreateFrame("Frame", nil, UIParent)
-    WaitFrame:SetScript("onUpdate",function (self, elapse)
-      local count = #WaitTabs
-      local i = 1
-      while(i<=count) do
-        local waitRecord = tremove(WaitTabs,i)
-        local d = tremove(waitRecord,1)
-        local f = tremove(waitRecord,1)
-        local p = tremove(waitRecord,1)
-        if(d>elapse) then
-          tinsert(WaitTabs,i,{d-elapse,f,p})
-          i = i + 1
-        else
-          count = count - 1
-          f(unpack(p))
-        end
-      end
-    end)
-  end
-
-  tinsert(WaitTabs,{delay,func,{...}})
-
-  return true
-end
 
 
 
@@ -208,58 +142,6 @@ end
 
 
 
---[[
-local function S_Item(startIndex, attempt, counter)
-  startIndex= startIndex or 1
-  attempt= attempt or 0
-  counter= counter or 0
-
-  if (startIndex > 300000) then
-    return
-  end
-
-  for itemID = startIndex, startIndex + 150 do
-    --local itemType, itemSubType, _, _, _, _, classID, subclassID = select(6, C_Item.GetItemInfo(itemID))
-    local classID= C_Item.GetItemInfoInstant(itemID)
-    if classID then
-      Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-      Tooltip:ClearLines()
-      Tooltip:SetHyperlink('item:' .. itemID .. ':0:0:0:0:0:0:0')
-      Tooltip:Show()
-      local text = GetLinesText(Tooltip)
-      text = text .. '{{{' .. classID .. '}}}'
-      if (text ~= '' and text ~= nil) then
-        if (itemID >=0 and itemID < 100000) then
-          if (WoWTools_SC_Item0[itemID .. ''] == nil or string.len(WoWTools_SC_Item0[itemID .. '']) < string.len(text)) then
-            WoWTools_SC_Item0[itemID .. ''] = text
-          end
-        elseif (itemID >=100000 and itemID < 200000) then
-          if (WoWTools_SC_Item100000[itemID .. ''] == nil or string.len(WoWTools_SC_Item100000[itemID .. '']) < string.len(text)) then
-            WoWTools_SC_Item100000[itemID .. ''] = text
-          end
-        elseif (itemID >=200000 and itemID < 300000) then
-          if (WoWTools_SC_Item200000[itemID .. ''] == nil or string.len(WoWTools_SC_Item200000[itemID .. '']) < string.len(text)) then
-            WoWTools_SC_Item200000[itemID .. ''] = text
-          end
-          print(itemID)
-        end
-      end
-    end
-  end
-
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWTools_SC_Index = startIndex
-
-  if (counter >= 5) then
-    SC_Wait(0.5, S_Item, startIndex + 150, attempt + 1, 0)
-  else
-    SC_Wait(0.5, S_Item, startIndex, attempt + 1, counter + 1)
-  end
-end
-
-]]
-
 
 
 
@@ -343,39 +225,45 @@ end
 
 local function S_Encounter(self, startIndex, attempt, counter)
     if self.isStop then
-        self.Value:SetFormattedText('|cffff8200暂停|r, %d, %.1f%%', startIndex, startIndex/25000*100)
+        self.Value:SetFormattedText('|cffff8200暂停|r, %d, %.1f%%', startIndex, startIndex/MaxEncounterID*100)
         self.Name:SetText(self.name)
         return
 
-    elseif (startIndex > 25000) then
+    elseif (startIndex > MaxEncounterID) then
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        WoWTools_SC_EncounterIndex = nil
+        Save().Encounter = nil
         self:settings()
         self.num= 0
         return
+
     end
-    for journalEncounterID = startIndex, startIndex + 100 do
-        local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
-        name= name~='' and name or nil
-        desc= desc~='' and desc or nil
-        if name or desc then
-            WoWTools_SC_Encounter[journalEncounterID] = {}
-            if name then
-                WoWTools_SC_Encounter[journalEncounterID].T = name
+
+    do
+        for journalEncounterID = startIndex, startIndex + 100 do
+            local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
+            name= name~='' and name or nil
+            desc= desc~='' and desc or nil
+            if name or desc then
+                WoWTools_SC_Encounter[journalEncounterID] = {}
+                if name then
+                    WoWTools_SC_Encounter[journalEncounterID].T = name
+                end
+                if desc then
+                    WoWTools_SC_Encounter[journalEncounterID].D = desc
+                end
+                self.num= self.num+1
+                self.Name:SetText(link or name or '')
             end
-            if desc then
-                WoWTools_SC_Encounter[journalEncounterID].D = desc
-            end
-            self.num= self.num+1
-            self.Name:SetText(link or name or '')
         end
     end
-    local va= startIndex/25000*100
+
+    local va= startIndex/MaxEncounterID*100
     self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
-    WoWTools_SC_EncounterIndex = startIndex
+    Save().Encounter = startIndex
+
     if (counter >= 2) then
         C_Timer.After(0.1, function() S_Encounter(self, startIndex + 100, attempt + 1, 0) end)
     else
@@ -383,7 +271,7 @@ local function S_Encounter(self, startIndex, attempt, counter)
     end
 end
 
-EJ_GetEncounterInfo(3139)
+
 
 
 
@@ -410,64 +298,64 @@ EJ_GetEncounterInfo(3139)
 --EncounterSection
 local function S_SectionEncounter(self, startIndex, attempt, counter)
     if self.isStop then
-        self.Value:SetFormattedText('|cffff8200暂停, %d条, %.1f%%', startIndex, startIndex/50000*100)
+        self.Value:SetFormattedText('|cffff8200暂停, %d条, %.1f%%', startIndex, startIndex/MaxSectionEncounterID*100)
         self.Name:SetText(self.name)
         return
 
-    elseif (startIndex > 50000) then
+    elseif (startIndex > MaxSectionEncounterID) then
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        WoWTools_SC_SectionEncounterIndex = nil
+        Save().SectionEncounter = nil
         self:settings()
         self.num= 0
         return
     end
+    do
+        for index = 1, 45 do
+            local name= GetDifficultyInfo(index)
+            if name then
+                do
+                    EJ_SetDifficulty(index)
+                end
 
+                for sectionID = startIndex, startIndex + 100 do
+                    local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
+                    if sectionInfo and not sectionInfo.filteredByDifficulty then
 
-    for index = 1, 45 do
-        local name= GetDifficultyInfo(index)
-        if name then
-            do
-                EJ_SetDifficulty(index)
-            end
+                        local difficultyID= EJ_GetDifficulty() or index
+                        local title= sectionInfo.title
+                        local desc= sectionInfo.description
 
-            for sectionID = startIndex, startIndex + 100 do
-                local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
-                if sectionInfo and not sectionInfo.filteredByDifficulty then
+                        title= title~='' and title or nil
+                        desc= desc~='' and desc or nil
 
-                    local difficultyID= EJ_GetDifficulty() or index
-                    local title= sectionInfo.title
-                    local desc= sectionInfo.description
+                        if title or desc then
+                            local t= sectionID..'x'..difficultyID
 
-                    title= title~='' and title or nil
-                    desc= desc~='' and desc or nil
+                            WoWTools_SC_SectionEncounter[t] = {}
 
-                    if title or desc then
-                        local t= sectionID..'x'..difficultyID
+                            if title then
+                                WoWTools_SC_SectionEncounter[t].T = title
+                            end
+                            if desc then
+                                WoWTools_SC_SectionEncounter[t].D = desc
+                            end
 
-                        WoWTools_SC_SectionEncounter[t] = {}
-
-                        if title then
-                            WoWTools_SC_SectionEncounter[t].T = title
+                            self.num= self.num+1
+                            self.Name:SetText(sectionInfo.link or title or '')
                         end
-                        if desc then
-                            WoWTools_SC_SectionEncounter[t].D = desc
-                        end
-
-                        self.num= self.num+1
-                        self.Name:SetText(sectionInfo.link or title or '')
                     end
                 end
             end
         end
     end
 
-    local va= startIndex/50000*100
+    local va= startIndex/MaxSectionEncounterID*100
     self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
 
-    WoWTools_SC_SectionEncounterIndex = startIndex
+    Save().SectionEncounter = startIndex
 
     if (counter >= 2) then
         C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
@@ -502,7 +390,7 @@ end
 
 --任务
 local function S_CacheQuest(self, startIndex, attempt, counter)
-    if not WoWTools_SC_QuestCacheIndex then
+    if not Save().QuestCache then
         self.Name:SetText('|cffff0000停止|r, 获取“任务”数据')
         return
 
@@ -525,7 +413,7 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
         self.bar2:SetValue(va)
     end
 
-    WoWTools_SC_QuestCacheIndex= startIndex
+    Save().QuestCache= startIndex
 
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
@@ -533,7 +421,6 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
         C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
-
 
 local function Get_Objectives(questID)
     local obj= C_QuestLog.GetQuestObjectives(questID)
@@ -598,7 +485,7 @@ local function S_Quest(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        WoWTools_SC_QuestIndex = nil
+        Save().Quest = nil
         self:settings()
         self.num= 0
         return
@@ -616,7 +503,7 @@ local function S_Quest(self, startIndex, attempt, counter)
         end
     end
 
-    WoWTools_SC_QuestIndex = startIndex
+    Save().Quest = startIndex
     local va= startIndex/MaxQuestID*100
     self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
@@ -698,7 +585,7 @@ local function S_Unit(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        WoWTools_SC_UnitIndex = nil
+        Save().Unit = nil
         self:settings()
         self.num= 0
         return
@@ -716,7 +603,7 @@ local function S_Unit(self, startIndex, attempt, counter)
         end
     end
 
-    WoWTools_SC_UnitIndex = startIndex
+    Save().Unit = startIndex
     local va= startIndex/MaxUnitID*100
     self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
@@ -754,7 +641,7 @@ end
 
 
 local function S_CacheItem(self, startIndex, attempt, counter)
-    if not WoWTools_SC_ItemCacheIndex then
+    if not Save().ItemCache then
         self.Name:SetText('|cffff0000停止|r, 获取“物品”数据')
         return
 
@@ -762,6 +649,7 @@ local function S_CacheItem(self, startIndex, attempt, counter)
         self.Name:SetText('获取“物品” 数据 |cnGREEN_FONT_COLOR:完成')
         self.bar2:SetValue(0)
         self.bar2:Hide()
+        Save().Item=nil
         return
 
     elseif startIndex==1 then
@@ -770,7 +658,7 @@ local function S_CacheItem(self, startIndex, attempt, counter)
     end
 
     for itemID = startIndex, startIndex + 150 do
-        
+
         if not C_Item.IsItemDataCachedByID(itemID) then
             C_Item.RequestLoadItemDataByID(itemID)
         end
@@ -778,7 +666,7 @@ local function S_CacheItem(self, startIndex, attempt, counter)
         self.bar2:SetValue(va)
     end
 
-    WoWTools_SC_ItemCacheIndex= startIndex
+    Save().ItemCache= startIndex
 
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 150, attempt + 1, 0) end)
@@ -835,15 +723,15 @@ end
 
 local function S_Item(self, startIndex, attempt, counter)
     if self.isStop then
-        self.Value:SetFormattedText('|cffff8200暂停|r, %d条, %.1f%%', startIndex, startIndex/MaxQuestID*100)
+        self.Value:SetFormattedText('|cffff8200暂停|r, %d条, %.1f%%', startIndex, startIndex/MaxItemID*100)
         self.Name:SetText(self.name)
         return
 
-    elseif (startIndex > MaxQuestID) then
+    elseif (startIndex > MaxItemID) then
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        WoWTools_SC_QuestIndex = nil
+        Save().Item = nil
         self:settings()
         self.num= 0
         return
@@ -862,7 +750,7 @@ local function S_Item(self, startIndex, attempt, counter)
         end
     end
 
-    WoWTools_SC_ItemIndex = startIndex
+    Save().Item = startIndex
     local va= startIndex/MaxItemID*100
     self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
@@ -904,8 +792,8 @@ end
 
 
 local function clear_data(name)
-    _G['WoWTools_SC_'..name..'Index']= nil
-    _G['WoWTools_SC_'..name..'CacheIndex']= nil
+    Save()[name]= nil
+    Save()[name..'Cache']= nil
     _G['WoWTools_SC_'..name]= {}
 
     local btn= _G['WoWToolsSC'..name..'Button']
@@ -1043,7 +931,7 @@ end
 
 local function Init()
 
-    Frame= CreateFrame('Frame', 'WoWTools_SCFrame', UIParent)
+    Frame= CreateFrame('Frame', 'WoWTools_SC_Frame', UIParent)
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
     Frame:SetSize(520, 500)
@@ -1080,7 +968,7 @@ local function Init()
     note:SetPoint('BOTTOM', 0, 12)
     note:SetText('|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua')
 
-    local ClearButton= CreateFrame('Button', nil, Frame, 'UIPanelButtonTemplate')
+    local ClearButton= CreateFrame('Button', 'WoWToolsSCClearDataButton', Frame, 'UIPanelButtonTemplate')
     ClearButton:SetSize(180, 23)
     ClearButton:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
     ClearButton:SetText('清除所有数据')
@@ -1114,10 +1002,10 @@ local function Init()
         end)
 
         if name=='Quest' then
-            S_CacheQuest(btn, WoWTools_SC_QuestCacheIndex or 1, 0, 0)
+            S_CacheQuest(btn, Save().QuestCache or 1, 0, 0)
         elseif name=='Item' then
             Set_Item_Event(btn)
-            S_CacheItem(btn, WoWTools_SC_ItemCacheIndex or 1, 0, 0)
+            S_CacheItem(btn, Save().ItemCache or 1, 0, 0)
         end
 
 
@@ -1142,16 +1030,20 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
 
+    WoWTools_SC= WoWTools_SC or CopyTable(P_Save)
+
+
+
     WoWTools_SC_Spell = WoWTools_SC_Spell or {}
 
-    WoWTools_SC_ItemCacheIndex= WoWTools_SC_ItemCacheIndex or 1
+    Save().ItemCache= Save().ItemCache or 1
     WoWTools_SC_Item = WoWTools_SC_Item or {}
 
     WoWTools_SC_Unit = WoWTools_SC_Unit or {}
 
     WoWTools_SC_Achivement = WoWTools_SC_Achivement or {}
 
-    WoWTools_SC_QuestCacheIndex= WoWTools_SC_QuestCacheIndex or 1
+    Save().QuestCache= Save().QuestCache or 1
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
 
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}

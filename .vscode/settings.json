@@ -24,6 +24,7 @@
         "OKAY",
         "CANCEL",
         "StaticPopup_Show",
-        "QUEST_TOOLTIP_ACTIVE"
+        "QUEST_TOOLTIP_ACTIVE",
+        "QuestCache"
     ]
 }
