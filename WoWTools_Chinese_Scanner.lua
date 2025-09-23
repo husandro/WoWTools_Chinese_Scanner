@@ -853,7 +853,8 @@ local function S_Item(self, startIndex, attempt, counter)
         for itemID = startIndex, startIndex + 150 do
             local tab = Get_Item_Tab(itemID)
             if tab then
-                WoWTools_SC_Item[format('%d', itemID)] = tab
+                --WoWTools_SC_Item[format('%d', itemID)] = tab
+                WoWTools_SC_Item[itemID] = tab
                 self.num= self.num+1
                 self.Name:SetText( select(2, C_Item.GetItemInfo(itemID)) or tab.T)
             end
@@ -872,7 +873,15 @@ local function S_Item(self, startIndex, attempt, counter)
     end
 end
 
+local function Set_Item_Event(btn)
+    btn:RegisterEvent('ITEM_DATA_LOAD_RESULT')
+    btn:SetScript('OnEvent', function(_, itemID, success)
+        if not itemID and not success then
+            return
+        end
 
+    end)
+end
 
 
 
@@ -903,10 +912,6 @@ local function clear_data(name)
         btn:settings()
     else
         btn.time=nil
-    end
-
-    if btn.set_event then
-        btn:set_event()
     end
 
     btn.bar:SetValue(0)
@@ -965,9 +970,6 @@ local function Create_Button(name)
             self:SetNormalAtlas('common-dropdown-icon-stop')
             self.num= _G['WoWTools_SC_'..self.name..'Index'] or 0
             self.time= GetTime()
-        end
-        if self.set_event then
-            self:set_event()
         end
     end
     btn:settings()
@@ -1113,12 +1115,7 @@ local function Init()
         if name=='Quest' then
             S_CacheQuest(btn, WoWTools_SC_QuestCacheIndex or 1, 0, 0)
         elseif name=='Item' then
-            function btn:set_event()
-                if self.isStop then
-                    self:RegisterEvent('')
-                else
-                end
-            end
+            Set_Item_Event(btn)
             S_CacheItem(btn, WoWTools_SC_ItemCacheIndex or 1, 0, 0)
         end
 
