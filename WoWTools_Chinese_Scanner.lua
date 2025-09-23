@@ -792,6 +792,7 @@ local ItemString={
     ['拾取后绑定']=1,
     ['你拥有此外观，但不是来自此物品']=1,
 }
+
 local function Get_Item_Tab(itemID)
       local data= C_TooltipInfo.GetHyperlink('item:'..itemID..':0:0:0:0:0:0:0')
     if not data
@@ -816,7 +817,7 @@ local function Get_Item_Tab(itemID)
             and not line.leftText:find('需要等级 %d+')
             and not line.leftText:find('^%+%d+ ')
             and not line.leftText:find('^%d+点')
-            
+
         then-- and not line.leftText:find('等级 ') then
             local right= IsCN(line.rightText) and line.rightText
             desc= (desc and desc..'|n' or '')..line.leftText..(right and '  '..right or '')
@@ -903,6 +904,11 @@ local function clear_data(name)
     else
         btn.time=nil
     end
+
+    if btn.set_event then
+        btn:set_event()
+    end
+
     btn.bar:SetValue(0)
     btn.Value:SetText("")
 
@@ -959,6 +965,9 @@ local function Create_Button(name)
             self:SetNormalAtlas('common-dropdown-icon-stop')
             self.num= _G['WoWTools_SC_'..self.name..'Index'] or 0
             self.time= GetTime()
+        end
+        if self.set_event then
+            self:set_event()
         end
     end
     btn:settings()
@@ -1104,8 +1113,13 @@ local function Init()
         if name=='Quest' then
             S_CacheQuest(btn, WoWTools_SC_QuestCacheIndex or 1, 0, 0)
         elseif name=='Item' then
+            function btn:set_event()
+                if self.isStop then
+                    self:RegisterEvent('')
+                else
+                end
+            end
             S_CacheItem(btn, WoWTools_SC_ItemCacheIndex or 1, 0, 0)
-
         end
 
 
