@@ -770,6 +770,7 @@ local function S_CacheItem(self, startIndex, attempt, counter)
     end
 
     for itemID = startIndex, startIndex + 150 do
+        
         if not C_Item.IsItemDataCachedByID(itemID) then
             C_Item.RequestLoadItemDataByID(itemID)
         end
