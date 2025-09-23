@@ -32,12 +32,19 @@ end
 ( ) . % + - * ? [ ^ $
 local MaxAchivementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 ]]
+local ReceString={
+    [ERR_TRAVEL_PASS_NO_INFO] = 1,--正在获取信息……
+    [RETRIEVING_ITEM_INFO] = 1,--正在获取物品信息
+    [RETRIEVING_TRADESKILL_INFO] = 1,--正在获取信息
+
+}
 local function IsCN(text)
     return
         text
         and text:find('[\228-\233]')
         and not text:find('DNT')
         and not text:find('UNUSED')
+        and not ReceString[text]
 end
 
 
@@ -240,22 +247,20 @@ local function S_Encounter(self, startIndex, attempt, counter)
 
     end
 
-    do
-        for journalEncounterID = startIndex, startIndex + 100 do
-            local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
-            name= name~='' and name or nil
-            desc= desc~='' and desc or nil
-            if name or desc then
-                WoWTools_SC_Encounter[journalEncounterID] = {}
-                if name then
-                    WoWTools_SC_Encounter[journalEncounterID].T = name
-                end
-                if desc then
-                    WoWTools_SC_Encounter[journalEncounterID].D = desc
-                end
-                self.num= self.num+1
-                self.Name:SetText(link or name or '')
+    for journalEncounterID = startIndex, startIndex + 100 do
+        local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
+        name= name~='' and name or nil
+        desc= desc~='' and desc or nil
+        if name or desc then
+            WoWTools_SC_Encounter[journalEncounterID] = {}
+            if name then
+                WoWTools_SC_Encounter[journalEncounterID].T = name
             end
+            if desc then
+                WoWTools_SC_Encounter[journalEncounterID].D = desc
+            end
+            self.num= self.num+1
+            self.Name:SetText(link or name or '')
         end
     end
 
@@ -311,40 +316,39 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
         self.num= 0
         return
     end
-    do
-        for index = 1, 45 do
-            local name= GetDifficultyInfo(index)
-            if name then
-                do
-                    EJ_SetDifficulty(index)
-                end
 
-                for sectionID = startIndex, startIndex + 100 do
-                    local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
-                    if sectionInfo and not sectionInfo.filteredByDifficulty then
+    for index = 1, 45 do
+        local name= GetDifficultyInfo(index)
+        if name then
+            do
+                EJ_SetDifficulty(index)
+            end
 
-                        local difficultyID= EJ_GetDifficulty() or index
-                        local title= sectionInfo.title
-                        local desc= sectionInfo.description
+            for sectionID = startIndex, startIndex + 100 do
+                local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
+                if sectionInfo and not sectionInfo.filteredByDifficulty then
 
-                        title= title~='' and title or nil
-                        desc= desc~='' and desc or nil
+                    local difficultyID= EJ_GetDifficulty() or index
+                    local title= sectionInfo.title
+                    local desc= sectionInfo.description
 
-                        if title or desc then
-                            local t= sectionID..'x'..difficultyID
+                    title= title~='' and title or nil
+                    desc= desc~='' and desc or nil
 
-                            WoWTools_SC_SectionEncounter[t] = {}
+                    if title or desc then
+                        local t= sectionID..'x'..difficultyID
 
-                            if title then
-                                WoWTools_SC_SectionEncounter[t].T = title
-                            end
-                            if desc then
-                                WoWTools_SC_SectionEncounter[t].D = desc
-                            end
+                        WoWTools_SC_SectionEncounter[t] = {}
 
-                            self.num= self.num+1
-                            self.Name:SetText(sectionInfo.link or title or '')
+                        if title then
+                            WoWTools_SC_SectionEncounter[t].T = title
                         end
+                        if desc then
+                            WoWTools_SC_SectionEncounter[t].D = desc
+                        end
+
+                        self.num= self.num+1
+                        self.Name:SetText(sectionInfo.link or title or '')
                     end
                 end
             end
@@ -456,7 +460,7 @@ local function Get_Quest_Tab(questID)
 
     local title= C_QuestLog.GetTitleForQuestID(questID) or data.lines[1].leftText
 
-    if not IsCN(title) and QuestString[title] then
+    if not IsCN(title) or QuestString[title] then
         return
     end
 
@@ -492,8 +496,8 @@ local function S_Quest(self, startIndex, attempt, counter)
 
     end
 
-    do
-        for questID = startIndex, startIndex + 100 do
+    for questID = startIndex, startIndex + 100 do
+        if not WoWTools_SC_Quest[questID] then
             local tab = Get_Quest_Tab(questID)
             if tab then
                 WoWTools_SC_Quest[questID] = tab
@@ -516,7 +520,17 @@ local function S_Quest(self, startIndex, attempt, counter)
 end
 
 
-
+local function Set_Quest_Event(btn)
+    btn:RegisterEvent('QUEST_DATA_LOAD_RESULT')
+    btn:SetScript('OnEvent', function(_, questID, success)
+        if questID and success and not WoWTools_SC_Quest[questID] then
+            local tab = Get_Quest_Tab(questID)
+            if tab then
+                WoWTools_SC_Quest[questID] = tab
+            end
+        end
+    end)
+end
 
 
 
@@ -592,14 +606,12 @@ local function S_Unit(self, startIndex, attempt, counter)
 
     end
 
-    do
-        for unit = startIndex, startIndex + 250 do
-            local tab= Get_Unit_Tab(unit)
-            if tab then
-                WoWTools_SC_Unit[format('%d', unit)] = tab--字母， 如果数字，输出表格会出现很多nil
-                self.num= self.num+1
-                self.Name:SetText(tab.T)
-            end
+    for unit = startIndex, startIndex + 250 do
+        local tab= Get_Unit_Tab(unit)
+        if tab then
+            WoWTools_SC_Unit[format('%d', unit)] = tab--字母， 如果数字，输出表格会出现很多nil
+            self.num= self.num+1
+            self.Name:SetText(tab.T)
         end
     end
 
@@ -677,7 +689,6 @@ end
 
 local ItemString={
     ['你尚未收藏过此外观']=1,
-    ['正在获取物品信息']=1,
     ['拾取后绑定']=1,
     ['你拥有此外观，但不是来自此物品']=1,
 }
@@ -738,15 +749,13 @@ local function S_Item(self, startIndex, attempt, counter)
 
     end
 
-    do
-        for itemID = startIndex, startIndex + 150 do
-            local tab = Get_Item_Tab(itemID)
-            if tab then
-                --WoWTools_SC_Item[format('%d', itemID)] = tab
-                WoWTools_SC_Item[itemID] = tab
-                self.num= self.num+1
-                self.Name:SetText( select(2, C_Item.GetItemInfo(itemID)) or tab.T)
-            end
+    for itemID = startIndex, startIndex + 150 do
+        local tab = Get_Item_Tab(itemID)
+        if tab then
+            --WoWTools_SC_Item[format('%d', itemID)] = tab
+            WoWTools_SC_Item[itemID] = tab
+            self.num= self.num+1
+            self.Name:SetText( select(2, C_Item.GetItemInfo(itemID)) or tab.T)
         end
     end
 
@@ -765,10 +774,12 @@ end
 local function Set_Item_Event(btn)
     btn:RegisterEvent('ITEM_DATA_LOAD_RESULT')
     btn:SetScript('OnEvent', function(_, itemID, success)
-        if not itemID and not success then
-            return
+        if itemID and success and not WoWTools_SC_Item[itemID] then
+            local tab = Get_Item_Tab(itemID)
+            if tab then
+                WoWTools_SC_Item[itemID] = tab
+            end
         end
-
     end)
 end
 
@@ -1002,6 +1013,7 @@ local function Init()
         end)
 
         if name=='Quest' then
+            Set_Quest_Event(btn)
             S_CacheQuest(btn, Save().QuestCache or 1, 0, 0)
         elseif name=='Item' then
             Set_Item_Event(btn)

@@ -25,6 +25,9 @@
         "CANCEL",
         "StaticPopup_Show",
         "QUEST_TOOLTIP_ACTIVE",
-        "QuestCache"
+        "QuestCache",
+        "ERR_TRAVEL_PASS_NO_INFO",
+        "RETRIEVING_ITEM_INFO",
+        "RETRIEVING_TRADESKILL_INFO"
     ]
 }
