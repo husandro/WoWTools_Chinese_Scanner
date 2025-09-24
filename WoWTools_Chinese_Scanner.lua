@@ -707,7 +707,10 @@ local function Get_Item_Tab(itemID)
             or text:find('^".+"$')
         )
         then
-            desc= (desc and desc..'|n' or '')..text
+            desc= (desc and desc..'|n' or '')..(text:match('"(.+)"') or text)
+        end
+        if text:match('%|cff......') then
+            print(text)
         end
     end
 
@@ -778,6 +781,27 @@ local function Set_Item_Event(self)
         end
     end)
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -904,6 +928,14 @@ local function Create_Button(name, func)
     btn.Ver=  btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Ver:SetFontObject("GameFontWhite")
     btn.Ver:SetPoint('CENTER', btn.bar)
+    btn.Ver:EnableMouse(true)
+    btn.Ver:SetScript('OnLeave', function(self) GameTooltip:Hide() self:SetAlpha(1) end)
+    btn.Ver:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+        GameTooltip:SetText(self.name..': 数据版本 '..self:GetText())
+        GameTooltip:Show()
+        self:SetAlpha(0.5)
+    end)
 
     btn.clear= CreateFrame('Button', nil, btn)
     btn.clear:SetNormalAtlas('bags-button-autosort-up')
@@ -911,6 +943,12 @@ local function Create_Button(name, func)
     btn.clear:SetHighlightAtlas('PetList-ButtonHighlight')
     btn.clear:SetPoint('LEFT', btn, 'RIGHT', 2, 0)
     btn.clear:SetSize(23,23)
+    btn.clear:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    btn.clear:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+        GameTooltip:SetText('清除 '..self.name)
+        GameTooltip:Show()
+    end)
     btn.clear:SetScript('OnMouseDown', function(self)
         local p= self:GetParent()
         local n= p.name
@@ -991,7 +1029,11 @@ local function Init()
     local note= Frame:CreateFontString(nil, "OVERLAY")
     note:SetFontObject('GameFontNormal')
     note:SetPoint('BOTTOM', 0, 12)
-    note:SetText('|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua')
+    note:SetText(
+        '当前游戏版本 '
+        ..Ver
+        ..'|n|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua'
+    )
 
     local ClearButton= CreateFrame('Button', 'WoWToolsSCClearDataButton', Frame, 'UIPanelButtonTemplate')
     ClearButton:SetSize(180, 23)
