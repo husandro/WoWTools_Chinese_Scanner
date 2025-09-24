@@ -980,7 +980,7 @@ end
 local function clear_data(name)
     Save()[name]= nil
     Save()[name..'Cache']= nil
-    Save()[name..'Ver']= Ver
+    Save()[name..'Ver']= nil
 
     _G['WoWTools_SC_'..name]= {}
 
