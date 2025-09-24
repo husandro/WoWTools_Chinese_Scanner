@@ -2,6 +2,9 @@ local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 local MaxQuestID= (GameVer-1)*10000 --11.2.5 版本 93516
 local Buttons={}
 
+
+
+
 --[[
 ( ) . % + - * ? [ ^ $
 local MaxAchivementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
@@ -536,7 +539,7 @@ end
 
 
 --任务
-local function S_CacheQuest(self, startIndex, attempt, counter)
+--[[local function S_CacheQuest(self, startIndex, attempt, counter)
     if (startIndex > MaxQuestID) then
         self.Name:SetText('获取任务数据|cnGREEN_FONT_COLOR:完成')
         self.bar2:SetValue(0)
@@ -548,19 +551,19 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
     end
 
     for questID = startIndex, startIndex + 150 do
-        if not HaveQuestData(questID) then
+        --if not HaveQuestData(questID) then
             C_QuestLog.RequestLoadQuestByID(questID)
-        end
+        --end
         local va= questID/MaxQuestID*100
         self.bar2:SetValue(va)
     end
 
-    if (counter >= 5) then
-        C_Timer.After(0.3, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
-    else
-        C_Timer.After(0.3, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
-    end
 
+    if (counter >= 5) then
+        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
+    else
+        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
+    end
 end
 
 local QuestTooltip = CreateFrame("GameTooltip", 'WoWToolsSCQuestTooltip', UIParent, "GameTooltipTemplate")
@@ -610,9 +613,62 @@ function QuestTooltip:Get_Text(questID, ...)
         }
     end
 end
+]]
 
 
 
+
+
+local function Get_Objectives(questID)
+    local obj= C_QuestLog.GetQuestObjectives(questID)
+    if not obj then
+        return
+    end
+    local tab= {}
+    local find
+    for index, info in pairs(obj) do
+        if info.text then
+            local t= info.text:match('%d+/%d+ (.+)') or info.text
+            t= t:match('(.+) %(%d+%%%)') or t
+            --t= t:gsub(' %(%d+%%%)', '')
+            tab[index]= t
+            find=true
+        end
+    end
+    if find then
+        return tab
+    end
+end
+
+local QuestString={
+    ['暂无信息']=1,
+    ['要求：']=1,
+}
+local function Get_Quest_Tab(questID)
+
+    local data= C_TooltipInfo.GetHyperlink('quest:' .. questID)
+    if not data or not data.lines or not data.lines[1] then
+        return
+    end
+
+    local title= C_QuestLog.GetTitleForQuestID(questID) or data.lines[1].leftText
+
+    if not IsCN(title) and QuestString[title] then
+        return
+    end
+
+    local obj
+    if data.lines[3] and IsCN(data.lines[3].leftText) and not QuestString[data.lines[3].leftText] then
+        obj= data.lines[3].leftText
+    end
+
+    return{
+        ['T']= title,
+        ['O']= obj,
+        ['S']= Get_Objectives(questID),
+    }
+
+end
 
 
 
@@ -632,16 +688,22 @@ local function S_Quest(self, startIndex, attempt, counter)
         return
 
     end
-    for questID = startIndex, startIndex + 100 do
-        QuestTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-        QuestTooltip:ClearLines()
-        QuestTooltip:SetHyperlink('quest:' .. questID)
-        QuestTooltip:Show()
-        local tab = QuestTooltip:Get_Text(questID, QuestTooltip:GetRegions())
-        if tab then
-            WoWTools_SC_Quest[questID] = tab
-            self.num= self.num+1
-            self.Name:SetText(GetQuestLink(questID) or C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
+    do
+        for questID = startIndex, startIndex + 100 do
+
+            --[[QuestTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+            QuestTooltip:ClearLines()
+            QuestTooltip:SetHyperlink('quest:' .. questID)
+            QuestTooltip:Show()]]
+
+
+
+            local tab = Get_Quest_Tab(questID)--QuestTooltip:Get_Text(questID, QuestTooltip:GetRegions())
+            if tab then
+                WoWTools_SC_Quest[questID] = tab
+                self.num= self.num+1
+                self.Name:SetText(GetQuestLink(questID) or C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
+            end
         end
     end
 
@@ -651,10 +713,10 @@ local function S_Quest(self, startIndex, attempt, counter)
     self.bar:SetValue(va)
 
     if (counter >= 5) then
-        C_Timer.After(0.5, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
+        C_Timer.After(0.1, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
         --SC_Wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
     else
-        C_Timer.After(0.5, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(0.1, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
         --SC_Wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
     end
 end
@@ -692,6 +754,8 @@ end
 
 local function clear_data(name)
     _G['WoWTools_SC_'..name..'Index']= nil
+    --_G['WoWTools_SC_'..name..'CacheIndex']= nil
+
     _G['WoWTools_SC_'..name]= {}
 
     local btn= _G['WoWToolsSC'..name..'Button']
@@ -702,10 +766,11 @@ local function clear_data(name)
     end
     btn.bar:SetValue(0)
     btn.Value:SetText("")
-    
+
 
     print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
 end
+
 StaticPopupDialogs['WoWTools_SC']={
     text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗',
     button1 = '确定', button2 = '取消',
@@ -1007,3 +1072,4 @@ local function S_Achivement(self, startIndex, attempt, counter)
     end
 end
 ]]
+
