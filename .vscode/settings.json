@@ -29,6 +29,9 @@
         "ERR_TRAVEL_PASS_NO_INFO",
         "RETRIEVING_ITEM_INFO",
         "RETRIEVING_TRADESKILL_INFO",
-        "ID"
+        "ID",
+        "GameTooltip_Hide",
+        "RELOADUI",
+        "SLASH_RELOAD1"
     ]
 }
