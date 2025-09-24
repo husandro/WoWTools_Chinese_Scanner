@@ -5,9 +5,10 @@ local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://
 local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxEncounterID= 25000
 local MaxSectionEncounterID= 50000
-local MaxUnitID= 300000
-local MaxItemID= 300000
-local MaxSpellID= 500000
+
+local MaxUnitID= (GameVer-8)*10000--300000
+local MaxItemID= (GameVer-8)*100000--3000000 11.2.5 最高 258483  https://wago.tools/db2/Item
+local MaxSpellID=(GameVer-6)*100000-- 500000
 
 local Frame
 local Buttons={}
@@ -100,13 +101,21 @@ local function IsCN(text)
 end
 local function Is_StopRun(self, startIndex, maxID)
     if self.isStop then
-        self.Value:SetFormattedText('|cffff8200暂停, %d条, %.1f%%', startIndex, startIndex/maxID*100)
+        self.Value:SetFormattedText(
+            '|cffff8200暂停, %d条, %.1f%%',
+            startIndex,
+            startIndex/maxID*100
+        )
         self.Name:SetText(self.name)
         return true
 
     elseif (startIndex > maxID) then
         self.bar:SetValue(100)
-        self.Value:SetFormattedText('|cffff00ff完成|r, %d条', self.num)
+        self.Value:SetFormattedText(
+            '|cffff00ff完成|r, %d条, %s',
+            self.num,
+            SecondsToClock((GetTime()-self.time))
+        )
         self.Name:SetText(self.name)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
@@ -118,7 +127,12 @@ end
 local function Set_ValueText(self, startIndex, maxID)
     Save()[self.name] = startIndex
     local va= startIndex/maxID*100
-    self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
+    self.Value:SetFormattedText(
+        '%s, %d条, %.1f%%',
+        SecondsToClock((GetTime()-self.time), false),
+        self.num,
+        va
+    )
     self.bar:SetValue(va)
 end
 
@@ -331,17 +345,35 @@ local function Get_Unit_Tab(unit)
     end
 end
 
+local function Save_Unit(self, unit)--字符
+    local va= math.modf(unit/100000)
+    va= math.min(2, va)
+
+    local id= tostring(unit)
+    if _G['WoWTools_SC_Item'..va][id] then
+        self.num= self.num+1
+        return _G['WoWTools_SC_Item'..va][id].T
+
+    else
+        local tab = Get_Unit_Tab(unit)
+        if tab then
+            _G['WoWTools_SC_Unit'..va][id] = tab
+            self.num= self.num+1
+            return tab.T
+
+        end
+    end
+end
+
 local function S_Unit(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxUnitID) then
         return
     end
 do
     for unit = startIndex, startIndex + 250 do
-        local tab= Get_Unit_Tab(unit)
-        if tab then
-            WoWTools_SC_Unit[format('%d', unit)] = tab--字母， 如果数字，输出表格会出现很多nil
-            self.num= self.num+1
-            self.Name:SetText(tab.T)
+        local title= Save_Unit(self, unit)
+        if title then
+            self.Name:SetText(title)
         end
     end
 end
@@ -463,15 +495,18 @@ end
 
 
 local function Save_Item(self, itemID)--字符
-    local id= tostring(itemID)
 
-    if WoWTools_SC_Item[id] then
+    local va= math.modf(itemID/100000)
+    va= math.min(2, va)
+
+    local id= tostring(itemID)
+    if _G['WoWTools_SC_Item'..va][id] then
         self.num= self.num+1
         return true
     else
         local tab = Get_Item_Tab(itemID)
         if tab then
-            WoWTools_SC_Item[id] = tab
+            _G['WoWTools_SC_Item'..va][id] = tab
             self.num= self.num+1
             return true
         end
@@ -501,7 +536,7 @@ end
 
 local function Set_Item_Event(self)
     self:RegisterEvent('ITEM_DATA_LOAD_RESULT')
-    self:SetScript('OnEvent', function(_, itemID, success)
+    self:SetScript('OnEvent', function(_, _, itemID, success)
         if itemID and success then
             Save_Item(self, itemID)
         end
@@ -664,7 +699,7 @@ end
 
 local function Set_Quest_Event(self)
     self:RegisterEvent('QUEST_DATA_LOAD_RESULT')
-    self:SetScript('OnEvent', function(_, questID, success)
+    self:SetScript('OnEvent', function(_, _, questID, success)
         if questID and success then
             Save_Quest(self, questID)
         end
@@ -758,15 +793,18 @@ end
 
 
 local function Save_Spell(self, spellID)
+    local va= math.modf(spellID/100000)
+    va= math.min(4, va)
+
     local id= tostring(spellID)
 
-    if WoWTools_SC_Spell[id] then
+    if _G['WoWTools_SC_Spell'..va][id] then
         self.num= self.num+1
         return true
     else
         local tab = Get_Spell_Tab(spellID)
         if tab then
-            WoWTools_SC_Spell[id] = tab
+            _G['WoWTools_SC_Spell'..va][id] = tab
             self.num= self.num+1
             return true
         end
@@ -798,7 +836,7 @@ end
 
 local function Set_Spell_Event(self)
     self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    self:SetScript('OnEvent', function(_, spellID, success)
+    self:SetScript('OnEvent', function(_, _, spellID, success)
         if spellID and success then
             Save_Spell(self, spellID)
         end
@@ -978,7 +1016,18 @@ local function clear_data(name)
     Save()[name..'Cache']= nil
     Save()[name..'Ver']= nil
 
-    _G['WoWTools_SC_'..name]= {}
+    if name=='Item' or 'Unit' then
+        for va =0, 2 do
+            _G['WoWTools_SC_Item'..va] = {}
+        end
+    elseif name=='Spell' then
+        for va =0, 4 do
+            _G['WoWTools_SC_Item'..va] = {}
+        end
+    else
+        _G['WoWTools_SC_'..name]= {}
+
+    end
 
     local self= _G['WoWToolsSC'..name..'Button']
     if not self.isStop then
@@ -996,16 +1045,19 @@ local function clear_data(name)
 end
 
 StaticPopupDialogs['WoWTools_SC']={
-    text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗',
+    text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗？%s',
     button1 = '确定', button2 = '取消',
     whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true, acceptDelay=1,
     OnAccept=function(_, data)
         if data then
             clear_data(data)
         else
-            for _, name in pairs(Buttons) do
-                clear_data(name)
+            do
+                for _, name in pairs(Buttons) do
+                    clear_data(name)
+                end
             end
+            C_UI.Reload()
         end
     end
 }
@@ -1023,11 +1075,12 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 local y= -70
-local function Create_Button(name, func)
+local function Create_Button(name, tab)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
     btn.name= name
-    btn.func= func
+    btn.func= tab.func
+    btn.timeText= tab.time
 
     btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
@@ -1038,6 +1091,10 @@ local function Create_Button(name, func)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText((self.isStop and '运行' or '暂停').. ' '..self.name)
+        if self.timeText~='' then
+            GameTooltip:AddLine('时间：'..self.timeText)
+        end
+        GameTooltip:AddLine(' ')
         GameTooltip:AddLine('运行前，请关闭所有插件')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
@@ -1113,7 +1170,7 @@ local function Create_Button(name, func)
         else
             p.time=nil
         end
-        StaticPopup_Show('WoWTools_SC', n, nil, n)
+        StaticPopup_Show('WoWTools_SC', n, '', n)
     end)
 
     function btn:settings()
@@ -1153,7 +1210,6 @@ local function Init()
     Frame= CreateFrame('Frame', 'WoWTools_SC_Frame', UIParent)
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
-    Frame:SetSize(520, 500)
     Frame:SetPoint('CENTER')
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
@@ -1161,19 +1217,19 @@ local function Init()
         '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'
         ..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
     )
-    Frame:RegisterEvent('PLAYER_REGEN_ENABLED')
-    Frame:SetScript('OnShow', function(self)
-        self:RegisterEvent('PLAYER_REGEN_ENABLED')
-    end)
-    Frame:SetScript('OnHide', function(self)
-        self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-    end)
-    Frame:SetScript('OnEvent', function()
-        for _, name in pairs(Buttons) do
-            local btn= _G['WoWToolsSC'..name..'Button']
-            if not btn.isStop then
-                btn:settings()
+    Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
+    Frame:RegisterUnitEvent('PLAYER_FLAGS_CHANGED', 'player')
+    Frame:SetScript('OnEvent', function(_, event)
+        if event=='PLAYER_REGEN_DISABLED' then
+            for _, name in pairs(Buttons) do
+                local btn= _G['WoWToolsSC'..name..'Button']
+                if not btn.isStop then
+                    btn:settings()
+                end
             end
+
+        elseif UnitIsAFK('player') then
+            C_MountJournal.SummonByID(0)
         end
     end)
 
@@ -1209,7 +1265,7 @@ local function Init()
                 btn.time=nil
             end
         end
-        StaticPopup_Show('WoWTools_SC', '全部', nil, nil)
+        StaticPopup_Show('WoWTools_SC', '全部', '|n|n|cnGREEN_FONT_COLOR:重新加载UI', nil)
     end)
 
 
@@ -1218,16 +1274,16 @@ local function Init()
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 32)
 
-    for name, func in pairs({
-        ['Encounter']= S_Encounter,
-        ['SectionEncounter']= S_SectionEncounter,
-        ['Quest']= S_Quest,
-        ['Unit']= S_Unit,
-        ['Item']= S_Item,
-        ['Spell']= S_Spell,
-        ['Achievement']= S_Achievement,
+    for name, tab in pairs({
+        ['Encounter']= {func=S_Encounter, time=''},
+        ['SectionEncounter']= {func=S_SectionEncounter, time=''},
+        ['Quest']= {func=S_Quest, time=''},
+        ['Unit']= {func=S_Unit, time=''},
+        ['Item']= {func=S_Item, time=''},
+        ['Spell']= {func=S_Spell, time=''},
+        ['Achievement']= {func=S_Achievement, time=''},
     }) do
-        local btn= Create_Button(name, func)
+        local btn= Create_Button(name, tab)
         if name=='Quest' then
             Set_Quest_Event(btn)
             S_CacheQuest(btn, Save()[name..'Cache'], 0, 0)
@@ -1247,6 +1303,7 @@ local function Init()
         table.insert(Buttons, name)
     end
 
+    Frame:SetSize(520, y*53+52)
 
     if not InCombatLockdown() then
         if not CollectionsJournal then
@@ -1284,12 +1341,19 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner)
     Save().AchievementCache=  Save().AchievementCache or 1
 
     WoWTools_SC_Spell = WoWTools_SC_Spell or {}
-    WoWTools_SC_Item = WoWTools_SC_Item or {}
-    WoWTools_SC_Unit = WoWTools_SC_Unit or {}
+    
     WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
+
+    for va=0, 2 do
+        _G['WoWTools_SC_Unit'..va] = _G['WoWTools_SC_Unit'..va] or {}
+        _G['WoWTools_SC_Item'..va] = _G['WoWTools_SC_Item'..va] or {}
+    end
+    for va=0, 4 do
+         _G['WoWTools_SC_Spell'..va] = _G['WoWTools_SC_Spell'..va] or {}
+    end
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
