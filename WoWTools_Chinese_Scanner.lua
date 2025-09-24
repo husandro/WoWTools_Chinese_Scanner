@@ -993,7 +993,8 @@ local function clear_data(name)
     end
 
     self.bar:SetValue(0)
-    self.Value:SetText("")
+    self.Value:SetText('')
+    self.Ver:SetText('')
 
 
     print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
@@ -1054,7 +1055,7 @@ local function Create_Button(name, func)
     btn.bar= CreateFrame('StatusBar', nil, btn)
     btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
     btn.bar:SetSize(Frame:GetWidth()-48-23*2, 18)
-    btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOn-Bar-Health')
+    btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
     btn.bar:SetMinMaxValues(0, 100)
     btn.bar:SetValue(0)
     btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
