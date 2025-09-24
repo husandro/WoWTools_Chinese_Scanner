@@ -1,3 +1,4 @@
+local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
 local MaxEncounterID= 25000
@@ -8,20 +9,7 @@ local MaxItemID= 300000
 
 local Frame
 local Buttons={}
-local P_Save= {
-    Spell=1,
-    Unit=1,
-    Encounter=1,
 
-    Quest=1,
-    QuestCache=1,
-
-    Achivement=1,
-    AchivementCache=1,
-
-    Item=1,
-    ItemCache=1,
-}
 local function Save()
     return WoWTools_SC
 end
@@ -36,7 +24,8 @@ local ReceString={
     [ERR_TRAVEL_PASS_NO_INFO] = 1,--正在获取信息……
     [RETRIEVING_ITEM_INFO] = 1,--正在获取物品信息
     [RETRIEVING_TRADESKILL_INFO] = 1,--正在获取信息
-
+    ['要求：']=1,
+    ['暂无信息']=1,
 }
 local function IsCN(text)
     return
@@ -240,7 +229,8 @@ local function S_Encounter(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        Save().Encounter = nil
+        Save()[self.name] = nil
+        Save()[self.name..'Ver']= Ver
         self:settings()
         self.num= 0
         return
@@ -311,7 +301,8 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        Save().SectionEncounter = nil
+        Save()[self.name] = nil
+        Save()[self.name..'Ver']= Ver
         self:settings()
         self.num= 0
         return
@@ -393,6 +384,13 @@ end
 
 
 --任务
+local function Cahce_Quest(questID)
+        if not HaveQuestData(questID) then
+            C_QuestLog.RequestLoadQuestByID(questID)
+        else
+            return true
+        end
+end
 local function S_CacheQuest(self, startIndex, attempt, counter)
     if not Save().QuestCache then
         self.Name:SetText('|cffff0000停止|r, 获取“任务”数据')
@@ -409,12 +407,12 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
         self.bar2:Show()
     end
 
-    for questID = startIndex, startIndex + 150 do
-        --if not HaveQuestData(questID) then
-            C_QuestLog.RequestLoadQuestByID(questID)
-        --end
-        local va= questID/MaxQuestID*100
-        self.bar2:SetValue(va)
+    do
+        for questID = startIndex, startIndex + 150 do
+            Cahce_Quest(questID)
+            local va= questID/MaxQuestID*100
+            self.bar2:SetValue(va)
+        end
     end
 
     Save().QuestCache= startIndex
@@ -437,7 +435,6 @@ local function Get_Objectives(questID)
         if info.text then
             local t= info.text:match('%d+/%d+ (.+)') or info.text
             t= t:match('(.+) %(%d+%%%)') or t
-            --t= t:gsub(' %(%d+%%%)', '')
             tab[index]= t
             find=true
         end
@@ -447,37 +444,40 @@ local function Get_Objectives(questID)
     end
 end
 
-local QuestString={
-    ['暂无信息']=1,
-    ['要求：']=1,
-}
 local function Get_Quest_Tab(questID)
-
     local data= C_TooltipInfo.GetHyperlink('quest:' .. questID)
-    if not data or not data.lines or not data.lines[1] then
+    if not data or
+        not data.lines
+        or not data.lines[1]
+        or not IsCN(data.lines[1].leftText)
+    then
         return
     end
-
     local title= C_QuestLog.GetTitleForQuestID(questID) or data.lines[1].leftText
-
-    if not IsCN(title) or QuestString[title] then
-        return
-    end
-
     local obj
-    if data.lines[3] and IsCN(data.lines[3].leftText) and not QuestString[data.lines[3].leftText] then
+    if data.lines[3] and IsCN(data.lines[3].leftText) then
         obj= data.lines[3].leftText
     end
-
     return {
         ['T']= title,
         ['O']= obj,
         ['S']= Get_Objectives(questID),
     }
-
 end
 
-
+local function Save_Quest(self, questID)
+    if WoWTools_SC_Quest[questID] then
+        self.num= self.num+1
+        return true
+    else
+        local tab = Get_Quest_Tab(questID)
+        if tab then
+            self[questID] = tab
+            self.num= self.num+1
+            return true
+        end
+    end
+end
 
 local function S_Quest(self, startIndex, attempt, counter)
     if self.isStop then
@@ -489,7 +489,8 @@ local function S_Quest(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        Save().Quest = nil
+        Save()[self.name] = nil
+        Save()[self.name..'Ver']= Ver
         self:settings()
         self.num= 0
         return
@@ -497,13 +498,8 @@ local function S_Quest(self, startIndex, attempt, counter)
     end
 
     for questID = startIndex, startIndex + 100 do
-        if not WoWTools_SC_Quest[questID] then
-            local tab = Get_Quest_Tab(questID)
-            if tab then
-                WoWTools_SC_Quest[questID] = tab
-                self.num= self.num+1
-                self.Name:SetText(GetQuestLink(questID) or tab.T or ('questID '..questID))
-            end
+        if Cahce_Quest(questID) and Save_Quest(self, questID) then
+            self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
         end
     end
 
@@ -520,14 +516,11 @@ local function S_Quest(self, startIndex, attempt, counter)
 end
 
 
-local function Set_Quest_Event(btn)
-    btn:RegisterEvent('QUEST_DATA_LOAD_RESULT')
-    btn:SetScript('OnEvent', function(_, questID, success)
-        if questID and success and not WoWTools_SC_Quest[questID] then
-            local tab = Get_Quest_Tab(questID)
-            if tab then
-                WoWTools_SC_Quest[questID] = tab
-            end
+local function Set_Quest_Event(self)
+    self:RegisterEvent('QUEST_DATA_LOAD_RESULT')
+    self:SetScript('OnEvent', function(_, questID, success)
+        if questID and success then
+            Save_Quest(self, questID)
         end
     end)
 end
@@ -585,10 +578,6 @@ local function Get_Unit_Tab(unit)
     end
 end
 
-
-
-
-
 local function S_Unit(self, startIndex, attempt, counter)
      if self.isStop then
         self.Value:SetFormattedText('|cffff8200暂停|r, %d条, %.1f%%', startIndex, startIndex/MaxUnitID*100)
@@ -599,7 +588,8 @@ local function S_Unit(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        Save().Unit = nil
+        Save()[self.name] = nil
+        Save()[self.name..'Ver']= Ver
         self:settings()
         self.num= 0
         return
@@ -650,7 +640,15 @@ end
 
 
 
-
+local function Cahce_Item(itemID)
+    if C_Item.GetItemInfoInstant(itemID) then
+        if not C_Item.IsItemDataCachedByID(itemID) then
+            C_Item.RequestLoadItemDataByID(itemID)
+        else
+            return true
+        end
+    end
+end
 
 local function S_CacheItem(self, startIndex, attempt, counter)
     if not Save().ItemCache then
@@ -669,13 +667,12 @@ local function S_CacheItem(self, startIndex, attempt, counter)
         self.bar2:Show()
     end
 
-    for itemID = startIndex, startIndex + 150 do
-
-        if not C_Item.IsItemDataCachedByID(itemID) then
-            C_Item.RequestLoadItemDataByID(itemID)
+    do
+        for itemID = startIndex, startIndex + 150 do
+            Cahce_Item(itemID)
+            local va= itemID/MaxItemID*100
+            self.bar2:SetValue(va)
         end
-        local va= itemID/MaxItemID*100
-        self.bar2:SetValue(va)
     end
 
     Save().ItemCache= startIndex
@@ -687,50 +684,55 @@ local function S_CacheItem(self, startIndex, attempt, counter)
     end
 end
 
-local ItemString={
-    ['你尚未收藏过此外观']=1,
-    ['拾取后绑定']=1,
-    ['你拥有此外观，但不是来自此物品']=1,
-}
-
 local function Get_Item_Tab(itemID)
-      local data= C_TooltipInfo.GetHyperlink('item:'..itemID..':0:0:0:0:0:0:0')
+    local data= C_TooltipInfo.GetHyperlink('item:'..itemID..':0:0:0:0:0:0:0')
     if not data
         or not data.lines
         or not data.lines[1]
         or not IsCN(data.lines[1].leftText)
-        or ItemString[data.lines[1].leftText]
     then
         return
     end
 
-    local title
+    local title= C_Item.GetItemInfo(itemID) or data.lines[1].leftText
     local desc
-
     for index, line in pairs(data.lines) do
-        if index==1 then
-            title= C_Item.GetItemInfo(itemID) or line.leftText
-
-        elseif
-            IsCN(line.leftText)
-            and not ItemString[line.leftText]
-            and not line.leftText:find('需要等级 %d+')
-            and not line.leftText:find('^%+%d+ ')
-            and not line.leftText:find('^%d+点')
-
-        then-- and not line.leftText:find('等级 ') then
-            local right= IsCN(line.rightText) and line.rightText
-            desc= (desc and desc..'|n' or '')..line.leftText..(right and '  '..right or '')
+        local text= line.leftText
+        if index>1 and IsCN(text) and (
+            text:find('%(%d+%) 套装：.+')
+            or text:find('^使用：')
+            or text:find('^击中时可能：')
+            or text:find('^装备：')
+            or text:find('^需要：')
+            or text:find('^".+"$')
+        )
+        then
+            desc= (desc and desc..'|n' or '')..text
         end
     end
-    if title then
-        return {
-            ['T']= title,
-            ['D']= desc,
-        }
-    end
 
+    return {
+        ['T']= title,
+        ['D']= desc,
+    }
 end
+
+
+local function Save_Item(self, id)
+    local itemID= format('%d', id)
+    if WoWTools_SC_Item[itemID] then
+        self.num= self.num+1
+        return true
+    else
+        local tab = Get_Item_Tab(itemID)
+        if tab then
+            WoWTools_SC_Item[itemID] = tab
+            self.num= self.num+1
+            return true
+        end
+    end
+end
+
 
 local function S_Item(self, startIndex, attempt, counter)
     if self.isStop then
@@ -742,7 +744,8 @@ local function S_Item(self, startIndex, attempt, counter)
         self.bar:SetValue(100)
         self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
         self.Name:SetText(self.name)
-        Save().Item = nil
+        Save()[self.name] = nil
+        Save()[self.name..'Ver']= Ver
         self:settings()
         self.num= 0
         return
@@ -750,12 +753,8 @@ local function S_Item(self, startIndex, attempt, counter)
     end
 
     for itemID = startIndex, startIndex + 150 do
-        local tab = Get_Item_Tab(itemID)
-        if tab then
-            --WoWTools_SC_Item[format('%d', itemID)] = tab
-            WoWTools_SC_Item[itemID] = tab
-            self.num= self.num+1
-            self.Name:SetText( select(2, C_Item.GetItemInfo(itemID)) or tab.T)
+        if Cahce_Item(itemID) and Save_Item(self, itemID) then
+            self.Name:SetText(select(2, C_Item.GetItemInfo(itemID)) or ('itemID '..itemID))
         end
     end
 
@@ -771,14 +770,11 @@ local function S_Item(self, startIndex, attempt, counter)
     end
 end
 
-local function Set_Item_Event(btn)
-    btn:RegisterEvent('ITEM_DATA_LOAD_RESULT')
-    btn:SetScript('OnEvent', function(_, itemID, success)
-        if itemID and success and not WoWTools_SC_Item[itemID] then
-            local tab = Get_Item_Tab(itemID)
-            if tab then
-                WoWTools_SC_Item[itemID] = tab
-            end
+local function Set_Item_Event(self)
+    self:RegisterEvent('ITEM_DATA_LOAD_RESULT')
+    self:SetScript('OnEvent', function(_, itemID, success)
+        if itemID and success then
+            Save_Item(self, itemID)
         end
     end)
 end
@@ -805,17 +801,20 @@ end
 local function clear_data(name)
     Save()[name]= nil
     Save()[name..'Cache']= nil
+    Save()[name..'Ver']= Ver
+
     _G['WoWTools_SC_'..name]= {}
 
-    local btn= _G['WoWToolsSC'..name..'Button']
-    if not btn.isStop then
-        btn:settings()
+    local self= _G['WoWToolsSC'..name..'Button']
+    if not self.isStop then
+        self:settings()
     else
-        btn.time=nil
+        self.time=nil
+        self.Value:SetText('')
     end
 
-    btn.bar:SetValue(0)
-    btn.Value:SetText("")
+    self.bar:SetValue(0)
+    self.Value:SetText("")
 
 
     print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
@@ -849,34 +848,29 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 local y= -70
-local function Create_Button(name)
+local function Create_Button(name, func)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
+
+    btn.name= name
+    btn.func= func
+
     btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
+    btn:SetSize(23, 23)
+    btn:SetPoint('TOPRIGHT', -45, y)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText(self.isStop and '运行' or '暂停')
+        GameTooltip:SetText((self.isStop and '运行' or '暂停').. ' '..self.name)
         GameTooltip:Show()
     end)
-    function btn:settings()
-        self.isStop= not self.isStop and true or nil
-        if self.isStop then
-            self.num= 0
-            self:SetNormalAtlas('common-dropdown-icon-next')
-            self.time=nil
-        else
-            self:SetNormalAtlas('common-dropdown-icon-stop')
-            self.num= _G['WoWTools_SC_'..self.name..'Index'] or 0
-            self.time= GetTime()
+    btn:SetScript('OnMouseDown', function(self)
+        self:settings()
+        if not self.isStop then
+            self.func(self, _G['WoWTools_SC_'..self.name..'Index'] or 1, 0, 0)
         end
-    end
-    btn:settings()
-
-    btn:SetSize(23, 23)
-    btn:SetPoint('TOPRIGHT', -45, y)
-    btn.name= name
+    end)
 
     btn.bar= CreateFrame('StatusBar', nil, btn)
     btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
@@ -907,6 +901,10 @@ local function Create_Button(name)
     btn.Name:SetPoint('LEFT', btn.bar)
     btn.Name:SetText(name)
 
+    btn.Ver=  btn.bar:CreateFontString(nil, "OVERLAY")
+    btn.Ver:SetFontObject("GameFontWhite")
+    btn.Ver:SetPoint('CENTER', btn.bar)
+
     btn.clear= CreateFrame('Button', nil, btn)
     btn.clear:SetNormalAtlas('bags-button-autosort-up')
     btn.clear:SetPushedAtlas('PetList-ButtonSelect')
@@ -923,6 +921,22 @@ local function Create_Button(name)
         end
         StaticPopup_Show('WoWTools_SC', n, nil, n)
     end)
+
+    function btn:settings()
+        self.isStop= not self.isStop and true or nil
+        if self.isStop then
+            self.num= 0
+            self:SetNormalAtlas('common-dropdown-icon-next')
+            self.time=nil
+        else
+            self:SetNormalAtlas('common-dropdown-icon-stop')
+            self.num= _G['WoWTools_SC_'..self.name..'Index'] or 0
+            self.time= GetTime()
+        end
+        self.Ver:SetText(Save()[self.name..'Ver'] or '')
+    end
+    btn:settings()
+
     y= y- 23- 8
 
     return btn
@@ -1003,15 +1017,7 @@ local function Init()
         ['Unit']= S_Unit,
         ['Item']= S_Item,
     }) do
-        local btn= Create_Button(name)
-        btn.func= func
-        btn:SetScript('OnMouseDown', function(self)
-            self:settings()
-            if not self.isStop then
-                self.func(self, _G['WoWTools_SC_'..self.name..'Index'] or 1, 0, 0)
-            end
-        end)
-
+        local btn= Create_Button(name, func)
         if name=='Quest' then
             Set_Quest_Event(btn)
             S_CacheQuest(btn, Save().QuestCache or 1, 0, 0)
@@ -1037,39 +1043,31 @@ end
 
 
 
-EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1)
-    if arg1~='WoWTools_Chinese_Scanner' then
-        return
-    end
-
-    WoWTools_SC= WoWTools_SC or CopyTable(P_Save)
-
-
+EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner)
+    WoWTools_SC= WoWTools_SC or {}
 
     WoWTools_SC_Spell = WoWTools_SC_Spell or {}
 
-    Save().ItemCache= Save().ItemCache or 1
     WoWTools_SC_Item = WoWTools_SC_Item or {}
 
     WoWTools_SC_Unit = WoWTools_SC_Unit or {}
 
     WoWTools_SC_Achivement = WoWTools_SC_Achivement or {}
 
-    Save().QuestCache= Save().QuestCache or 1
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
 
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
 
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
 
-    Init()
-
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
 
 
 
-
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
+    Init()
+end)
 
 
 
