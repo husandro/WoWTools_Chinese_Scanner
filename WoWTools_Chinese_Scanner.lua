@@ -568,12 +568,15 @@ QuestTooltip:SetFrameStrata("TOOLTIP")
 function QuestTooltip:Get_Objectives(questID)
     local tab= {}
     local find
-    for index, info in pairs(C_QuestLog.GetQuestObjectives(questID) or {}) do
-        if info.text then
-            local t= info.text:match('%d+/%d+ (.+)') or info.text
-            t= t:gsub(' %(%d+%%%)', '')
-            tab[index]= t
-            find=true
+    local obj= C_QuestLog.GetQuestObjectives(questID)
+    if obj then
+        for index, info in pairs(obj) do
+            if info.text then
+                local t= info.text:match('%d+/%d+ (.+)') or info.text
+                t= t:gsub(' %(%d+%%%)', '')
+                tab[index]= t
+                find=true
+            end
         end
     end
     if find then
@@ -648,10 +651,10 @@ local function S_Quest(self, startIndex, attempt, counter)
     self.bar:SetValue(va)
 
     if (counter >= 5) then
-        C_Timer.After(0.3, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
+        C_Timer.After(0.5, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
         --SC_Wait(0.5, S_Quest, startIndex + 100, attempt + 1, 0)
     else
-        C_Timer.After(0.3, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(0.5, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
         --SC_Wait(0.5, S_Quest, startIndex, attempt + 1, counter + 1)
     end
 end
