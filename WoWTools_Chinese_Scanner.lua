@@ -1,5 +1,6 @@
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
-local MaxQuestID= (GameVer-1)*10000 --11.2.5 版本 93516
+local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
+local MaxUnitID= 300000
 local Buttons={}
 
 
@@ -188,51 +189,6 @@ end
 
 
 
-
-
-
-local function S_Unit(startIndex, attempt, counter)
-
-
-    if (startIndex > 300000) then
-        return
-    end
-    for unit = startIndex, startIndex + 250 do
-        Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-        Tooltip:ClearLines()
-        local guid = "Creature-0-0-0-0-"..unit.."-0000000000"
-        Tooltip:SetHyperlink('unit:' .. guid)
-        Tooltip:Show()
-        local text =  GetLinesText(Tooltip)
-        if (text ~= '' and text ~= nil) then
-        if (unit >=0 and unit < 100000) then
-        if (WoWTools_SC_Unit0[unit .. ''] == nil or string.len(WoWTools_SC_Unit0[unit .. '']) < string.len(text)) then
-            WoWTools_SC_Unit0[unit .. ''] = text
-        end
-        elseif (unit >=100000 and unit < 200000) then
-        if (WoWTools_SC_Unit100000[unit .. ''] == nil or string.len(WoWTools_SC_Unit100000[unit .. '']) < string.len(text)) then
-            WoWTools_SC_Unit100000[unit .. ''] = text
-        end
-        elseif (unit >=200000 and unit < 300000) then
-        if (WoWTools_SC_Unit200000[unit .. ''] == nil or string.len(WoWTools_SC_Unit200000[unit .. '']) < string.len(text)) then
-            WoWTools_SC_Unit200000[unit .. ''] = text
-        end
-        end
-        end
-        print(unit)
-    end
-
-    print(attempt)
-    print('index ' .. startIndex)
-
-    WoWTools_SC_Index = startIndex
-
-    if (counter >= 3) then
-        SC_Wait(0.5, S_Unit, startIndex + 250, attempt + 1, 0)
-    else
-        SC_Wait(0.5, S_Unit, startIndex, attempt + 1, counter + 1)
-    end
-end
 
 
 
@@ -539,33 +495,7 @@ end
 
 
 --任务
---[[local function S_CacheQuest(self, startIndex, attempt, counter)
-    if (startIndex > MaxQuestID) then
-        self.Name:SetText('获取任务数据|cnGREEN_FONT_COLOR:完成')
-        self.bar2:SetValue(0)
-        self.bar2:Hide()
-        return
-    elseif startIndex==1 then
-        self.Name:SetText('正在获取任务数据')
-        self.bar2:Show()
-    end
-
-    for questID = startIndex, startIndex + 150 do
-        --if not HaveQuestData(questID) then
-            C_QuestLog.RequestLoadQuestByID(questID)
-        --end
-        local va= questID/MaxQuestID*100
-        self.bar2:SetValue(va)
-    end
-
-
-    if (counter >= 5) then
-        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
-    else
-        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
-    end
-end
-
+--[[
 local QuestTooltip = CreateFrame("GameTooltip", 'WoWToolsSCQuestTooltip', UIParent, "GameTooltipTemplate")
 QuestTooltip:SetFrameStrata("TOOLTIP")
 function QuestTooltip:Get_Objectives(questID)
@@ -617,6 +547,38 @@ end
 
 
 
+local function S_CacheQuest(self, startIndex, attempt, counter)
+    if not WoWTools_SC_QuestCacheIndex then
+        self.Name:SetText('|cffff0000停止|r, 获取任务数据')
+        return
+
+    elseif (startIndex > MaxQuestID) then
+        self.Name:SetText('获取任务数据|cnGREEN_FONT_COLOR:完成')
+        self.bar2:SetValue(0)
+        self.bar2:Hide()
+        return
+
+    elseif startIndex==1 then
+        self.Name:SetText('正在获取任务数据')
+        self.bar2:Show()
+    end
+
+    for questID = startIndex, startIndex + 150 do
+        --if not HaveQuestData(questID) then
+            C_QuestLog.RequestLoadQuestByID(questID)
+        --end
+        local va= questID/MaxQuestID*100
+        self.bar2:SetValue(va)
+    end
+
+    WoWTools_SC_QuestCacheIndex= startIndex
+
+    if (counter >= 5) then
+        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
+    else
+        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
+    end
+end
 
 
 local function Get_Objectives(questID)
@@ -702,7 +664,7 @@ local function S_Quest(self, startIndex, attempt, counter)
             if tab then
                 WoWTools_SC_Quest[questID] = tab
                 self.num= self.num+1
-                self.Name:SetText(GetQuestLink(questID) or C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
+                self.Name:SetText(GetQuestLink(questID) or tab.T or ('questID '..questID))
             end
         end
     end
@@ -741,6 +703,120 @@ end
 
 
 
+local function Get_Unit_Tab(unit)
+    local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
+    if not data or not data.lines or not data.lines[1] then
+        return
+    end
+end
+
+
+
+
+
+local function S_Unit(self, startIndex, attempt, counter)
+     if self.isStop then
+        self.Value:SetFormattedText('|cffff8200暂停|r, %d条, %.1f%%', startIndex, startIndex/MaxUnitID*100)
+        self.Name:SetText(self.name)
+        return
+
+    elseif (startIndex > MaxUnitID) then
+        self.bar:SetValue(100)
+        self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
+        self.Name:SetText(self.name)
+        WoWTools_SC_SectionEncounterIndex = nil
+        self:settings()
+        self.num= 0
+        return
+
+    end
+
+
+    if (startIndex > MaxUnitID) then
+        return
+    end
+    for unit = startIndex, startIndex + 250 do
+        Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        Tooltip:ClearLines()
+        local guid = "Creature-0-0-0-0-"..unit.."-0000000000"
+        Tooltip:SetHyperlink('unit:' .. guid)
+        Tooltip:Show()
+        local text =  GetLinesText(Tooltip)
+        if (text ~= '' and text ~= nil) then
+        if (unit >=0 and unit < 100000) then
+        if (WoWTools_SC_Unit0[unit .. ''] == nil or string.len(WoWTools_SC_Unit0[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit0[unit .. ''] = text
+        end
+        elseif (unit >=100000 and unit < 200000) then
+        if (WoWTools_SC_Unit100000[unit .. ''] == nil or string.len(WoWTools_SC_Unit100000[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit100000[unit .. ''] = text
+        end
+        elseif (unit >=200000 and unit < 300000) then
+        if (WoWTools_SC_Unit200000[unit .. ''] == nil or string.len(WoWTools_SC_Unit200000[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit200000[unit .. ''] = text
+        end
+        end
+        end
+        print(unit)
+    end
+
+    print(attempt)
+    print('index ' .. startIndex)
+
+    WoWTools_SC_Index = startIndex
+
+    if (counter >= 3) then
+        SC_Wait(0.5, S_Unit, startIndex + 250, attempt + 1, 0)
+    else
+        SC_Wait(0.5, S_Unit, startIndex, attempt + 1, counter + 1)
+    end
+end
+
+
+
+
+--[[local function S_Unit(startIndex, attempt, counter)
+
+
+    if (startIndex > 300000) then
+        return
+    end
+    for unit = startIndex, startIndex + 250 do
+        Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        Tooltip:ClearLines()
+        local guid = "Creature-0-0-0-0-"..unit.."-0000000000"
+        Tooltip:SetHyperlink('unit:' .. guid)
+        Tooltip:Show()
+        local text =  GetLinesText(Tooltip)
+        if (text ~= '' and text ~= nil) then
+        if (unit >=0 and unit < 100000) then
+        if (WoWTools_SC_Unit0[unit .. ''] == nil or string.len(WoWTools_SC_Unit0[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit0[unit .. ''] = text
+        end
+        elseif (unit >=100000 and unit < 200000) then
+        if (WoWTools_SC_Unit100000[unit .. ''] == nil or string.len(WoWTools_SC_Unit100000[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit100000[unit .. ''] = text
+        end
+        elseif (unit >=200000 and unit < 300000) then
+        if (WoWTools_SC_Unit200000[unit .. ''] == nil or string.len(WoWTools_SC_Unit200000[unit .. '']) < string.len(text)) then
+            WoWTools_SC_Unit200000[unit .. ''] = text
+        end
+        end
+        end
+        print(unit)
+    end
+
+    print(attempt)
+    print('index ' .. startIndex)
+
+    WoWTools_SC_Index = startIndex
+
+    if (counter >= 3) then
+        SC_Wait(0.5, S_Unit, startIndex + 250, attempt + 1, 0)
+    else
+        SC_Wait(0.5, S_Unit, startIndex, attempt + 1, counter + 1)
+    end
+end]]
 
 
 
@@ -754,8 +830,7 @@ end
 
 local function clear_data(name)
     _G['WoWTools_SC_'..name..'Index']= nil
-    --_G['WoWTools_SC_'..name..'CacheIndex']= nil
-
+    _G['WoWTools_SC_'..name..'CacheIndex']= nil
     _G['WoWTools_SC_'..name]= {}
 
     local btn= _G['WoWToolsSC'..name..'Button']
@@ -943,6 +1018,7 @@ local function Init()
         ['Encounter']= S_Encounter,
         ['SectionEncounter']= S_SectionEncounter,
         ['Quest']= S_Quest,
+        ['Unit']= S_Unit,
     }) do
         local btn= Create_Button(name)
         btn.func= func
@@ -954,7 +1030,7 @@ local function Init()
         end)
 
         if name=='Quest' then
-            S_CacheQuest(btn, 1, 0, 0)
+            S_CacheQuest(btn, WoWTools_SC_QuestCacheIndex or 1, 0, 0)
         end
 
         table.insert(Buttons, name)
@@ -991,6 +1067,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_Achivement = WoWTools_SC_Achivement or {}
 
     --WoWTools_SC_QuestIndex = WoWTools_SC_QuestIndex or 0
+    WoWTools_SC_QuestCacheIndex= WoWTools_SC_QuestCacheIndex or 1
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
 
     --WoWTools_SC_EncounterIndex= WoWTools_SC_EncounterIndex or 0
