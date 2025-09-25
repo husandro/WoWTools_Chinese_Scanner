@@ -150,6 +150,8 @@ local function Is_StopCahceRun(self, startIndex, maxID)
         self.bar2:SetValue(0)
         self.bar2:Hide()
         Save()[self.name..'Cache']= nil
+        self.isCahceStop= true
+        self.cahce:settings()
         return true
     end
 end
@@ -1166,15 +1168,18 @@ local function Create_Button(name, tab)
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
         btn.cahce:SetPoint('LEFT', btn, 'RIGHT', -2, 0)
         btn.cahce:SetSize(23,23)
+        function btn.cahce:set_tooltip()
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            local p= self:GetParent()
+            if p then
+---@diagnostic disable-next-line: undefined-field
+                GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..p.name)
+            end
+            GameTooltip:Show()
+        end
         btn.cahce:SetScript('OnLeave', function() GameTooltip:Hide() end)
         btn.cahce:SetScript('OnEnter', function(self)
-            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            GameTooltip:SetText(
-                (self:GetParent().isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')
-                ..'加载数据 '
-                ..self:GetParent().name
-            )
-            GameTooltip:Show()
+           self:set_tooltip()
         end)
         function btn.cahce:settings()
 ---@diagnostic disable-next-line: undefined-field
@@ -1189,8 +1194,9 @@ local function Create_Button(name, tab)
         btn.cahce:SetScript('OnMouseDown', function(b)
             local self= b:GetParent()
             self.isCahceStop= not self.isCahceStop and true or false
-            b:cahceFunc()
+            self:cahceFunc()
             b:settings()
+            b:set_tooltip()
         end)
     end
 
