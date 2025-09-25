@@ -1247,12 +1247,6 @@ local function Init()
     Frame:SetFrameLevel(501)
     Frame:SetSize(520, 450)
     Frame:SetPoint('CENTER')
-    Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
-    Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
-    Frame.Header:Setup(
-        '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'
-        ..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
-    )
     Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
     Frame:RegisterUnitEvent('PLAYER_FLAGS_CHANGED', 'player')
     Frame:SetScript('OnEvent', function(_, event)
@@ -1277,12 +1271,22 @@ local function Init()
     Frame:SetScript("OnMouseUp", function() ResetCursor() end)
     Frame:SetScript("OnLeave", function() ResetCursor() end)
 
+    Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
+    Frame.CloseButton=CreateFrame('Button', 'WoWTools_SC_FrameCloseButton', Frame, 'UIPanelCloseButton')--SharedUIPanelTemplates.xml
+    Frame.CloseButton:SetPoint('TOPRIGHT')
+    Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
+    Frame.Header:Setup(
+        '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'
+        ..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
+    )
+    
     local note= Frame:CreateFontString(nil, "OVERLAY")
     note:SetFontObject('GameFontNormal')
     note:SetPoint('BOTTOM', 0, 12)
     note:SetText(
         '当前游戏版本 '
         ..Ver
+        ..(LOCALE_zhCN and '' or '|n|cnRED_FONT_COLOR:需求 简体中文')
         ..'|n|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua'
     )
 
