@@ -1,3 +1,4 @@
+local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
@@ -140,13 +141,13 @@ end
 
 local function Is_StopCahceRun(self, startIndex, maxID)
     if self.isCahceStop then
-        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
+        print(addName, '|cffff0000停止|r, 获取“'..self.name..'”数据')
         self.bar2:Hide()
         self.bar2:SetValue(0)
         return true
 
     elseif (startIndex > maxID) then
-        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
+        print(addName, '获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
         self.bar2:SetValue(0)
         self.bar2:Hide()
         Save()[self.name..'Cache']= nil
@@ -208,32 +209,17 @@ local function Save_Encounter(self, journalEncounterID)
 end
 
 local function S_Encounter(self, startIndex, attempt, counter)
-    if self.isStop then
-        self.Value:SetFormattedText('|cffff8200暂停|r, %d, %.1f%%', startIndex, startIndex/MaxEncounterID*100)
-        self.Name:SetText(self.name)
+    if Is_StopRun(self, startIndex, MaxEncounterID) then
         return
-
-    elseif (startIndex > MaxEncounterID) then
-        self.bar:SetValue(100)
-        self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
-        self.Name:SetText(self.name)
-        Save()[self.name] = nil
-        Save()[self.name..'Ver']= Ver
-        self:settings()
-        self.num= 0
-        return
-
     end
-
-do
-    for journalEncounterID = startIndex, startIndex + 100 do
-        local link= Save_Encounter(self, journalEncounterID)
-        if link then
-            self.Name:SetText(link)
+    do
+        for journalEncounterID = startIndex, startIndex + 100 do
+            local link= Save_Encounter(self, journalEncounterID)
+            if link then
+                self.Name:SetText(link)
+            end
         end
     end
-end
-
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
 
@@ -281,7 +267,7 @@ local function Save_SectionEncounter(self, sectionID, difficultyID)
             ['D']= desc
         }
         self.num= self.num+1
-        return sectionID.link or sectionInfo.title
+        return sectionInfo.link or sectionInfo.title
     end
 end
 
@@ -289,24 +275,22 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
         return
     end
-do
-    for _, difficultyID in pairs(DifficultyTab) do
-        --if GetDifficultyInfo(index) then
-        do
-            EJ_SetDifficulty(difficultyID)
-        end
-        for sectionID = startIndex, startIndex + 100 do
-            local link= Save_SectionEncounter(self, sectionID, difficultyID)
-            if link then
-                self.Name:SetText(link)
+    do
+        for _, difficultyID in pairs(DifficultyTab) do
+            --if GetDifficultyInfo(index) then
+            do
+                EJ_SetDifficulty(difficultyID)
+            end
+            for sectionID = startIndex, startIndex + 100 do
+                local link= Save_SectionEncounter(self, sectionID, difficultyID)
+                if link then
+                    self.Name:SetText(link)
+                end
             end
         end
     end
-end
-
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
-
     if (counter >= 2) then
         C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
     else
@@ -422,19 +406,16 @@ local function S_Unit(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxUnitID) then
         return
     end
-
-do
-    for unit = startIndex, startIndex + 250 do
-        local title= Save_Unit(self, unit)
-        if title then
-            self.Name:SetText(title)
+    do
+        for unit = startIndex, startIndex + 250 do
+            local title= Save_Unit(self, unit)
+            if title then
+                self.Name:SetText(title)
+            end
         end
     end
-end
-
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
-
     if (counter >= 3) then
         C_Timer.After(0.1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
     else
@@ -479,7 +460,6 @@ local function S_CacheItem(self, startIndex, attempt, counter)
     if Is_StopCahceRun(self, startIndex, MaxItemID) then
         return
     end
-
     do
         for itemID = startIndex, startIndex + 150 do
             Cahce_Item(itemID)
@@ -487,9 +467,7 @@ local function S_CacheItem(self, startIndex, attempt, counter)
             self.bar2:SetShown(true)
         end
     end
-
     Save()[self.name..'Cache']= startIndex
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -575,16 +553,15 @@ local function S_Item(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxItemID) then
         return
     end
-do
-    for itemID = startIndex, startIndex + 150 do
-        local title= Cahce_Item(itemID) and Save_Item(self, itemID)
-        if title then
-            self.Name:SetText(title)
+    do
+        for itemID = startIndex, startIndex + 150 do
+            local title= Cahce_Item(itemID) and Save_Item(self, itemID)
+            if title then
+                self.Name:SetText(title)
+            end
         end
     end
-end
     Set_ValueText(self, startIndex, MaxItemID)
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_Item(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -644,7 +621,6 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
     if Is_StopCahceRun(self, startIndex, MaxQuestID) then
         return
     end
-
     do
         for questID = startIndex, startIndex + 150 do
             Cahce_Quest(questID)
@@ -652,9 +628,7 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
             self.bar2:SetShown(true)
         end
     end
-
     Save()[self.name..'Cache']= startIndex
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -723,17 +697,14 @@ local function S_Quest(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxQuestID) then
         return
     end
-
-do
-    for questID = startIndex, startIndex + 100 do
-        if Cahce_Quest(questID) and Save_Quest(self, questID) then
-            self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
+    do
+        for questID = startIndex, startIndex + 100 do
+            if Cahce_Quest(questID) and Save_Quest(self, questID) then
+                self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
+            end
         end
     end
-end
-
     Set_ValueText(self, startIndex, MaxQuestID)
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
     else
@@ -788,7 +759,6 @@ local function S_CacheSpell(self, startIndex, attempt, counter)
     if Is_StopCahceRun(self, startIndex, MaxSpellID) then
         return
     end
-
     do
         for spellID = startIndex, startIndex + 150 do
             Cahce_Spell(spellID)
@@ -796,9 +766,7 @@ local function S_CacheSpell(self, startIndex, attempt, counter)
             self.bar2:SetShown(true)
         end
     end
-
     Save()[self.name..'Cache']= startIndex
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -862,7 +830,6 @@ local function S_Spell(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxSpellID) then
         return
     end
-
     do
         for spellID = startIndex, startIndex + 150 do
             local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
@@ -871,9 +838,7 @@ local function S_Spell(self, startIndex, attempt, counter)
             end
         end
     end
-
     Set_ValueText(self, startIndex, MaxSpellID)
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_Spell(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -920,7 +885,6 @@ local function S_CacheAchievement(self, startIndex, attempt, counter)
     if Is_StopCahceRun(self, startIndex, MaxAchievementID) then
         return
     end
-
     do
         for AchievementID = startIndex, startIndex + 150 do
             Cahce_Achievement(AchievementID)
@@ -928,9 +892,7 @@ local function S_CacheAchievement(self, startIndex, attempt, counter)
             self.bar2:SetShown(true)
         end
     end
-
     Save()[self.name..'Cache']= startIndex
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -1007,7 +969,6 @@ local function S_Achievement(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxAchievementID) then
         return
     end
-
     do
         for achievementID = startIndex, startIndex + 150 do
             Cahce_Achievement(achievementID)
@@ -1017,9 +978,7 @@ local function S_Achievement(self, startIndex, attempt, counter)
             end
         end
     end
-
     Set_ValueText(self, startIndex, MaxAchievementID)
-
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_Achievement(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -1349,10 +1308,7 @@ local function Init()
     Frame.CloseButton=CreateFrame('Button', 'WoWTools_SC_FrameCloseButton', Frame, 'UIPanelCloseButton')--SharedUIPanelTemplates.xml
     Frame.CloseButton:SetPoint('TOPRIGHT')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
-    Frame.Header:Setup(
-        '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'
-        ..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
-    )
+    Frame.Header:Setup(addName)
     
     local note= Frame:CreateFontString(nil, "OVERLAY")
     note:SetFontObject('GameFontNormal')
