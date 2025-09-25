@@ -1246,7 +1246,6 @@ local function Init()
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
     Frame:SetSize(520, 450)
-    Frame:SetPoint('CENTER')
     Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
     Frame:RegisterUnitEvent('PLAYER_FLAGS_CHANGED', 'player')
     Frame:SetScript('OnEvent', function(_, event)
@@ -1262,11 +1261,33 @@ local function Init()
             C_MountJournal.SummonByID(0)
         end
     end)
-
     Frame:SetMovable(true)
     Frame:RegisterForDrag("LeftButton", "RightButton")
     Frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-    Frame:SetScript("OnDragStop", function(self) ResetCursor() self:StopMovingOrSizing() end)
+    Frame:SetScript("OnDragStop", function(self)
+        ResetCursor()
+        self:StopMovingOrSizing()
+--确认框架中心点，在屏幕内
+        local isInSchermo= true
+        local centerX, centerY = self:GetCenter()
+        local screenWidth, screenHeight = UIParent:GetWidth(), UIParent:GetHeight()
+        if not centerX or not centerY then
+            isInSchermo= false
+        end
+        if centerX < 0 or centerX > screenWidth or centerY < 0 or centerY > screenHeight then
+            isInSchermo = false
+        end
+        if isInSchermo then
+            Save().point= {Frame:GetPoint(1)}
+            Save().point[2]= nil
+        end
+    end)
+    local point= Save().point
+    if point and point[1] then
+        Frame:SetPoint(point[1], UIParent, point[3], point[4], point[5])
+    else
+        Frame:SetPoint('CENTER')
+    end
     Frame:SetScript("OnMouseDown", function() SetCursor('UI_MOVE_CURSOR') end)
     Frame:SetScript("OnMouseUp", function() ResetCursor() end)
     Frame:SetScript("OnLeave", function() ResetCursor() end)
