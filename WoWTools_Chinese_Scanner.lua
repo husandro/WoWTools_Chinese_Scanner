@@ -138,7 +138,21 @@ local function Set_ValueText(self, startIndex, maxID)
     self.bar:SetValue(va)
 end
 
+local function Is_StopCahceRun(self, startIndex, maxID)
+    if self.isCahceStop then
+        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
+        self.bar2:Hide()
+        self.bar2:SetValue(0)
+        return true
 
+    elseif (startIndex > maxID) then
+        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
+        self.bar2:SetValue(0)
+        self.bar2:Hide()
+        Save()[self.name..'Cache']= nil
+        return true
+    end
+end
 
 
 
@@ -440,20 +454,8 @@ local function Cahce_Item(itemID)
 end
 
 local function S_CacheItem(self, startIndex, attempt, counter)
-    if not Save()[self.name..'Cache'] then
-        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
-        self.bar2:Hide()
+    if Is_StopCahceRun(self, startIndex, MaxItemID) then
         return
-
-    elseif (startIndex > MaxSpellID) then
-        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
-        self.bar2:SetValue(0)
-        self.bar2:Hide()
-        Save()[self.name]=nil
-        return
-
-    elseif startIndex==1 then
-        self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
     do
@@ -464,7 +466,7 @@ local function S_CacheItem(self, startIndex, attempt, counter)
         end
     end
 
-    Save().ItemCache= startIndex
+    Save()[self.name..'Cache']= startIndex
 
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 150, attempt + 1, 0) end)
@@ -603,31 +605,20 @@ local function Cahce_Quest(questID)
     end
 end
 local function S_CacheQuest(self, startIndex, attempt, counter)
-    if not Save()[self.name..'Cache'] then
-        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
-        self.bar2:Hide()
+    if Is_StopCahceRun(self, startIndex, MaxQuestID) then
         return
-
-    elseif (startIndex > MaxSpellID) then
-        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
-        self.bar2:SetValue(0)
-        self.bar2:Hide()
-        Save()[self.name]=nil
-        return
-
-    elseif startIndex==1 then
-        self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
-do
-    for questID = startIndex, startIndex + 150 do
-        Cahce_Quest(questID)
-        self.bar2:SetValue(questID/MaxQuestID*100)
-        self.bar2:SetShown(true)
+    do
+        for questID = startIndex, startIndex + 150 do
+            Cahce_Quest(questID)
+            self.bar2:SetValue(questID/MaxQuestID*100)
+            self.bar2:SetShown(true)
+        end
     end
-end
 
     Save()[self.name..'Cache']= startIndex
+
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -760,29 +751,17 @@ local function Cahce_Spell(spellID)
 end
 
 local function S_CacheSpell(self, startIndex, attempt, counter)
-    if not Save()[self.name..'Cache'] then
-        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
-        self.bar2:Hide()
+    if Is_StopCahceRun(self, startIndex, MaxSpellID) then
         return
-
-    elseif (startIndex > MaxSpellID) then
-        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
-        self.bar2:SetValue(0)
-        self.bar2:Hide()
-        Save()[self.name]=nil
-        return
-
-    elseif startIndex==1 then
-        self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
-do
-    for spellID = startIndex, startIndex + 150 do
-        Cahce_Spell(spellID)
-        self.bar2:SetValue(spellID/MaxSpellID*100)
-        self.bar2:SetShown(true)
+    do
+        for spellID = startIndex, startIndex + 150 do
+            Cahce_Spell(spellID)
+            self.bar2:SetValue(spellID/MaxSpellID*100)
+            self.bar2:SetShown(true)
+        end
     end
-end
 
     Save()[self.name..'Cache']= startIndex
 
@@ -890,29 +869,17 @@ local function Cahce_Achievement(achievementID)
 end
 
 local function S_CacheAchievement(self, startIndex, attempt, counter)
-    if not Save()[self.name..'Cache'] then
-        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
-        self.bar2:Hide()
+    if Is_StopCahceRun(self, startIndex, MaxAchievementID) then
         return
-
-    elseif (startIndex > MaxAchievementID) then
-        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
-        self.bar2:SetValue(0)
-        self.bar2:Hide()
-        Save()[self.name]=nil
-        return
-
-    elseif startIndex==1 then
-        self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
-do
-    for AchievementID = startIndex, startIndex + 150 do
-        Cahce_Achievement(AchievementID)
-        self.bar2:SetValue(AchievementID/MaxAchievementID*100)
-        self.bar2:SetShown(true)
+    do
+        for AchievementID = startIndex, startIndex + 150 do
+            Cahce_Achievement(AchievementID)
+            self.bar2:SetValue(AchievementID/MaxAchievementID*100)
+            self.bar2:SetShown(true)
+        end
     end
-end
 
     Save()[self.name..'Cache']= startIndex
 
@@ -1099,13 +1066,13 @@ local function Create_Button(name, tab)
 
     btn.name= name
     btn.func= tab.func
-    btn.timeText= tab.time
+    btn.cahceFunc= tab.cahce
 
     btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
-    btn:SetPoint('TOPRIGHT', -45, y)
+    btn:SetPoint('TOPRIGHT', -70, y)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
@@ -1130,7 +1097,7 @@ local function Create_Button(name, tab)
 
     btn.bar= CreateFrame('StatusBar', nil, btn)
     btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
-    btn.bar:SetSize(Frame:GetWidth()-48-23*2, 18)
+    btn.bar:SetSize(Frame:GetWidth()-48-23*3, 18)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
     btn.bar:SetAlpha(0.8)
     btn.bar:SetMinMaxValues(0, 100)
@@ -1174,7 +1141,7 @@ local function Create_Button(name, tab)
     btn.clear:SetNormalAtlas('bags-button-autosort-up')
     btn.clear:SetPushedAtlas('PetList-ButtonSelect')
     btn.clear:SetHighlightAtlas('PetList-ButtonHighlight')
-    btn.clear:SetPoint('LEFT', btn, 'RIGHT', 2, 0)
+    btn.clear:SetPoint('LEFT', btn, 'RIGHT', 26, 0)
     btn.clear:SetSize(23,23)
     btn.clear:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn.clear:SetScript('OnEnter', function(self)
@@ -1193,6 +1160,40 @@ local function Create_Button(name, tab)
         StaticPopup_Show('WoWTools_SC', n, '', n)
     end)
 
+    if btn.cahceFunc then
+        btn.cahce= CreateFrame('Button', nil, btn)
+        btn.cahce:SetPushedAtlas('PetList-ButtonSelect')
+        btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
+        btn.cahce:SetPoint('LEFT', btn, 'RIGHT', -2, 0)
+        btn.cahce:SetSize(23,23)
+        btn.cahce:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        btn.cahce:SetScript('OnEnter', function(self)
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            GameTooltip:SetText(
+                (self:GetParent().isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')
+                ..'加载数据 '
+                ..self:GetParent().name
+            )
+            GameTooltip:Show()
+        end)
+        function btn.cahce:settings()
+---@diagnostic disable-next-line: undefined-field
+            if not self:GetParent().isCahceStop then
+                self:SetNormalAtlas('Perks-PreviewOn')
+            else
+                self:SetNormalAtlas('Perks-PreviewOff-Hover')
+            end
+        end
+        btn.isCahceStop= true
+        btn.cahce:settings()
+        btn.cahce:SetScript('OnMouseDown', function(b)
+            local self= b:GetParent()
+            self.isCahceStop= not self.isCahceStop and true or false
+            b:cahceFunc()
+            b:settings()
+        end)
+    end
+
     function btn:settings()
         self.isStop= not self.isStop and true or nil
         if self.isStop then
@@ -1207,6 +1208,7 @@ local function Create_Button(name, tab)
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
     btn:settings()
+
 
     y= y- 23- 8
 
@@ -1295,30 +1297,26 @@ local function Init()
     reload:SetPoint('BOTTOMRIGHT', -12, 32)
 
     for name, tab in pairs({
-        ['Encounter']= {func=S_Encounter, time=''},
-        ['SectionEncounter']= {func=S_SectionEncounter, time=''},
-        ['Quest']= {func=S_Quest, time=''},
-        ['Unit']= {func=S_Unit, time=''},
-        ['Item']= {func=S_Item, time=''},
-        ['Spell']= {func=S_Spell, time=''},
-        ['Achievement']= {func=S_Achievement, time=''},
+        ['Encounter']= {func=S_Encounter},
+        ['SectionEncounter']= {func=S_SectionEncounter},
+        ['Unit']= {func=S_Unit},
+        ['Quest']= {func=S_Quest, cahce=function(self)
+            Set_Quest_Event(self)
+            S_CacheQuest(self, Save()[self.name..'Cache'], 0, 0)
+        end},
+        ['Item']= {func=S_Item, cahce=function(self)
+            Set_Item_Event(self)
+            S_CacheItem(self, Save()[self.name..'Cache'], 0, 0)
+        end},
+        ['Spell']= {func=S_Spell, cahce=function(self)
+            Set_Spell_Event(self)
+            S_CacheSpell(self, Save()[self.name..'Cache'], 0, 0)
+        end},
+        ['Achievement']= {func=S_Achievement, cahce=function(self)
+            S_CacheAchievement(self, Save()[self.name..'Cache'], 0, 0)
+        end},
     }) do
-        local btn= Create_Button(name, tab)
-        if name=='Quest' then
-            Set_Quest_Event(btn)
-            S_CacheQuest(btn, Save()[name..'Cache'], 0, 0)
-
-        elseif name=='Item' then
-            Set_Item_Event(btn)
-            S_CacheItem(btn, Save()[name..'Cache'], 0, 0)
-
-        elseif name=='Spell' then
-            Set_Spell_Event(btn)
-            S_CacheSpell(btn, Save()[name..'Cache'], 0, 0)
-
-        elseif name=='Achievement' then
-            S_CacheAchievement(btn, Save()[name..'Cache'], 0, 0)
-        end
+        Create_Button(name, tab)
 
         table.insert(Buttons, name)
     end
