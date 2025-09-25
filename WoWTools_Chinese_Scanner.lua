@@ -1185,6 +1185,10 @@ local function Create_Button(name, func)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText((self.isStop and '运行' or '暂停').. ' '..self.name)
+        GameTooltip:AddLine('运行前，请关闭所有插件')
+        if not LOCALE_zhCN then
+            GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
+        end
         GameTooltip:Show()
     end)
     btn:SetScript('OnMouseDown', function(self)
@@ -1300,7 +1304,10 @@ local function Init()
     Frame:SetPoint('CENTER')
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
-    Frame.Header:Setup('WoWTools_Chinese_Scanner 取得数据')
+    Frame.Header:Setup(
+        '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'
+        ..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
+    )
     Frame:RegisterEvent('PLAYER_REGEN_ENABLED')
     Frame:SetScript('OnShow', function(self)
         self:RegisterEvent('PLAYER_REGEN_ENABLED')
