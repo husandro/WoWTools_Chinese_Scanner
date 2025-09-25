@@ -591,8 +591,10 @@ local function Get_Objectives(questID)
         if info.text then
             local t= info.text:match('%d+/%d+ (.+)') or info.text
             t= t:match('(.+) %(%d+%%%)') or t
-            tab[index]= t
-            find=true
+            if IsCN(t) then
+                tab[index]= t
+                find=true
+            end
         end
     end
     if find then
