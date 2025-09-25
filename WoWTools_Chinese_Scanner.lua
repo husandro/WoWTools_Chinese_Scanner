@@ -6,7 +6,7 @@ local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxEncounterID= 25000
 local MaxSectionEncounterID= 50000
 
-local MaxUnitID= (GameVer-8)*10000--300000
+local MaxUnitID= (GameVer-8)*100000--300000 11.25 最高 254359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--3000000 11.2.5 最高 258483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer-6)*100000-- 500000
 
@@ -366,9 +366,9 @@ local function Save_Unit(self, unit)--字符
     va= math.min(2, va)
 
     local id= tostring(unit)
-    if _G['WoWTools_SC_Item'..va][id] then
+    if _G['WoWTools_SC_Unit'..va][id] then
         self.num= self.num+1
-        return _G['WoWTools_SC_Item'..va][id].T
+        return _G['WoWTools_SC_Unit'..va][id].T
 
     else
         local tab = Get_Unit_Tab(unit)
@@ -380,7 +380,6 @@ local function Save_Unit(self, unit)--字符
         end
     end
 end
-
 local function S_Unit(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxUnitID) then
         return
@@ -1035,17 +1034,16 @@ local function clear_data(name)
     Save()[name..'Cache']= nil
     Save()[name..'Ver']= nil
 
-    if name=='Item' or 'Unit' then
+    if name=='Item' or name=='Unit' then
         for va =0, 2 do
-            _G['WoWTools_SC_Item'..va] = {}
+            _G['WoWTools_SC_'..name..va] = {}
         end
     elseif name=='Spell' then
         for va =0, 4 do
-            _G['WoWTools_SC_Item'..va] = {}
+            _G['WoWTools_SC_Spell'..va] = {}
         end
     else
         _G['WoWTools_SC_'..name]= {}
-
     end
 
     local self= _G['WoWToolsSC'..name..'Button']
@@ -1357,7 +1355,11 @@ end
 
 
 
-EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner)
+EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1)
+    if arg1~='WoWTools_Chinese_Scanner' then
+        return
+    end
+
     WoWTools_SC= WoWTools_SC or {}
 
     Save().QuestCache=  Save().QuestCache or 1
@@ -1366,15 +1368,14 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner)
     Save().AchievementCache=  Save().AchievementCache or 1
 
     WoWTools_SC_Spell = WoWTools_SC_Spell or {}
-    
     WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
 
     for va=0, 2 do
-        _G['WoWTools_SC_Unit'..va] = _G['WoWTools_SC_Unit'..va] or {}
         _G['WoWTools_SC_Item'..va] = _G['WoWTools_SC_Item'..va] or {}
+        _G['WoWTools_SC_Unit'..va] = _G['WoWTools_SC_Unit'..va] or {}
     end
     for va=0, 4 do
          _G['WoWTools_SC_Spell'..va] = _G['WoWTools_SC_Spell'..va] or {}
