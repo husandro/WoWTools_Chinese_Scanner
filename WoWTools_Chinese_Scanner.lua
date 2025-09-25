@@ -222,11 +222,10 @@ local function S_Encounter(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
-
     if (counter >= 2) then
-        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 100, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_Encounter(self, startIndex + 100, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_Encounter(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_Encounter(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -292,9 +291,9 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
     if (counter >= 2) then
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_SectionEncounter(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -417,9 +416,9 @@ local function S_Unit(self, startIndex, attempt, counter)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
     if (counter >= 3) then
-        C_Timer.After(0.1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_Unit(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_Unit(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -469,9 +468,9 @@ local function S_CacheItem(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_CacheItem(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_CacheItem(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_CacheItem(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -563,9 +562,9 @@ local function S_Item(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxItemID)
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_Item(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_Item(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_Item(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_Item(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -630,9 +629,9 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -706,9 +705,9 @@ local function S_Quest(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxQuestID)
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -768,9 +767,9 @@ local function S_CacheSpell(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_CacheSpell(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_CacheSpell(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_CacheSpell(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -840,9 +839,9 @@ local function S_Spell(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxSpellID)
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_Spell(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_Spell(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_Spell(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_Spell(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -894,9 +893,9 @@ local function S_CacheAchievement(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_CacheAchievement(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_CacheAchievement(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
@@ -980,9 +979,9 @@ local function S_Achievement(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxAchievementID)
     if (counter >= 5) then
-        C_Timer.After(0.1, function() S_Achievement(self, startIndex + 150, attempt + 1, 0) end)
+        C_Timer.After(1, function() S_Achievement(self, startIndex + 150, attempt + 1, 0) end)
     else
-        C_Timer.After(0.1, function() S_Achievement(self, startIndex, attempt + 1, counter + 1) end)
+        C_Timer.After(1, function() S_Achievement(self, startIndex, attempt + 1, counter + 1) end)
     end
 end
 
