@@ -1069,7 +1069,7 @@ local function Create_Button(name, tab)
 
     btn.name= name
     btn.func= tab.func
-    btn.cahceFunc= tab.cahce
+    
 
     btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
@@ -1163,25 +1163,29 @@ local function Create_Button(name, tab)
         StaticPopup_Show('WoWTools_SC', n, '', n)
     end)
 
-    if btn.cahceFunc then
+    if tab.cahce then
         btn.cahce= CreateFrame('Button', nil, btn)
         btn.cahce:SetPushedAtlas('PetList-ButtonSelect')
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
         btn.cahce:SetPoint('LEFT', btn, 'RIGHT', -2, 0)
         btn.cahce:SetSize(23,23)
+        btn.cahce.func= tab.cahce
         btn.cahce.name= name
         function btn.cahce:set_tooltip()
             local p= self:GetParent()
+            if not p then return end
             GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+---@diagnostic disable-next-line: undefined-field
             GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..self.name)
             local clock= Save()[self.name..'CacheTime']
             if clock then
                 GameTooltip:AddLine('需要时间：'..clock)
             end
+---@diagnostic disable-next-line: undefined-field
             if p.cahceTime then
+---@diagnostic disable-next-line: undefined-field
                 GameTooltip:AddLine('已运行：'..SecondsToClock(GetTime()-p.cahceTime))
             end
-
             GameTooltip:Show()
         end
         btn.cahce:SetScript('OnLeave', function() GameTooltip:Hide() end)
@@ -1201,7 +1205,7 @@ local function Create_Button(name, tab)
         btn.cahce:SetScript('OnMouseDown', function(b)
             local self= b:GetParent()
             self.isCahceStop= not self.isCahceStop and true or false
-            self:cahceFunc()
+            b.func(self, Save()[self.name..'Cache'], 0, 0)
             self.cahceTime= not self.isCahceStop and GetTime() or nil
             b:settings()
             b:set_tooltip()
@@ -1223,10 +1227,15 @@ local function Create_Button(name, tab)
     end
     btn:settings()
 
+    if name=='Quest' then
+            Set_Quest_Event(btn)
+    elseif name=='Item' then
+        Set_Item_Event(btn)
+    elseif name=='Spell' then
+        Set_Spell_Event(btn)
+    end
 
     y= y- 23- 8
-
-    return btn
 end
 
 
@@ -1248,7 +1257,7 @@ local function Init()
     Frame:SetSize(520, 450)
     Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
     Frame:RegisterUnitEvent('PLAYER_FLAGS_CHANGED', 'player')
-    Frame:SetScript('OnEvent', function(_, event)
+    Frame:SetScript('OnEvent', function(_,  event)
         if event=='PLAYER_REGEN_DISABLED' then
             for _, name in pairs(Buttons) do
                 local btn= _G['WoWToolsSC'..name..'Button']
@@ -1339,24 +1348,13 @@ local function Init()
         ['Encounter']= {func=S_Encounter},
         ['SectionEncounter']= {func=S_SectionEncounter},
         ['Unit']= {func=S_Unit},
-        ['Quest']= {func=S_Quest, cahce=function(self)
-            Set_Quest_Event(self)
-            S_CacheQuest(self, Save()[self.name..'Cache'], 0, 0)
-        end},
-        ['Item']= {func=S_Item, cahce=function(self)
-            Set_Item_Event(self)
-            S_CacheItem(self, Save()[self.name..'Cache'], 0, 0)
-        end},
-        ['Spell']= {func=S_Spell, cahce=function(self)
-            Set_Spell_Event(self)
-            S_CacheSpell(self, Save()[self.name..'Cache'], 0, 0)
-        end},
-        ['Achievement']= {func=S_Achievement, cahce=function(self)
-            S_CacheAchievement(self, Save()[self.name..'Cache'], 0, 0)
-        end},
+        ['Quest']= {func=S_Quest, cahce=S_CacheQuest},
+        ['Item']= {func=S_Item, cahce=S_CacheItem},
+        ['Spell']= {func=S_Spell, cahce=S_CacheSpell},
+        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement},
     }) do
         Create_Button(name, tab)
-
+        
         table.insert(Buttons, name)
     end
 
