@@ -184,21 +184,26 @@ end
 
 --Encounter [字符journalEncounterID]= {T=, D=}
 local function Save_Encounter(self, journalEncounterID)
-    local name, desc
-    local n, d, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
-    if IsCN(n) then
-        name= n
-    end
-    if IsCN(d) then
-        desc= d
-    end
-    if name or desc then
-        WoWTools_SC_Encounter[tostring(journalEncounterID)] = {
-            ['T']=name,
-            ['D']=desc
-        }
+    if WoWTools_SC_Encounter[journalEncounterID] then
         self.num= self.num+1
-        return link or name
+        return WoWTools_SC_Encounter[journalEncounterID].T
+    else
+        local name, desc
+        local n, d, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
+        if IsCN(n) then
+            name= n
+        end
+        if IsCN(d) then
+            desc= d
+        end
+        if name or desc then
+            WoWTools_SC_Encounter[journalEncounterID] = {
+                ['T']=name,
+                ['D']=desc
+            }
+            self.num= self.num+1
+            return link or name
+        end
     end
 end
 
@@ -380,7 +385,7 @@ end
 
 --Unit 单位 [字符unitID]={T=, D=}
 --C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-2748-0000000000')
-local function Save_Unit(self, unit)--字符
+--[[local function Save_Unit(self, unit)--字符
     local va= math.modf(unit/100000)
     va= math.min(2, va)
 
@@ -396,6 +401,20 @@ local function Save_Unit(self, unit)--字符
             self.num= self.num+1
             return tab.T
 
+        end
+    end
+end]]
+local function Save_Unit(self, unit)--字符
+    if WoWTools_SC_Unit[unit] then
+        self.num= self.num+1
+        return WoWTools_SC_Unit[unit].T
+
+    else
+        local tab = Get_Unit_Tab(unit)
+        if tab then
+            WoWTools_SC_Unit[unit] = tab
+            self.num= self.num+1
+            return tab.T
         end
     end
 end
@@ -519,7 +538,7 @@ local function Get_Item_Tab(itemID)
 end
 
 --Item 物品[字符itemID]={T=, D=}
-local function Save_Item(self, itemID)--字符
+--[[local function Save_Item(self, itemID)--字符
 
     local va= math.modf(itemID/100000)
     va= math.min(2, va)
@@ -537,7 +556,20 @@ local function Save_Item(self, itemID)--字符
         end
     end
 end
-
+]]
+local function Save_Item(self, itemID)--字符
+    if WoWTools_SC_Item[itemID] then
+        self.num= self.num+1
+        return WoWTools_SC_Item[itemID].T
+    else
+        local tab = Get_Item_Tab(itemID)
+        if tab then
+            WoWTools_SC_Item[itemID] = tab
+            self.num= self.num+1
+            return select(2, C_Item.GetItemInfo(itemID)) or tab.T
+        end
+    end
+end
 
 local function S_Item(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxItemID) then
@@ -545,8 +577,9 @@ local function S_Item(self, startIndex, attempt, counter)
     end
 do
     for itemID = startIndex, startIndex + 150 do
-        if Cahce_Item(itemID) and Save_Item(self, itemID) then
-            self.Name:SetText(select(2, C_Item.GetItemInfo(itemID)) or ('itemID '..itemID))
+        local title= Cahce_Item(itemID) and Save_Item(self, itemID)
+        if title then
+            self.Name:SetText(title)
         end
     end
 end
@@ -673,15 +706,13 @@ local function Get_Quest_Tab(questID)
 end
 --任务 [字符questID]={T=, O= S={}}
 local function Save_Quest(self, questID)
-    local id= tostring(questID)
-
-    if WoWTools_SC_Quest[id] then
+    if WoWTools_SC_Quest[questID] then
         self.num= self.num+1
         return true
     else
         local tab = Get_Quest_Tab(questID)
         if tab then
-            WoWTools_SC_Quest[id] = tab
+            WoWTools_SC_Quest[questID] = tab
             self.num= self.num+1
             return true
         end
@@ -794,7 +825,7 @@ local function Get_Spell_Tab(spellID)
 end
 
 --法术 [字符spellID]={T=, D=}
-local function Save_Spell(self, spellID)
+--[[local function Save_Spell(self, spellID)
     local va= math.modf(spellID/100000)
     va= math.min(4, va)
 
@@ -811,6 +842,19 @@ local function Save_Spell(self, spellID)
             return true
         end
     end
+end]]
+local function Save_Spell(self, spellID)
+    if WoWTools_SC_Spell[spellID] then
+        self.num= self.num+1
+        return WoWTools_SC_Spell[spellID].T
+    else
+        local tab = Get_Spell_Tab(spellID)
+        if tab then
+            WoWTools_SC_Spell[spellID] = tab
+            self.num= self.num+1
+            return tab.T
+        end
+    end
 end
 
 
@@ -819,13 +863,14 @@ local function S_Spell(self, startIndex, attempt, counter)
         return
     end
 
-do
-    for spellID = startIndex, startIndex + 150 do
-        if Cahce_Spell(spellID) and Save_Spell(self, spellID) then
-            self.Name:SetText(C_Spell.GetSpellLink(spellID) or ('SpellID '..spellID))
+    do
+        for spellID = startIndex, startIndex + 150 do
+            local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
+            if title then
+                self.Name:SetText(C_Spell.GetSpellLink(spellID) or title)
+            end
         end
     end
-end
 
     Set_ValueText(self, startIndex, MaxSpellID)
 
@@ -927,7 +972,7 @@ local function Get_Achievement_Tab(achievementID)
     end
 end
 
-
+--[[
 local function Save_Achievement(self, achievementID)
     local id= tostring(achievementID)
 
@@ -942,6 +987,19 @@ local function Save_Achievement(self, achievementID)
             return true
         end
     end
+end]]
+local function Save_Achievement(self, achievementID)
+    if WoWTools_SC_Achievement[achievementID] then
+        self.num= self.num+1
+        return WoWTools_SC_Achievement[achievementID].T
+    else
+        local tab = Get_Achievement_Tab(achievementID)
+        if tab then
+            WoWTools_SC_Achievement[achievementID] = tab
+            self.num= self.num+1
+            return tab.T
+        end
+    end
 end
 
 
@@ -950,18 +1008,15 @@ local function S_Achievement(self, startIndex, attempt, counter)
         return
     end
 
-do
-    for achievementID = startIndex, startIndex + 150 do
-        Cahce_Achievement(achievementID)
-        if Save_Achievement(self, achievementID) then
-            self.Name:SetText(
-                C_Spell.GetSpellLink(achievementID)
-                or select(2, GetAchievementInfo(achievementID))
-                or ('AchievementID '..achievementID)
-            )
+    do
+        for achievementID = startIndex, startIndex + 150 do
+            Cahce_Achievement(achievementID)
+            local title= Save_Achievement(self, achievementID)
+            if title then
+                self.Name:SetText(select(2, GetAchievementInfo(achievementID)) or title)
+            end
         end
     end
-end
 
     Set_ValueText(self, startIndex, MaxAchievementID)
 
@@ -1006,17 +1061,7 @@ local function clear_data(name)
     Save()[name..'Cache']= nil
     Save()[name..'Ver']= nil
 
-    if name=='Item' or name=='Unit' then
-        for va =0, 2 do
-            _G['WoWTools_SC_'..name..va] = {}
-        end
-    elseif name=='Spell' then
-        for va =0, 4 do
-            _G['WoWTools_SC_Spell'..va] = {}
-        end
-    else
-        _G['WoWTools_SC_'..name]= {}
-    end
+    _G['WoWTools_SC_'..name]= {}
 
     local self= _G['WoWToolsSC'..name..'Button']
     if not self.isStop then
@@ -1081,7 +1126,7 @@ local function Create_Button(name, tab)
         GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cff626262暂停').. '|r '..self.name)
         local clock= Save()[self.name..'Time']
         if clock then
-            GameTooltip:AddLine('需要时间：'..clock)
+            GameTooltip:AddLine('上次运行：'..clock)
         end
         GameTooltip:AddLine(' ')
         GameTooltip:AddLine('运行前，请关闭所有插件')
@@ -1178,7 +1223,7 @@ local function Create_Button(name, tab)
             GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..self.name)
             local clock= Save()[self.name..'CacheTime']
             if clock then
-                GameTooltip:AddLine('需要时间：'..clock)
+                GameTooltip:AddLine('上次运行：'..clock)
             end
 ---@diagnostic disable-next-line: undefined-field
             if p.cahceTime then
@@ -1325,7 +1370,7 @@ local function Init()
     clear:SetSize(150, 23)
     --clear:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
     clear:SetPoint('BOTTOMLEFT', 12, 32)
-    clear:SetText('清除所有数据')
+    clear:SetText('|A:bags-button-autosort-up:0:0|a清除所有数据')
     clear:SetScript('OnMouseDown', function()
         for _, name in pairs(Buttons) do
             local btn= _G['WoWToolsSC'..name..'Button']
@@ -1411,13 +1456,10 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
 
-    for va=0, 2 do
-        _G['WoWTools_SC_Item'..va] = _G['WoWTools_SC_Item'..va] or {}
-        _G['WoWTools_SC_Unit'..va] = _G['WoWTools_SC_Unit'..va] or {}
-    end
-    for va=0, 4 do
-         _G['WoWTools_SC_Spell'..va] = _G['WoWTools_SC_Spell'..va] or {}
-    end
+    WoWTools_SC_Item= WoWTools_SC_Item or {}
+    WoWTools_SC_Spell= WoWTools_SC_Spell or {}
+    WoWTools_SC_Unit= WoWTools_SC_Unit or {}
+    
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
