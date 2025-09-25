@@ -106,7 +106,7 @@ local function Is_StopRun(self, startIndex, maxID)
 
     elseif (startIndex > maxID) then
         self.bar:SetValue(100)
-        self.Value:SetFormattedText('|cffff00ff结束|r, %d条', self.num)
+        self.Value:SetFormattedText('|cffff00ff完成|r, %d条', self.num)
         self.Name:SetText(self.name)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
@@ -121,156 +121,6 @@ local function Set_ValueText(self, startIndex, maxID)
     self.Value:SetFormattedText('%s   %d条 %.1f%%', SecondsToClock((GetTime()-self.time), false), self.num, va)
     self.bar:SetValue(va)
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---[[
-local function S_Spell(startIndex, attempt, counter)
-
-    if (startIndex > 500000) then
-        return
-    end
-
-    for spellID = startIndex, startIndex + 150 do
-        Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-        Tooltip:ClearLines()
-        Tooltip:SetHyperlink('spell:' .. spellID)
-        Tooltip:Show()
-        local text =  GetLinesText(Tooltip)
-        if (text ~= '' and text ~= nil) then
-        if (spellID >=0 and spellID < 100000) then
-            if (WoWTools_SC_Spell0[spellID .. ''] == nil or string.len(WoWTools_SC_Spell0[spellID .. '']) < string.len(text)) then
-                WoWTools_SC_Spell0[spellID .. ''] = text
-            end
-        elseif (spellID >=100000 and spellID < 200000) then
-            if (WoWTools_SC_Spell100000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell100000[spellID .. '']) < string.len(text)) then
-            WoWTools_SC_Spell100000[spellID .. ''] = text
-            end
-        elseif (spellID >=200000 and spellID < 300000) then
-            if (WoWTools_SC_Spell200000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell200000[spellID .. '']) < string.len(text)) then
-            WoWTools_SC_Spell200000[spellID .. ''] = text
-            end
-        elseif (spellID >=300000 and spellID < 400000) then
-            if (WoWTools_SC_Spell300000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell300000[spellID .. '']) < string.len(text)) then
-            WoWTools_SC_Spell300000[spellID .. ''] = text
-            end
-        elseif (spellID >=400000 and spellID < 500000) then
-            if (WoWTools_SC_Spell400000[spellID .. ''] == nil or string.len(WoWTools_SC_Spell400000[spellID .. '']) < string.len(text)) then
-            WoWTools_SC_Spell400000[spellID .. ''] = text
-            end
-        end
-        print(spellID)
-        end
-    end
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWTools_SC_Index = startIndex
-  if (counter >= 5) then
-    SC_Wait(0.5, S_Spell, startIndex + 150, attempt + 1, 0)
-  else
-    SC_Wait(0.5, S_Spell, startIndex, attempt + 1, counter + 1)
-  end
-end
-
-]]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -319,7 +169,7 @@ local function S_Encounter(self, startIndex, attempt, counter)
         return
 
     end
-
+do
     for journalEncounterID = startIndex, startIndex + 100 do
         local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
         name= name~='' and name or nil
@@ -336,7 +186,7 @@ local function S_Encounter(self, startIndex, attempt, counter)
             self.Name:SetText(link or name or '')
         end
     end
-
+end
     Set_ValueText(self, startIndex, MaxEncounterID)
 
     if (counter >= 2) then
@@ -375,30 +225,29 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
         return
     end
-
-    do
-        for _, difficultyID in pairs(DifficultyTab) do
-            --if GetDifficultyInfo(index) then
-            do
-                EJ_SetDifficulty(difficultyID)
-            end
-            for sectionID = startIndex, startIndex + 100 do
-                local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
-                if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
-                    local desc
-                    if IsCN(sectionInfo.description) then
-                        desc= sectionInfo.description
-                    end
-                    WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID] = {
-                        ['T']= sectionInfo.title,
-                        ['D']= desc
-                    }
-                    self.num= self.num+1
-                    self.Name:SetText(sectionInfo.link or sectionInfo.title or '')
+do
+    for _, difficultyID in pairs(DifficultyTab) do
+        --if GetDifficultyInfo(index) then
+        do
+            EJ_SetDifficulty(difficultyID)
+        end
+        for sectionID = startIndex, startIndex + 100 do
+            local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
+            if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
+                local desc
+                if IsCN(sectionInfo.description) then
+                    desc= sectionInfo.description
                 end
+                WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID] = {
+                    ['T']= sectionInfo.title,
+                    ['D']= desc
+                }
+                self.num= self.num+1
+                self.Name:SetText(sectionInfo.link or sectionInfo.title or '')
             end
         end
     end
+end
 
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
 
@@ -464,7 +313,6 @@ local function Get_Unit_Tab(unit)
     then
         return
     end
-
     local desc
     local title
     for index, line in pairs(data.lines) do
@@ -487,7 +335,7 @@ local function S_Unit(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxUnitID) then
         return
     end
-
+do
     for unit = startIndex, startIndex + 250 do
         local tab= Get_Unit_Tab(unit)
         if tab then
@@ -496,7 +344,7 @@ local function S_Unit(self, startIndex, attempt, counter)
             self.Name:SetText(tab.T)
         end
     end
-
+end
     Set_ValueText(self, startIndex, MaxUnitID)
 
     if (counter >= 3) then
@@ -635,13 +483,13 @@ local function S_Item(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxItemID) then
         return
     end
-
+do
     for itemID = startIndex, startIndex + 150 do
         if Cahce_Item(itemID) and Save_Item(self, itemID) then
             self.Name:SetText(select(2, C_Item.GetItemInfo(itemID)) or ('itemID '..itemID))
         end
     end
-
+end
     Set_ValueText(self, startIndex, MaxItemID)
 
     if (counter >= 5) then
@@ -693,11 +541,11 @@ end
 
 --任务
 local function Cahce_Quest(questID)
-        if not HaveQuestData(questID) then
-            C_QuestLog.RequestLoadQuestByID(questID)
-        else
-            return true
-        end
+    if not HaveQuestData(questID) then
+        C_QuestLog.RequestLoadQuestByID(questID)
+    else
+        return true
+    end
 end
 local function S_CacheQuest(self, startIndex, attempt, counter)
     if not Save()[self.name..'Cache'] then
@@ -716,13 +564,13 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
         self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
-    do
-        for questID = startIndex, startIndex + 150 do
-            Cahce_Quest(questID)
-            self.bar2:SetValue(questID/MaxQuestID*100)
-            self.bar2:SetShown(true)
-        end
+do
+    for questID = startIndex, startIndex + 150 do
+        Cahce_Quest(questID)
+        self.bar2:SetValue(questID/MaxQuestID*100)
+        self.bar2:SetShown(true)
     end
+end
 
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
@@ -794,11 +642,13 @@ local function S_Quest(self, startIndex, attempt, counter)
         return
     end
 
+do
     for questID = startIndex, startIndex + 100 do
         if Cahce_Quest(questID) and Save_Quest(self, questID) then
             self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
         end
     end
+end
 
     Set_ValueText(self, startIndex, MaxQuestID)
 
@@ -869,15 +719,16 @@ local function S_CacheSpell(self, startIndex, attempt, counter)
         self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
-    do
-        for spellID = startIndex, startIndex + 150 do
-            Cahce_Spell(spellID)
-            self.bar2:SetValue(spellID/MaxSpellID*100)
-            self.bar2:SetShown(true)
-        end
+do
+    for spellID = startIndex, startIndex + 150 do
+        Cahce_Spell(spellID)
+        self.bar2:SetValue(spellID/MaxSpellID*100)
+        self.bar2:SetShown(true)
     end
+end
 
     Save()[self.name..'Cache']= startIndex
+
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -926,11 +777,13 @@ local function S_Spell(self, startIndex, attempt, counter)
         return
     end
 
+do
     for spellID = startIndex, startIndex + 150 do
         if Cahce_Spell(spellID) and Save_Spell(self, spellID) then
             self.Name:SetText(C_Spell.GetSpellLink(spellID) or ('SpellID '..spellID))
         end
     end
+end
 
     Set_ValueText(self, startIndex, MaxSpellID)
 
@@ -993,15 +846,16 @@ local function S_CacheAchievement(self, startIndex, attempt, counter)
         self.Name:SetText('正在获取“'..self.name..'”数据')
     end
 
-    do
-        for AchievementID = startIndex, startIndex + 150 do
-            Cahce_Achievement(AchievementID)
-            self.bar2:SetValue(AchievementID/MaxAchievementID*100)
-            self.bar2:SetShown(true)
-        end
+do
+    for AchievementID = startIndex, startIndex + 150 do
+        Cahce_Achievement(AchievementID)
+        self.bar2:SetValue(AchievementID/MaxAchievementID*100)
+        self.bar2:SetShown(true)
     end
+end
 
     Save()[self.name..'Cache']= startIndex
+
     if (counter >= 5) then
         C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 150, attempt + 1, 0) end)
     else
@@ -1066,12 +920,18 @@ local function S_Achievement(self, startIndex, attempt, counter)
         return
     end
 
-    for AchievementID = startIndex, startIndex + 150 do
-        Cahce_Achievement(AchievementID)
-        if Save_Achievement(self, AchievementID) then
-            self.Name:SetText(C_Spell.GetSpellLink(AchievementID) or ('AchievementID '..AchievementID))
+do
+    for achievementID = startIndex, startIndex + 150 do
+        Cahce_Achievement(achievementID)
+        if Save_Achievement(self, achievementID) then
+            self.Name:SetText(
+                C_Spell.GetSpellLink(achievementID)
+                or select(2, GetAchievementInfo(achievementID))
+                or ('AchievementID '..achievementID)
+            )
         end
     end
+end
 
     Set_ValueText(self, startIndex, MaxAchievementID)
 
@@ -1082,14 +942,6 @@ local function S_Achievement(self, startIndex, attempt, counter)
     end
 end
 
---[[local function Set_Achievement_Event(self)
-    self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    self:SetScript('OnEvent', function(_, AchievementID, success)
-        if AchievementID and success then
-            Save_Achievement(self, AchievementID)
-        end
-    end)
-end]]
 
 
 
@@ -1137,7 +989,6 @@ local function clear_data(name)
     self.bar:SetValue(0)
     self.Value:SetText('')
     self.Ver:SetText('')
-
 
     print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
 end
@@ -1389,7 +1240,6 @@ local function Init()
 
         elseif name=='Achievement' then
             S_CacheAchievement(btn, Save()[name..'Cache'], 0, 0)
-            --Set_Achievement_Event(btn)
         end
 
         table.insert(Buttons, name)
@@ -1448,67 +1298,3 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
     Init()
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)
-
-
-
---[[
-
-
-local AchivementTooltip = CreateFrame("GameTooltip", nil, UIParent, "GameTooltipTemplate")
-AchivementTooltip:SetFrameStrata("TOOLTIP")
-function AchivementTooltip:Get_Lines(...)
-    local t
-    for i = 1, select("#", ...) do
-        local text= GetLineText(select(i, ...))
-        if text then
-            print(text)
-            t= (t and t..'|n' or '')..text
-        end
-    end
-    return t
-end
-
-local function S_Achivement(self, startIndex, attempt, counter)
-    if self.isStop then
-        local va= startIndex/25000*100
-        self.Value:SetFormattedText('暂停, %d, %.1f%%', startIndex, va)
-        self.bar:SetValue(va)
-        self.Name:SetText(self.name)
-        return
-
-    elseif (startIndex > 30000) then
-        self.bar:SetValue(100)
-        self.Value:SetFormattedText('|cffff00ff结束, %d条', self.num)
-        self.bar:SetValue(0)
-        self.Name:SetText(self.name)
-        WoWTools_SC_AchivementIndex = nil
-        self:settings()
-        self.num= 0
-        return
-    end
-    for achievementID = startIndex, startIndex + 150 do
-        AchivementTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-        AchivementTooltip:ClearLines()
-        AchivementTooltip:SetHyperlink('achievement:' .. achievementID .. ':0:0:0:0:0:0:0:0')
-        AchivementTooltip:Show()
-        local text = AchivementTooltip:Get_Lines(AchivementTooltip:GetRegions())
-        if text and (WoWTools_SC_Achivement0[achievementID .. ''] == nil or string.len(WoWTools_SC_Achivement0[achievementID .. '']) < string.len(text)) then
-            WoWTools_SC_Achivement0[achievementID .. ''] = text
-            self.num= self.num+1
-            self.Name:SetText(GetAchievementLink(achievementID) or ('achievementID'..achievementID))
-            print(text)
-        end
-    end
-
-    WoWTools_SC_AchivementIndex = startIndex
-
-    if (counter >= 5) then
-        --SC_Wait(0.3, S_Achivement, startIndex + 150, attempt + 1, 0)
-        C_Timer.After(0.3, function() S_Achivement(self, startIndex + 150, attempt + 1, 0) end)
-    else
-        --SC_Wait(0.5, S_Achivement, startIndex, attempt + 1, counter + 1)
-        C_Timer.After(0.3, function() S_Achivement(self, startIndex, attempt + 1, counter + 1) end)
-    end
-end
-]]
-
