@@ -163,8 +163,25 @@ end
 
 
 
-
-
+--Encounter [字符journalEncounterID]= {T=, D=}
+local function Save_Encounter(self, journalEncounterID)
+    local name, desc
+    local n, d, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
+    if IsCN(n) then
+        name= n
+    end
+    if IsCN(d) then
+        desc= d
+    end
+    if name or desc then
+        WoWTools_SC_Encounter[tostring(journalEncounterID)] = {
+            ['T']=name,
+            ['D']=desc
+        }
+        self.num= self.num+1
+        return link or name
+    end
+end
 
 local function S_Encounter(self, startIndex, attempt, counter)
     if self.isStop then
@@ -183,25 +200,18 @@ local function S_Encounter(self, startIndex, attempt, counter)
         return
 
     end
+
 do
     for journalEncounterID = startIndex, startIndex + 100 do
-        local name, desc, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
-        name= name~='' and name or nil
-        desc= desc~='' and desc or nil
-        if name or desc then
-            WoWTools_SC_Encounter[journalEncounterID] = {}
-            if name then
-                WoWTools_SC_Encounter[journalEncounterID].T = name
-            end
-            if desc then
-                WoWTools_SC_Encounter[journalEncounterID].D = desc
-            end
-            self.num= self.num+1
-            self.Name:SetText(link or name or '')
+        local link= Save_Encounter(self, journalEncounterID)
+        if link then
+            self.Name:SetText(link)
         end
     end
 end
+
     Set_ValueText(self, startIndex, MaxEncounterID)
+    Save()[self.name] = startIndex
 
     if (counter >= 2) then
         C_Timer.After(0.1, function() S_Encounter(self, startIndex + 100, attempt + 1, 0) end)
@@ -234,7 +244,23 @@ end
 
 
 
---EncounterSection
+--EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
+local function Save_SectionEncounter(self, sectionID, difficultyID)
+    local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
+    if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
+        local desc
+        if IsCN(sectionInfo.description) then
+            desc= sectionInfo.description
+        end
+        WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID] = {
+            ['T']= sectionInfo.title,
+            ['D']= desc
+        }
+        self.num= self.num+1
+        return sectionID.link or sectionInfo.title
+    end
+end
+
 local function S_SectionEncounter(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
         return
@@ -246,26 +272,16 @@ do
             EJ_SetDifficulty(difficultyID)
         end
         for sectionID = startIndex, startIndex + 100 do
-            local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
-            if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
-                local desc
-                if IsCN(sectionInfo.description) then
-                    desc= sectionInfo.description
-                end
-                WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID] = {
-                    ['T']= sectionInfo.title,
-                    ['D']= desc
-                }
-                self.num= self.num+1
-                self.Name:SetText(sectionInfo.link or sectionInfo.title or '')
+            local link= Save_SectionEncounter(self, sectionID, difficultyID)
+            if link then
+                self.Name:SetText(link)
             end
         end
     end
 end
 
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
-
-    Save().SectionEncounter = startIndex
+    Save()[self.name] = startIndex
 
     if (counter >= 2) then
         C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
@@ -316,8 +332,6 @@ end
 
 
 
---Unit 单位
---C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-2748-0000000000')
 local function Get_Unit_Tab(unit)
     local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
     if not data
@@ -345,6 +359,8 @@ local function Get_Unit_Tab(unit)
     end
 end
 
+--Unit 单位 [字符unitID]={T=, D=}
+--C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-2748-0000000000')
 local function Save_Unit(self, unit)--字符
     local va= math.modf(unit/100000)
     va= math.min(2, va)
@@ -369,6 +385,7 @@ local function S_Unit(self, startIndex, attempt, counter)
     if Is_StopRun(self, startIndex, MaxUnitID) then
         return
     end
+
 do
     for unit = startIndex, startIndex + 250 do
         local title= Save_Unit(self, unit)
@@ -377,7 +394,9 @@ do
         end
     end
 end
+
     Set_ValueText(self, startIndex, MaxUnitID)
+    Save()[self.name] = startIndex
 
     if (counter >= 3) then
         C_Timer.After(0.1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
@@ -493,7 +512,7 @@ local function Get_Item_Tab(itemID)
     }
 end
 
-
+--Item 物品[字符itemID]={T=, D=}
 local function Save_Item(self, itemID)--字符
 
     local va= math.modf(itemID/100000)
@@ -657,7 +676,7 @@ local function Get_Quest_Tab(questID)
         ['S']= Get_Objectives(questID),
     }
 end
-
+--任务 [字符questID]={T=, O= S={}}
 local function Save_Quest(self, questID)
     local id= tostring(questID)
 
@@ -791,7 +810,7 @@ local function Get_Spell_Tab(spellID)
     end
 end
 
-
+--法术 [字符spellID]={T=, D=}
 local function Save_Spell(self, spellID)
     local va= math.modf(spellID/100000)
     va= math.min(4, va)
@@ -1206,10 +1225,10 @@ end
 
 
 local function Init()
-
     Frame= CreateFrame('Frame', 'WoWTools_SC_Frame', UIParent)
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
+    Frame:SetSize(520, 450)
     Frame:SetPoint('CENTER')
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
@@ -1303,7 +1322,6 @@ local function Init()
         table.insert(Buttons, name)
     end
 
-    Frame:SetSize(520, y*53+52)
 
     if not InCombatLockdown() then
         if not CollectionsJournal then
@@ -1326,6 +1344,13 @@ local function Init()
 
     Init=function()end
 end
+
+
+
+
+
+
+
 
 
 
