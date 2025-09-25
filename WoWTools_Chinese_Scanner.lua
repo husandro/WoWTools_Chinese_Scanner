@@ -111,14 +111,16 @@ local function Is_StopRun(self, startIndex, maxID)
 
     elseif (startIndex > maxID) then
         self.bar:SetValue(100)
+        local clock= SecondsToClock(GetTime()-self.time)
         self.Value:SetFormattedText(
             '|cffff00ff完成|r, %d条, %s',
             self.num,
-            SecondsToClock((GetTime()-self.time))
+            clock
         )
         self.Name:SetText(self.name)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
+        Save()[self.name..'Time']= clock
         self:settings()
         self.num= 0
         return true
@@ -129,7 +131,7 @@ local function Set_ValueText(self, startIndex, maxID)
     local va= startIndex/maxID*100
     self.Value:SetFormattedText(
         '%s, %d条, %.1f%%',
-        SecondsToClock((GetTime()-self.time), false),
+        SecondsToClock(GetTime()-self.time),
         self.num,
         va
     )
@@ -1108,8 +1110,9 @@ local function Create_Button(name, tab)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText((self.isStop and '运行' or '暂停').. ' '..self.name)
-        if self.timeText~='' then
-            GameTooltip:AddLine('时间：'..self.timeText)
+        local clock= Save()[self.name..'Time']
+        if clock then
+            GameTooltip:AddLine('需要时间：'..clock)
         end
         GameTooltip:AddLine(' ')
         GameTooltip:AddLine('运行前，请关闭所有插件')
