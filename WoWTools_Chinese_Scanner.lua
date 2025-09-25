@@ -1,9 +1,10 @@
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
+local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxEncounterID= 25000
 local MaxSectionEncounterID= 50000
-local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxUnitID= 300000
 local MaxItemID= 300000
 local MaxSpellID= 500000
@@ -19,7 +20,7 @@ end
 
 --[[
 
-local MaxAchivementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+
 ]]
 
 --[[
@@ -613,16 +614,16 @@ local function Get_Item_Tab(itemID)
 end
 
 
-local function Save_Item(self, id)--字符
-    local itemID= format('%d', id)
+local function Save_Item(self, itemID)--字符
+    local id= tostring(itemID)
 
-    if WoWTools_SC_Item[itemID] then
+    if WoWTools_SC_Item[id] then
         self.num= self.num+1
         return true
     else
         local tab = Get_Item_Tab(itemID)
         if tab then
-            WoWTools_SC_Item[itemID] = tab
+            WoWTools_SC_Item[id] = tab
             self.num= self.num+1
             return true
         end
@@ -773,13 +774,15 @@ local function Get_Quest_Tab(questID)
 end
 
 local function Save_Quest(self, questID)
-    if WoWTools_SC_Quest[questID] then
+    local id= tostring(questID)
+
+    if WoWTools_SC_Quest[id] then
         self.num= self.num+1
         return true
     else
         local tab = Get_Quest_Tab(questID)
         if tab then
-            WoWTools_SC_Quest[questID] = tab
+            WoWTools_SC_Quest[id] = tab
             self.num= self.num+1
             return true
         end
@@ -902,13 +905,15 @@ end
 
 
 local function Save_Spell(self, spellID)
-    if WoWTools_SC_Spell[spellID] then
+    local id= tostring(spellID)
+
+    if WoWTools_SC_Spell[id] then
         self.num= self.num+1
         return true
     else
         local tab = Get_Spell_Tab(spellID)
         if tab then
-            WoWTools_SC_Spell[spellID] = tab
+            WoWTools_SC_Spell[id] = tab
             self.num= self.num+1
             return true
         end
@@ -948,6 +953,143 @@ end
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function Cahce_Achievement(achievementID)
+    GetAchievementInfo(achievementID)
+end
+
+local function S_CacheAchievement(self, startIndex, attempt, counter)
+    if not Save()[self.name..'Cache'] then
+        self.Name:SetText('|cffff0000停止|r, 获取“'..self.name..'”数据')
+        self.bar2:Hide()
+        return
+
+    elseif (startIndex > MaxAchievementID) then
+        self.Name:SetText('获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
+        self.bar2:SetValue(0)
+        self.bar2:Hide()
+        Save()[self.name]=nil
+        return
+
+    elseif startIndex==1 then
+        self.Name:SetText('正在获取“'..self.name..'”数据')
+    end
+
+    do
+        for AchievementID = startIndex, startIndex + 150 do
+            Cahce_Achievement(AchievementID)
+            self.bar2:SetValue(AchievementID/MaxAchievementID*100)
+            self.bar2:SetShown(true)
+        end
+    end
+
+    Save()[self.name..'Cache']= startIndex
+    if (counter >= 5) then
+        C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 150, attempt + 1, 0) end)
+    else
+        C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex, attempt + 1, counter + 1) end)
+    end
+end
+
+local function Get_Achievement_Tab(achievementID)
+    local _, title, _, _, _, _, _, desc, _, _, reward = GetAchievementInfo(achievementID)
+    if IsCN(title) then
+        local d,r
+        if IsCN(desc) then
+            d= desc--概述
+        end
+        if IsCN(reward) then
+            r= reward--奖励
+        end
+        local s, find
+        local numCriteria= GetAchievementNumCriteria(achievementID) or 0--条件
+        if numCriteria>0 then
+            local t={}
+            for index = 1, numCriteria do
+                local criteriaString = GetAchievementCriteriaInfo(achievementID, index)
+                if IsCN(criteriaString) then
+                    t[index]= criteriaString
+                    find= true
+                end
+            end
+            if find then
+                s= t
+            end
+        end
+        return {
+            ['T']= title,
+            ['D']= d,
+            ['R']= r,
+            ['S']= s,
+        }
+    end
+end
+
+
+local function Save_Achievement(self, achievementID)
+    local id= tostring(achievementID)
+
+    if WoWTools_SC_Achievement[id] then
+        self.num= self.num+1
+        return true
+    else
+        local tab = Get_Achievement_Tab(achievementID)
+        if tab then
+            WoWTools_SC_Achievement[id] = tab
+            self.num= self.num+1
+            return true
+        end
+    end
+end
+
+
+local function S_Achievement(self, startIndex, attempt, counter)
+    if Is_StopRun(self, startIndex, MaxAchievementID) then
+        return
+    end
+
+    for AchievementID = startIndex, startIndex + 150 do
+        Cahce_Achievement(AchievementID)
+        if Save_Achievement(self, AchievementID) then
+            self.Name:SetText(C_Spell.GetSpellLink(AchievementID) or ('AchievementID '..AchievementID))
+        end
+    end
+
+    Set_ValueText(self, startIndex, MaxAchievementID)
+
+    if (counter >= 5) then
+        C_Timer.After(0.1, function() S_Achievement(self, startIndex + 150, attempt + 1, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Achievement(self, startIndex, attempt + 1, counter + 1) end)
+    end
+end
+
+--[[local function Set_Achievement_Event(self)
+    self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
+    self:SetScript('OnEvent', function(_, AchievementID, success)
+        if AchievementID and success then
+            Save_Achievement(self, AchievementID)
+        end
+    end)
+end]]
 
 
 
@@ -1056,6 +1198,7 @@ local function Create_Button(name, func)
     btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
     btn.bar:SetSize(Frame:GetWidth()-48-23*2, 18)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
+    btn.bar:SetAlpha(0.8)
     btn.bar:SetMinMaxValues(0, 100)
     btn.bar:SetValue(0)
     btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
@@ -1222,6 +1365,7 @@ local function Init()
         ['Unit']= S_Unit,
         ['Item']= S_Item,
         ['Spell']= S_Spell,
+        ['Achievement']= S_Achievement,
     }) do
         local btn= Create_Button(name, func)
         if name=='Quest' then
@@ -1236,27 +1380,35 @@ local function Init()
             Set_Spell_Event(btn)
             S_CacheSpell(btn, Save()[name..'Cache'], 0, 0)
 
-        --elseif name=='SectionEncounter' then
-            --Set_SectionEncounter_Event(btn)
+        elseif name=='Achievement' then
+            S_CacheAchievement(btn, Save()[name..'Cache'], 0, 0)
+            --Set_Achievement_Event(btn)
         end
-
 
         table.insert(Buttons, name)
     end
 
 
+    if not InCombatLockdown() then
+        if not CollectionsJournal then
+            CollectionsJournal_LoadUI()
+        end
 
+        if not PlayerSpellsFrame then
+            PlayerSpellsFrame_LoadUI();
+        end
 
+        if not AchievementFrame then
+            AchievementFrame_LoadUI()
+        end
 
-
-    Init=function()
-        Save().QuestCache=  Save().QuestCache or 1
-        Save().ItemCache=  Save().ItemCache or 1
-        Save().SpellCache=  Save().SpellCache or 1
-        S_CacheQuest(_G['WoWToolsSCQuestButton'], Save().QuestCache, 0, 0)
-        S_CacheItem(_G['WoWToolsSCItemButton'], Save().ItemCache, 0, 0)
-        S_CacheQuest(_G['WoWToolsSCSpellButton'], Save().SpellCache, 0, 0)
+        if not EncounterJournal then
+            EncounterJournal_LoadUI()
+        end
     end
+
+
+    Init=function()end
 end
 
 
@@ -1270,11 +1422,12 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner)
     Save().QuestCache=  Save().QuestCache or 1
     Save().ItemCache=  Save().ItemCache or 1
     Save().SpellCache=  Save().SpellCache or 1
+    Save().AchievementCache=  Save().AchievementCache or 1
 
     WoWTools_SC_Spell = WoWTools_SC_Spell or {}
     WoWTools_SC_Item = WoWTools_SC_Item or {}
     WoWTools_SC_Unit = WoWTools_SC_Unit or {}
-    WoWTools_SC_Achivement = WoWTools_SC_Achivement or {}
+    WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
@@ -1284,8 +1437,9 @@ end)
 
 
 
-EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function()
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     Init()
+    EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)
 
 

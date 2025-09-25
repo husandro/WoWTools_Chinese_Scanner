@@ -32,6 +32,14 @@
         "ID",
         "GameTooltip_Hide",
         "RELOADUI",
-        "SLASH_RELOAD1"
+        "SLASH_RELOAD1",
+        "CollectionsJournal",
+        "CollectionsJournal_LoadUI",
+        "PlayerSpellsFrame",
+        "PlayerSpellsFrame_LoadUI",
+        "AchievementFrame",
+        "AchievementFrame_LoadUI",
+        "EncounterJournal_LoadUI",
+        "EncounterJournal"
     ]
 }
