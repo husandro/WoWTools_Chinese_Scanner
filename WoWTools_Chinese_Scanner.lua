@@ -150,6 +150,7 @@ local function Is_StopCahceRun(self, startIndex, maxID)
         self.bar2:SetValue(0)
         self.bar2:Hide()
         Save()[self.name..'Cache']= nil
+        Save()[self.name..'CacheTime']= SecondsToClock(GetTime()-self.cahceTime)
         self.isCahceStop= true
         self.cahce:settings()
         return true
@@ -1168,13 +1169,19 @@ local function Create_Button(name, tab)
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
         btn.cahce:SetPoint('LEFT', btn, 'RIGHT', -2, 0)
         btn.cahce:SetSize(23,23)
+        btn.cahce.name= name
         function btn.cahce:set_tooltip()
-            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
             local p= self:GetParent()
-            if p then
----@diagnostic disable-next-line: undefined-field
-                GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..p.name)
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..self.name)
+            local clock= Save()[self.name..'CacheTime']
+            if clock then
+                GameTooltip:AddLine('需要时间：'..clock)
             end
+            if p.cahceTime then
+                GameTooltip:AddLine('已运行：'..SecondsToClock(GetTime()-p.cahceTime))
+            end
+
             GameTooltip:Show()
         end
         btn.cahce:SetScript('OnLeave', function() GameTooltip:Hide() end)
@@ -1195,6 +1202,7 @@ local function Create_Button(name, tab)
             local self= b:GetParent()
             self.isCahceStop= not self.isCahceStop and true or false
             self:cahceFunc()
+            self.cahceTime= not self.isCahceStop and GetTime() or nil
             b:settings()
             b:set_tooltip()
         end)
