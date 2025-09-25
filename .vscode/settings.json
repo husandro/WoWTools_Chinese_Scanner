@@ -41,6 +41,8 @@
         "AchievementFrame_LoadUI",
         "EncounterJournal_LoadUI",
         "EncounterJournal",
-        "LOCALE_zhCN"
+        "LOCALE_zhCN",
+        "Settings",
+        "RANGE_INDICATOR"
     ]
 }

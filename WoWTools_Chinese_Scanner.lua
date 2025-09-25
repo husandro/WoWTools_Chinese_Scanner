@@ -367,7 +367,7 @@ local function Get_Unit_Tab(unit)
             title= line.leftText
 
         elseif IsCN(line.leftText) and not line.leftText:find('等级 ') then
-            desc= (desc and desc..'|n' or '')..line.leftText
+            desc= (desc and desc..'●' or '')..line.leftText--ActionButton.lua 中文中的●跟英文不一样
         end
     end
     if title then
@@ -1078,7 +1078,7 @@ local function Create_Button(name, tab)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText((self.isStop and '运行' or '暂停').. ' '..self.name)
+        GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cff626262暂停').. '|r '..self.name)
         local clock= Save()[self.name..'Time']
         if clock then
             GameTooltip:AddLine('需要时间：'..clock)
@@ -1268,7 +1268,6 @@ local function Init()
         elseif UnitIsAFK('player') then
             C_MountJournal.SummonByID(0)
         end
-        
     end)
     Frame:SetMovable(true)
     Frame:RegisterForDrag("LeftButton", "RightButton")
@@ -1323,8 +1322,9 @@ local function Init()
 
 
     local clear= CreateFrame('Button', 'WoWToolsSCClearDataButton', Frame, 'UIPanelButtonTemplate')
-    clear:SetSize(180, 23)
-    clear:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
+    clear:SetSize(150, 23)
+    --clear:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
+    clear:SetPoint('BOTTOMLEFT', 12, 32)
     clear:SetText('清除所有数据')
     clear:SetScript('OnMouseDown', function()
         for _, name in pairs(Buttons) do
@@ -1339,7 +1339,8 @@ local function Init()
     end)
 
 
-    local reload= CreateFrame('Button', 'WoWToolsSCReloadButton', Frame, 'GameMenuButtonTemplate')
+    local reload= CreateFrame('Button', 'WoWToolsSCReloadButton', Frame, 'UIPanelButtonTemplate')
+    reload:SetSize(150, 23)
     reload:SetText('重新加载UI')
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 32)
