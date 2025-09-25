@@ -1069,7 +1069,6 @@ local function Create_Button(name, tab)
 
     btn.name= name
     btn.func= tab.func
-    
 
     btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
@@ -1254,7 +1253,7 @@ local function Init()
     Frame= CreateFrame('Frame', 'WoWTools_SC_Frame', UIParent)
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
-    Frame:SetSize(520, 450)
+    Frame:SetSize(520, 400)
     Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
     Frame:RegisterUnitEvent('PLAYER_FLAGS_CHANGED', 'player')
     Frame:SetScript('OnEvent', function(_,  event)
@@ -1269,6 +1268,7 @@ local function Init()
         elseif UnitIsAFK('player') then
             C_MountJournal.SummonByID(0)
         end
+        
     end)
     Frame:SetMovable(true)
     Frame:RegisterForDrag("LeftButton", "RightButton")
@@ -1405,7 +1405,6 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     Save().SpellCache=  Save().SpellCache or 1
     Save().AchievementCache=  Save().AchievementCache or 1
 
-    WoWTools_SC_Spell = WoWTools_SC_Spell or {}
     WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
