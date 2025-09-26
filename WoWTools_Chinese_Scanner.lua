@@ -542,7 +542,7 @@ local function S_Item(self, startIndex)
     for itemID = startIndex, startIndex + 100 do
         local title= Cahce_Item(itemID) and Save_Item(self, itemID)
         if title then
-            self.Name:SetText(title)
+            self.Name:SetText(title..' '..itemID)
         end
     end
 
@@ -781,7 +781,8 @@ local function S_Spell(self, startIndex)
         for spellID = startIndex, startIndex + 100 do
             local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
             if title then
-                self.Name:SetText(C_Spell.GetSpellLink(spellID) or title)
+                title= C_Spell.GetSpellLink(spellID) or title
+                self.Name:SetText(title..' '.. spellID)
             end
         end
     end
