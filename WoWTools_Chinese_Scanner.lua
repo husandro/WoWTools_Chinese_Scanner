@@ -7,8 +7,6 @@ local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxEncounterID= 25000
 local MaxSectionEncounterID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 
-
-
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer+2)*1000000-- 50w0000 229270
