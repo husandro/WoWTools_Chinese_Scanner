@@ -423,7 +423,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.1, function() S_Unit(self, startIndex + 250) end)
+    C_Timer.After(0.3, function() S_Unit(self, startIndex + 250) end)
 end
 --[[
 if (counter >= 3) then
@@ -469,13 +469,15 @@ local function S_CacheItem(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxItemID) then
         return
     end
-    for itemID = startIndex, startIndex + 250 do
+
+    for itemID = startIndex, startIndex + 100 do
         Cahce_Item(itemID)
         self.bar2:SetValue(itemID/MaxItemID*100)
         self.bar2:SetShown(true)
     end
+
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheItem(self, startIndex + 250) end)
+    C_Timer.After(0.5, function() S_CacheItem(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -536,17 +538,16 @@ local function S_Item(self, startIndex)
     if Is_StopRun(self, startIndex, MaxItemID) then
         return
     end
-    do
-        for itemID = startIndex, startIndex + 250 do
-            local title= Cahce_Item(itemID) and Save_Item(self, itemID)
-            if title then
-                self.Name:SetText(title)
-            end
+
+    for itemID = startIndex, startIndex + 100 do
+        local title= Cahce_Item(itemID) and Save_Item(self, itemID)
+        if title then
+            self.Name:SetText(title)
         end
     end
+
     Set_ValueText(self, startIndex, MaxItemID)
-    C_Timer.After(0.3, function() S_Item(self, startIndex + 250) end)
-    
+    C_Timer.After(0.5, function() S_Item(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Item_Event(self)
@@ -597,23 +598,17 @@ local function Cahce_Quest(questID)
         return true
     end
 end
-local function S_CacheQuest(self, startIndex, attempt, counter)
+local function S_CacheQuest(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxQuestID) then
         return
     end
-    do
-        for questID = startIndex, startIndex + 150 do
-            Cahce_Quest(questID)
-            self.bar2:SetValue(questID/MaxQuestID*100)
-            self.bar2:SetShown(true)
-        end
+    for questID = startIndex, startIndex + 100 do
+        Cahce_Quest(questID)
+        self.bar2:SetValue(questID/MaxQuestID*100)
+        self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    if (counter >= 5) then
-        S_CacheQuest(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_CacheQuest(self, startIndex, attempt + 1, counter + 1)
-    end
+    C_Timer.After(0.3, function() S_CacheQuest(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Objectives(questID)
@@ -673,7 +668,7 @@ local function Save_Quest(self, questID)
     end
 end
 
-local function S_Quest(self, startIndex, attempt, counter)
+local function S_Quest(self, startIndex)
     if Is_StopRun(self, startIndex, MaxQuestID) then
         return
     end
@@ -685,11 +680,7 @@ local function S_Quest(self, startIndex, attempt, counter)
         end
     end
     Set_ValueText(self, startIndex, MaxQuestID)
-    if (counter >= 5) then
-        S_Quest(self, startIndex + 100, attempt + 1, 0)
-    else
-        S_Quest(self, startIndex, attempt + 1, counter + 1)
-    end
+    C_Timer.After(0.3, function() S_Quest(self, startIndex + 100 + 1) end)
 end
 
 
@@ -735,24 +726,17 @@ local function Cahce_Spell(spellID)
     end
 end
 
-local function S_CacheSpell(self, startIndex, attempt, counter)
+local function S_CacheSpell(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxSpellID) then
         return
     end
-    do
-        for spellID = startIndex, startIndex + 150 do
-            Cahce_Spell(spellID)
-            self.bar2:SetValue(spellID/MaxSpellID*100)
-            self.bar2:SetShown(true)
-        end
+    for spellID = startIndex, startIndex + 100 do
+        Cahce_Spell(spellID)
+        self.bar2:SetValue(spellID/MaxSpellID*100)
+        self.bar2:SetShown(true)
     end
-
     Save()[self.name..'Cache']= startIndex
-    if (counter >= 5) then
-        S_CacheSpell(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_CacheSpell(self, startIndex, attempt + 1, counter + 1)
-    end
+    C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -789,27 +773,23 @@ local function Save_Spell(self, spellID)
 end
 
 
-local function S_Spell(self, startIndex, attempt, counter)
+local function S_Spell(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSpellID) then
         return
     end
     do
-        for spellID = startIndex, startIndex + 150 do
+        for spellID = startIndex, startIndex + 100 do
             local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
             if title then
                 self.Name:SetText(C_Spell.GetSpellLink(spellID) or title)
             end
         end
     end
-    startIndex= startIndex==MaxSpellBaseID and 1200000
-
-    Set_ValueText(self, startIndex, MaxSpellID)
-
-    if (counter >= 5) then
-        S_Spell(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_Spell(self, startIndex, attempt + 1, counter + 1)
+    if startIndex==MaxSpellBaseID then
+        startIndex = 1200000
     end
+    Set_ValueText(self, startIndex, MaxSpellID)
+    C_Timer.After(0.1, function() S_Spell(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Spell_Event(self)
@@ -851,19 +831,13 @@ local function S_CacheAchievement(self, startIndex, attempt, counter)
     if Is_StopCahceRun(self, startIndex, MaxAchievementID) then
         return
     end
-    do
-        for AchievementID = startIndex, startIndex + 150 do
-            Cahce_Achievement(AchievementID)
-            self.bar2:SetValue(AchievementID/MaxAchievementID*100)
-            self.bar2:SetShown(true)
-        end
+    for AchievementID = startIndex, startIndex + 100 do
+        Cahce_Achievement(AchievementID)
+        self.bar2:SetValue(AchievementID/MaxAchievementID*100)
+        self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    if (counter >= 5) then
-        S_CacheAchievement(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_CacheAchievement(self, startIndex, attempt + 1, counter + 1)
-    end
+    C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Achievement_Tab(achievementID)
@@ -916,25 +890,22 @@ local function Save_Achievement(self, achievementID)
 end
 
 
-local function S_Achievement(self, startIndex, attempt, counter)
+local function S_Achievement(self, startIndex)
     if Is_StopRun(self, startIndex, MaxAchievementID) then
         return
     end
-    do
-        for achievementID = startIndex, startIndex + 150 do
-            Cahce_Achievement(achievementID)
-            local title= Save_Achievement(self, achievementID)
-            if title then
-                self.Name:SetText(select(2, GetAchievementInfo(achievementID)) or title)
-            end
+
+    for achievementID = startIndex, startIndex + 150 do
+        Cahce_Achievement(achievementID)
+        local title= Save_Achievement(self, achievementID)
+        if title then
+            self.Name:SetText(select(2, GetAchievementInfo(achievementID)) or title)
         end
     end
+
     Set_ValueText(self, startIndex, MaxAchievementID)
-    if (counter >= 5) then
-        S_Achievement(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_Achievement(self, startIndex, attempt + 1, counter + 1)
-    end
+
+    C_Timer.After(0.1, function()  S_Achievement(self, startIndex + 100 + 1) end)
 end
 
 
