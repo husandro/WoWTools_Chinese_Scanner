@@ -5,11 +5,17 @@ local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxEncounterID= 25000
-local MaxSectionEncounterID= 50000
+local MaxSectionEncounterID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 
-local MaxUnitID= (GameVer-8)*100000--300000 11.25 最高 254359 https://wago.tools/db2/Creature
-local MaxItemID= (GameVer-8)*100000--3000000 11.2.5 最高 258483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer-6)*100000-- 500000
+
+
+local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
+local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxSpellID=(GameVer+2)*1000000-- 50w0000 229270
+
+--local MaxSpecSpellID= 1200000
+local MaxSpellBaseID= (GameVer+2)*100000
+
 
 local Frame
 local Buttons={}
@@ -84,6 +90,12 @@ local DifficultyTab={
 2, --英雄
 1, --普通
 }
+
+
+
+
+
+
 
 local ReceString={
     [ERR_TRAVEL_PASS_NO_INFO] = 1,--正在获取信息……
@@ -208,7 +220,7 @@ local function Save_Encounter(self, journalEncounterID)
     end
 end
 
-local function S_Encounter(self, startIndex, attempt, counter)
+local function S_Encounter(self, startIndex)
     if Is_StopRun(self, startIndex, MaxEncounterID) then
         return
     end
@@ -222,11 +234,7 @@ local function S_Encounter(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
-    if (counter >= 2) then
-        C_Timer.After(1, function() S_Encounter(self, startIndex + 100, attempt + 1, 0) end)
-    else
-        C_Timer.After(1, function() S_Encounter(self, startIndex, attempt + 1, counter + 1) end)
-    end
+    S_Encounter(self, startIndex + 100 + 1)
 end
 
 
@@ -291,9 +299,9 @@ local function S_SectionEncounter(self, startIndex, attempt, counter)
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
     if (counter >= 2) then
-        C_Timer.After(1, function() S_SectionEncounter(self, startIndex + 100, attempt + 1, 0) end)
+        S_SectionEncounter(self, startIndex + 100, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_SectionEncounter(self, startIndex, attempt + 1, counter + 1) end)
+        S_SectionEncounter(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -416,9 +424,9 @@ local function S_Unit(self, startIndex, attempt, counter)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
     if (counter >= 3) then
-        C_Timer.After(1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
+        S_Unit(self, startIndex + 250, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_Unit(self, startIndex, attempt + 1, counter + 1) end)
+        S_Unit(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -468,9 +476,9 @@ local function S_CacheItem(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(1, function() S_CacheItem(self, startIndex + 150, attempt + 1, 0) end)
+        S_CacheItem(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_CacheItem(self, startIndex, attempt + 1, counter + 1) end)
+        S_CacheItem(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -562,9 +570,9 @@ local function S_Item(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxItemID)
     if (counter >= 5) then
-        C_Timer.After(1, function() S_Item(self, startIndex + 150, attempt + 1, 0) end)
+        S_Item(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_Item(self, startIndex, attempt + 1, counter + 1) end)
+        S_Item(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -629,9 +637,9 @@ local function S_CacheQuest(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(1, function() S_CacheQuest(self, startIndex + 150, attempt + 1, 0) end)
+        S_CacheQuest(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_CacheQuest(self, startIndex, attempt + 1, counter + 1) end)
+        S_CacheQuest(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -705,9 +713,9 @@ local function S_Quest(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxQuestID)
     if (counter >= 5) then
-        C_Timer.After(1, function() S_Quest(self, startIndex + 100, attempt + 1, 0) end)
+        S_Quest(self, startIndex + 100, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_Quest(self, startIndex, attempt + 1, counter + 1) end)
+        S_Quest(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -765,11 +773,12 @@ local function S_CacheSpell(self, startIndex, attempt, counter)
             self.bar2:SetShown(true)
         end
     end
+
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(1, function() S_CacheSpell(self, startIndex + 150, attempt + 1, 0) end)
+        S_CacheSpell(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_CacheSpell(self, startIndex, attempt + 1, counter + 1) end)
+        S_CacheSpell(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -791,25 +800,7 @@ local function Get_Spell_Tab(spellID)
     end
 end
 
---法术 [字符spellID]={T=, D=}
---[[local function Save_Spell(self, spellID)
-    local va= math.modf(spellID/100000)
-    va= math.min(4, va)
 
-    local id= tostring(spellID)
-
-    if _G['WoWTools_SC_Spell'..va][id] then
-        self.num= self.num+1
-        return true
-    else
-        local tab = Get_Spell_Tab(spellID)
-        if tab then
-            _G['WoWTools_SC_Spell'..va][id] = tab
-            self.num= self.num+1
-            return true
-        end
-    end
-end]]
 local function Save_Spell(self, spellID)
     if WoWTools_SC_Spell[spellID] then
         self.num= self.num+1
@@ -837,11 +828,14 @@ local function S_Spell(self, startIndex, attempt, counter)
             end
         end
     end
+    startIndex= startIndex==MaxSpellBaseID and 1200000
+
     Set_ValueText(self, startIndex, MaxSpellID)
+
     if (counter >= 5) then
-        C_Timer.After(1, function() S_Spell(self, startIndex + 150, attempt + 1, 0) end)
+        S_Spell(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_Spell(self, startIndex, attempt + 1, counter + 1) end)
+         S_Spell(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -893,9 +887,9 @@ local function S_CacheAchievement(self, startIndex, attempt, counter)
     end
     Save()[self.name..'Cache']= startIndex
     if (counter >= 5) then
-        C_Timer.After(1, function() S_CacheAchievement(self, startIndex + 150, attempt + 1, 0) end)
+        S_CacheAchievement(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_CacheAchievement(self, startIndex, attempt + 1, counter + 1) end)
+        S_CacheAchievement(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -979,9 +973,9 @@ local function S_Achievement(self, startIndex, attempt, counter)
     end
     Set_ValueText(self, startIndex, MaxAchievementID)
     if (counter >= 5) then
-        C_Timer.After(1, function() S_Achievement(self, startIndex + 150, attempt + 1, 0) end)
+        S_Achievement(self, startIndex + 150, attempt + 1, 0)
     else
-        C_Timer.After(1, function() S_Achievement(self, startIndex, attempt + 1, counter + 1) end)
+        S_Achievement(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -1086,7 +1080,6 @@ local function Create_Button(name, tab)
         if clock then
             GameTooltip:AddLine('上次运行：'..clock)
         end
-        GameTooltip:AddLine(' ')
         GameTooltip:AddLine('运行前，请关闭所有插件')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
@@ -1096,7 +1089,7 @@ local function Create_Button(name, tab)
     btn:SetScript('OnMouseDown', function(self)
         self:settings()
         if not self.isStop then
-            self.func(self, Save()[self.name] or 1, 0, 0)
+            self.func(self, Save()[self.name] or 1)
         end
     end)
 
@@ -1230,7 +1223,7 @@ local function Create_Button(name, tab)
     btn:settings()
 
     if name=='Quest' then
-            Set_Quest_Event(btn)
+        Set_Quest_Event(btn)
     elseif name=='Item' then
         Set_Item_Event(btn)
     elseif name=='Spell' then
@@ -1345,6 +1338,7 @@ local function Init()
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 32)
 
+do
     for name, tab in pairs({
         ['Encounter']= {func=S_Encounter},
         ['SectionEncounter']= {func=S_SectionEncounter},
@@ -1358,12 +1352,12 @@ local function Init()
         
         table.insert(Buttons, name)
     end
-
+end
 
     if not InCombatLockdown() then
-        if not CollectionsJournal then
+        --[[if not CollectionsJournal then
             CollectionsJournal_LoadUI()
-        end
+        end]]
 
         if not PlayerSpellsFrame then
             PlayerSpellsFrame_LoadUI();
