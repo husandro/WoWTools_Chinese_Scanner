@@ -1,28 +1,3 @@
-local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
-local Ver= GetBuildInfo()
-local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
-
-local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
-local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
-local MaxEncounterID= 25000
-local MaxSectionEncounterID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
-
-local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
-local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer+2)*1000000-- 50w0000 229270
-
---local MaxSpecSpellID= 1200000
-local MaxSpellBaseID= (GameVer+2)*100000
-
-
-local Frame
-local Buttons={}
-
-local function Save()
-    return WoWTools_SC
-end
-
-
 
 --[[
 
@@ -88,6 +63,34 @@ local DifficultyTab={
 2, --英雄
 1, --普通
 }
+
+
+
+local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
+local Ver= GetBuildInfo()
+local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
+
+local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
+local MaxEncounterID= 25000
+local MaxSectionEncounterID= #DifficultyTab
+local MaxSectionEncounterMaxID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
+local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxSpellID=(GameVer+2)*1000000-- 50w0000 229270
+
+
+--local MaxSpecSpellID= 1200000
+local MaxSpellBaseID= (GameVer+2)*100000
+
+
+local Frame
+local Buttons={}
+
+local function Save()
+    return WoWTools_SC
+end
+
 
 
 
@@ -222,17 +225,19 @@ local function S_Encounter(self, startIndex)
     if Is_StopRun(self, startIndex, MaxEncounterID) then
         return
     end
-    do
-        for journalEncounterID = startIndex, startIndex + 100 do
-            local link= Save_Encounter(self, journalEncounterID)
-            if link then
-                self.Name:SetText(link)
-            end
+
+    
+    for journalEncounterID = startIndex, startIndex + 250 do
+        local link= Save_Encounter(self, journalEncounterID)
+        if link then
+            self.Name:SetText(link)
         end
     end
+
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
-    S_Encounter(self, startIndex + 100 + 1)
+
+    C_Timer.After(1, function() S_Encounter(self, startIndex + 250 + 1) end)
 end
 
 
@@ -263,45 +268,62 @@ end
 local function Save_SectionEncounter(self, sectionID, difficultyID)
     local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
     if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
-        local desc
-        if IsCN(sectionInfo.description) then
-            desc= sectionInfo.description
+        if not WoWTools_SC_SectionEncounter[sectionID] then
+            WoWTools_SC_SectionEncounter[sectionID]= {
+                ['T']= sectionInfo.title,
+                ['S']={}
+            }
         end
-        WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID] = {
-            ['T']= sectionInfo.title,
-            ['D']= desc
-        }
+        if IsCN(sectionInfo.description) then
+            WoWTools_SC_SectionEncounter[sectionID].S[difficultyID]= sectionInfo.description
+        end
         self.num= self.num+1
         return sectionInfo.link or sectionInfo.title
     end
 end
 
-local function S_SectionEncounter(self, startIndex, attempt, counter)
+local function S_SectionEncounter(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
         return
     end
+
+    local difficultyID= DifficultyTab[startIndex]
+
     do
+       EJ_SetDifficulty(difficultyID)
+    end
+    do
+        for sectionID=1, MaxSectionEncounterMaxID do
+            local link= Save_SectionEncounter(self, sectionID, difficultyID)
+            if link then
+                self.Name:SetText(link)
+            end
+        end
+    end
+
+    Set_ValueText(self, startIndex, MaxSectionEncounterID)
+    Save()[self.name] = startIndex
+    C_Timer.After(2, function() S_SectionEncounter(self, startIndex + 1) end)
+end
+    --[[do
         for _, difficultyID in pairs(DifficultyTab) do
-            --if GetDifficultyInfo(index) then
             do
                 EJ_SetDifficulty(difficultyID)
             end
-            for sectionID = startIndex, startIndex + 100 do
-                local link= Save_SectionEncounter(self, sectionID, difficultyID)
-                if link then
-                    self.Name:SetText(link)
+            do
+                for sectionID = startIndex, startIndex + 250 do
+                    local link= Save_SectionEncounter(self, sectionID, difficultyID)
+                    if link then
+                        self.Name:SetText(link)
+                    end
                 end
             end
         end
     end
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
-    if (counter >= 2) then
-        S_SectionEncounter(self, startIndex + 100, attempt + 1, 0)
-    else
-        S_SectionEncounter(self, startIndex, attempt + 1, counter + 1)
-    end
-end
+    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 1) end)
+end]]
 
 
 
@@ -372,27 +394,6 @@ local function Get_Unit_Tab(unit)
     end
 end
 
---Unit 单位 [字符unitID]={T=, D=}
---C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-2748-0000000000')
---[[local function Save_Unit(self, unit)--字符
-    local va= math.modf(unit/100000)
-    va= math.min(2, va)
-
-    local id= tostring(unit)
-    if _G['WoWTools_SC_Unit'..va][id] then
-        self.num= self.num+1
-        return _G['WoWTools_SC_Unit'..va][id].T
-
-    else
-        local tab = Get_Unit_Tab(unit)
-        if tab then
-            _G['WoWTools_SC_Unit'..va][id] = tab
-            self.num= self.num+1
-            return tab.T
-
-        end
-    end
-end]]
 local function Save_Unit(self, unit)--字符
     if WoWTools_SC_Unit[unit] then
         self.num= self.num+1
@@ -407,27 +408,30 @@ local function Save_Unit(self, unit)--字符
         end
     end
 end
-local function S_Unit(self, startIndex, attempt, counter)
+local function S_Unit(self, startIndex)
     if Is_StopRun(self, startIndex, MaxUnitID) then
         return
     end
-    do
-        for unit = startIndex, startIndex + 250 do
-            local title= Save_Unit(self, unit)
-            if title then
-                self.Name:SetText(title)
-            end
+
+    for unit = startIndex, startIndex + 250 do
+        local title= Save_Unit(self, unit)
+        if title then
+            self.Name:SetText(title)
         end
     end
+
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
-    if (counter >= 3) then
-        S_Unit(self, startIndex + 250, attempt + 1, 0)
-    else
-        S_Unit(self, startIndex, attempt + 1, counter + 1)
-    end
-end
 
+    C_Timer.After(0.1, function() S_Unit(self, startIndex + 250) end)
+end
+--[[
+if (counter >= 3) then
+        C_Timer.After(0.1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Unit(self, startIndex, attempt + 1, counter + 1) end)
+    end
+]]
 
 
 
@@ -461,23 +465,17 @@ local function Cahce_Item(itemID)
     end
 end
 
-local function S_CacheItem(self, startIndex, attempt, counter)
+local function S_CacheItem(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxItemID) then
         return
     end
-    do
-        for itemID = startIndex, startIndex + 150 do
-            Cahce_Item(itemID)
-            self.bar2:SetValue(itemID/MaxItemID*100)
-            self.bar2:SetShown(true)
-        end
+    for itemID = startIndex, startIndex + 250 do
+        Cahce_Item(itemID)
+        self.bar2:SetValue(itemID/MaxItemID*100)
+        self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    if (counter >= 5) then
-        S_CacheItem(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_CacheItem(self, startIndex, attempt + 1, counter + 1)
-    end
+    C_Timer.After(0.3, function() S_CacheItem(self, startIndex + 250) end)
 end
 
 --[[
@@ -520,26 +518,6 @@ local function Get_Item_Tab(itemID)
     }
 end
 
---Item 物品[字符itemID]={T=, D=}
---[[local function Save_Item(self, itemID)--字符
-
-    local va= math.modf(itemID/100000)
-    va= math.min(2, va)
-
-    local id= tostring(itemID)
-    if _G['WoWTools_SC_Item'..va][id] then
-        self.num= self.num+1
-        return true
-    else
-        local tab = Get_Item_Tab(itemID)
-        if tab then
-            _G['WoWTools_SC_Item'..va][id] = tab
-            self.num= self.num+1
-            return true
-        end
-    end
-end
-]]
 local function Save_Item(self, itemID)--字符
     if WoWTools_SC_Item[itemID] then
         self.num= self.num+1
@@ -554,12 +532,12 @@ local function Save_Item(self, itemID)--字符
     end
 end
 
-local function S_Item(self, startIndex, attempt, counter)
+local function S_Item(self, startIndex)
     if Is_StopRun(self, startIndex, MaxItemID) then
         return
     end
     do
-        for itemID = startIndex, startIndex + 150 do
+        for itemID = startIndex, startIndex + 250 do
             local title= Cahce_Item(itemID) and Save_Item(self, itemID)
             if title then
                 self.Name:SetText(title)
@@ -567,11 +545,8 @@ local function S_Item(self, startIndex, attempt, counter)
         end
     end
     Set_ValueText(self, startIndex, MaxItemID)
-    if (counter >= 5) then
-        S_Item(self, startIndex + 150, attempt + 1, 0)
-    else
-        S_Item(self, startIndex, attempt + 1, counter + 1)
-    end
+    C_Timer.After(0.3, function() S_Item(self, startIndex + 250) end)
+    
 end
 
 local function Set_Item_Event(self)
@@ -833,7 +808,7 @@ local function S_Spell(self, startIndex, attempt, counter)
     if (counter >= 5) then
         S_Spell(self, startIndex + 150, attempt + 1, 0)
     else
-         S_Spell(self, startIndex, attempt + 1, counter + 1)
+        S_Spell(self, startIndex, attempt + 1, counter + 1)
     end
 end
 
@@ -925,22 +900,7 @@ local function Get_Achievement_Tab(achievementID)
     end
 end
 
---[[
-local function Save_Achievement(self, achievementID)
-    local id= tostring(achievementID)
 
-    if WoWTools_SC_Achievement[id] then
-        self.num= self.num+1
-        return true
-    else
-        local tab = Get_Achievement_Tab(achievementID)
-        if tab then
-            WoWTools_SC_Achievement[id] = tab
-            self.num= self.num+1
-            return true
-        end
-    end
-end]]
 local function Save_Achievement(self, achievementID)
     if WoWTools_SC_Achievement[achievementID] then
         self.num= self.num+1
@@ -1299,7 +1259,7 @@ local function Init()
     Frame.CloseButton:SetPoint('TOPRIGHT')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
     Frame.Header:Setup(addName)
-    
+
     local note= Frame:CreateFontString(nil, "OVERLAY")
     note:SetFontObject('GameFontNormal')
     note:SetPoint('BOTTOM', 0, 12)
@@ -1347,7 +1307,7 @@ do
         ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement},
     }) do
         Create_Button(name, tab)
-        
+
         table.insert(Buttons, name)
     end
 end
@@ -1393,11 +1353,6 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
     WoWTools_SC= WoWTools_SC or {}
 
-    Save().QuestCache=  Save().QuestCache or 1
-    Save().ItemCache=  Save().ItemCache or 1
-    Save().SpellCache=  Save().SpellCache or 1
-    Save().AchievementCache=  Save().AchievementCache or 1
-
     WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
@@ -1406,7 +1361,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_Item= WoWTools_SC_Item or {}
     WoWTools_SC_Spell= WoWTools_SC_Spell or {}
     WoWTools_SC_Unit= WoWTools_SC_Unit or {}
-    
+
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
