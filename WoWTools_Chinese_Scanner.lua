@@ -828,7 +828,7 @@ local function Cahce_Achievement(achievementID)
     GetAchievementInfo(achievementID)
 end
 
-local function S_CacheAchievement(self, startIndex, attempt, counter)
+local function S_CacheAchievement(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxAchievementID) then
         return
     end
@@ -1130,7 +1130,7 @@ local function Create_Button(name, tab)
         btn.cahce:SetScript('OnMouseDown', function(b)
             local self= b:GetParent()
             self.isCahceStop= not self.isCahceStop and true or false
-            b.func(self, Save()[self.name..'Cache'], 0, 0)
+            b.func(self, Save()[self.name..'Cache'] or 1)
             self.cahceTime= not self.isCahceStop and GetTime() or nil
             b:settings()
             b:set_tooltip()
