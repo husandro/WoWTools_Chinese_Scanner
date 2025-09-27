@@ -135,6 +135,15 @@ local function Is_StopRun(self, startIndex, maxID)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
         Save()[self.name..'Time']= clock
+
+        Save()[self.name..'Data']= Save()[self.name..'Data'] or {}
+        if #Save()[self.name..'Data']>5 then
+           table.remove(Save()[self.name..'Data'], 1)
+        end
+
+        local t= date('%D')..' '.. date('%T')..', '..Ver..', '.. self.num
+        table.insert(Save()[self.name..'Data'], 1, t)
+
         self:settings()
         self.num= 0
         return true
@@ -225,18 +234,15 @@ local function S_Encounter(self, startIndex)
     if Is_StopRun(self, startIndex, MaxEncounterID) then
         return
     end
-
-    for journalEncounterID = startIndex, startIndex + 250 do
+    for journalEncounterID = startIndex, startIndex + 100 do
         local link= Save_Encounter(self, journalEncounterID)
         if link then
             self.Name:SetText(link)
         end
     end
-
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
-
-    C_Timer.After(1, function() S_Encounter(self, startIndex + 250 + 1) end)
+    C_Timer.After(0.3, function() S_Encounter(self, startIndex + 100 + 1) end)
 end
 
 
@@ -303,28 +309,8 @@ local function S_SectionEncounter(self, startIndex)
 
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
-    C_Timer.After(2, function() S_SectionEncounter(self, startIndex + 1) end)
+    C_Timer.After(1, function() S_SectionEncounter(self, startIndex + 1) end)
 end
-    --[[do
-        for _, difficultyID in pairs(DifficultyTab) do
-            do
-                EJ_SetDifficulty(difficultyID)
-            end
-            do
-                for sectionID = startIndex, startIndex + 250 do
-                    local link= Save_SectionEncounter(self, sectionID, difficultyID)
-                    if link then
-                        self.Name:SetText(link)
-                    end
-                end
-            end
-        end
-    end
-    Set_ValueText(self, startIndex, MaxSectionEncounterID)
-    Save()[self.name] = startIndex
-    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 1) end)
-end]]
-
 
 
 
@@ -413,7 +399,7 @@ local function S_Unit(self, startIndex)
         return
     end
 
-    for unit = startIndex, startIndex + 250 do
+    for unit = startIndex, startIndex + 100 do
         local title= Save_Unit(self, unit)
         if title then
             self.Name:SetText(title)
@@ -423,16 +409,8 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.1, function() S_Unit(self, startIndex + 250) end)
+    C_Timer.After(0.3, function() S_Unit(self, startIndex + 100 + 1) end)
 end
---[[
-if (counter >= 3) then
-        C_Timer.After(0.1, function() S_Unit(self, startIndex + 250, attempt + 1, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Unit(self, startIndex, attempt + 1, counter + 1) end)
-    end
-]]
-
 
 
 
@@ -477,7 +455,7 @@ local function S_CacheItem(self, startIndex)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_CacheItem(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -547,7 +525,7 @@ local function S_Item(self, startIndex)
     end
 
     Set_ValueText(self, startIndex, MaxItemID)
-    C_Timer.After(0.1, function() S_Item(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_Item(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Item_Event(self)
@@ -602,13 +580,15 @@ local function S_CacheQuest(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxQuestID) then
         return
     end
+
     for questID = startIndex, startIndex + 100 do
         Cahce_Quest(questID)
         self.bar2:SetValue(questID/MaxQuestID*100)
         self.bar2:SetShown(true)
     end
+
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_CacheQuest(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Objectives(questID)
@@ -672,13 +652,13 @@ local function S_Quest(self, startIndex)
     if Is_StopRun(self, startIndex, MaxQuestID) then
         return
     end
-    do
-        for questID = startIndex, startIndex + 100 do
-            if Cahce_Quest(questID) and Save_Quest(self, questID) then
-                self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
-            end
+
+    for questID = startIndex, startIndex + 100 do
+        if Cahce_Quest(questID) and Save_Quest(self, questID) then
+            self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
         end
     end
+
     Set_ValueText(self, startIndex, MaxQuestID)
     C_Timer.After(0.3, function() S_Quest(self, startIndex + 100 + 1) end)
 end
@@ -730,13 +710,15 @@ local function S_CacheSpell(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxSpellID) then
         return
     end
+
     for spellID = startIndex, startIndex + 100 do
         Cahce_Spell(spellID)
         self.bar2:SetValue(spellID/MaxSpellID*100)
         self.bar2:SetShown(true)
     end
+
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_CacheSpell(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -777,20 +759,20 @@ local function S_Spell(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSpellID) then
         return
     end
-    do
-        for spellID = startIndex, startIndex + 100 do
-            local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
-            if title then
-                title= C_Spell.GetSpellLink(spellID) or title
-                self.Name:SetText(title..' '.. spellID)
-            end
+
+    for spellID = startIndex, startIndex + 100 do
+        local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
+        if title then
+            title= C_Spell.GetSpellLink(spellID) or title
+            self.Name:SetText(title..' '.. spellID)
         end
     end
+
     if startIndex==MaxSpellBaseID then
         startIndex = 1200000
     end
     Set_ValueText(self, startIndex, MaxSpellID)
-    C_Timer.After(0.1, function() S_Spell(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_Spell(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Spell_Event(self)
@@ -838,7 +820,7 @@ local function S_CacheAchievement(self, startIndex)
         self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_CacheAchievement(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Achievement_Tab(achievementID)
@@ -895,18 +877,15 @@ local function S_Achievement(self, startIndex)
     if Is_StopRun(self, startIndex, MaxAchievementID) then
         return
     end
-
-    for achievementID = startIndex, startIndex + 150 do
+    for achievementID = startIndex, startIndex + 100 do
         Cahce_Achievement(achievementID)
         local title= Save_Achievement(self, achievementID)
         if title then
             self.Name:SetText(select(2, GetAchievementInfo(achievementID)) or title)
         end
     end
-
     Set_ValueText(self, startIndex, MaxAchievementID)
-
-    C_Timer.After(0.1, function()  S_Achievement(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_Achievement(self, startIndex + 100 + 1) end)
 end
 
 
@@ -1006,13 +985,12 @@ local function Create_Button(name, tab)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cff626262暂停').. '|r '..self.name)
-        local clock= Save()[self.name..'Time']
-        if clock then
-            GameTooltip:AddLine('上次运行：'..clock)
-        end
         GameTooltip:AddLine('运行前，请关闭所有插件')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
+        end
+        for _, t in pairs (Save()[self.name..'Data'] or {}) do
+            GameTooltip:AddLine(t)
         end
         GameTooltip:Show()
     end)
