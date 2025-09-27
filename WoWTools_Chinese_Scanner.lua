@@ -115,18 +115,21 @@ local function IsCN(text)
 end
 local function MK(number)
     if number then
+        local b=3
         local t=''
-        if number>=1e6 then
-            number= (number/1e6)
+        if number>=1e7 then
+            number= (number/1e9)
             t='|cffff00ffm|r'
+            b=6
         elseif number>= 1e4 then
             number= (number/1e4)
             t='|cff00ff00w|r'
+            b=4
         elseif number>=1e3 then
             number= (number/1e3)
             t='|cffffffffk|r'
         end
-        local num= format('%0.3f', number)
+        local num= format('%0.'..b..'f', number)
         return num:gsub('%.', t)
     end
 end
@@ -160,7 +163,7 @@ local function Is_StopRun(self, startIndex, maxID)
 
         local t= date('%D')..' '.. date('%T')
             ..' 版本'..Ver..'|r'
-            ..' |cnGREEN_FONT_COLOR:'..MK(self.num)..'条|r'
+            ..' |cffffffff'..MK(self.num)..'条|r'
             ..' 运行'..clock
         table.insert(Save()[self.name..'Data'], 1, t)
 
@@ -680,7 +683,7 @@ local function S_Quest(self, startIndex)
     end
 
     Set_ValueText(self, startIndex, MaxQuestID)
-    C_Timer.After(0.3, function() S_Quest(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Quest(self, startIndex + 100 + 1) end)
 end
 
 
@@ -731,14 +734,14 @@ local function S_CacheSpell(self, startIndex)
         return
     end
 
-    for spellID = startIndex, startIndex + 500 do
+    for spellID = startIndex, startIndex + 100 do
         Cahce_Spell(spellID)
         self.bar2:SetValue(spellID/MaxSpellID*100)
         self.bar2:SetShown(true)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheSpell(self, startIndex + 500 + 1) end)
+    C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -1025,7 +1028,7 @@ local function Create_Button(name, tab)
     btn.bar:SetSize(Frame:GetWidth()-48-23*3, 18)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
     btn.bar:SetAlpha(0.8)
-    btn.bar:SetMinMaxValues(0, 100)    
+    btn.bar:SetMinMaxValues(0, 100)
     btn.bar:SetValue((Save()[name] or 0)/MaxSpellID*100)
     btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
     btn.bar.texture:SetAllPoints(btn.bar)
@@ -1145,7 +1148,7 @@ local function Create_Button(name, tab)
             self.num= Save()[self.name] or 0
             self.time= GetTime()
         end
-        
+
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
     btn:settings()
