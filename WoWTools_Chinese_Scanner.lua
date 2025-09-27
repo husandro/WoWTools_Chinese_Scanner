@@ -126,7 +126,7 @@ local function MK(number)
             number= (number/1e3)
             t='|cffffffffk|r'
         end
-        local num= format('%0.4f', number)
+        local num= format('%0.3f', number)
         return num:gsub('%.', t)
     end
 end
