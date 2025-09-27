@@ -113,11 +113,28 @@ local function IsCN(text)
         and not text:find('UNUSED')
         and not ReceString[text]
 end
+local function MK(number)
+    if number then
+        local t=''
+        if number>=1e6 then
+            number= (number/1e6)
+            t='|cffff00ffm|r'
+        elseif number>= 1e4 then
+            number= (number/1e4)
+            t='|cff00ff00w|r'
+        elseif number>=1e3 then
+            number= (number/1e3)
+            t='|cffffffffk|r'
+        end
+        local num= format('%0.4f', number)
+        return num:gsub('%.', t)
+    end
+end
 local function Is_StopRun(self, startIndex, maxID)
     if self.isStop then
         self.Value:SetFormattedText(
-            '|cffff8200暂停, %d条, %.1f%%',
-            startIndex,
+            '|cffff8200暂停, %s条, %.1f%%',
+            MK(startIndex),
             startIndex/maxID*100
         )
         self.Name:SetText(self.name)
@@ -127,8 +144,8 @@ local function Is_StopRun(self, startIndex, maxID)
         self.bar:SetValue(100)
         local clock= SecondsToClock(GetTime()-self.time)
         self.Value:SetFormattedText(
-            '|cffff00ff完成|r, %d条, %s',
-            self.num,
+            '|cffff00ff完成|r, %s条, %s',
+            MK(self.num),
             clock
         )
         self.Name:SetText(self.name)
@@ -138,10 +155,13 @@ local function Is_StopRun(self, startIndex, maxID)
 
         Save()[self.name..'Data']= Save()[self.name..'Data'] or {}
         if #Save()[self.name..'Data']>5 then
-           table.remove(Save()[self.name..'Data'], 1)
+           table.remove(Save()[self.name..'Data'], #Save()[self.name..'Data'])
         end
 
-        local t= date('%D')..' '.. date('%T')..' 版本'..Ver..'|r |cnGREEN_FONT_COLOR:'.. self.num..'条|r 运行'..clock
+        local t= date('%D')..' '.. date('%T')
+            ..' 版本'..Ver..'|r'
+            ..' |cnGREEN_FONT_COLOR:'..MK(self.num)..'条|r'
+            ..' 运行'..clock
         table.insert(Save()[self.name..'Data'], 1, t)
 
         self:settings()
@@ -153,9 +173,9 @@ local function Set_ValueText(self, startIndex, maxID)
     Save()[self.name] = startIndex
     local va= startIndex/maxID*100
     self.Value:SetFormattedText(
-        '%s, %d条, %.1f%%',
+        '%s, %s条, %.1f%%',
         SecondsToClock(GetTime()-self.time),
-        self.num,
+        MK(self.num),
         va
     )
     self.bar:SetValue(va)
@@ -929,7 +949,6 @@ local function clear_data(name)
         self:settings()
     else
         self.time=nil
-        self.Value:SetText('')
     end
 
     self.bar:SetValue(0)
@@ -1024,7 +1043,7 @@ local function Create_Button(name, tab)
     btn.Value= btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Value:SetFontObject("GameFontWhite")
     btn.Value:SetPoint('RIGHT', btn.bar)
-    btn.Value:SetFormattedText('%d', Save()[name] or 0)
+    btn.Value:SetText(MK(Save()[name]) or 0)
 
     btn.Name= btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Name:SetFontObject('GameFontWhite')
@@ -1126,6 +1145,7 @@ local function Create_Button(name, tab)
             self.num= Save()[self.name] or 0
             self.time= GetTime()
         end
+        
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
     btn:settings()
