@@ -711,14 +711,14 @@ local function S_CacheSpell(self, startIndex)
         return
     end
 
-    for spellID = startIndex, startIndex + 100 do
+    for spellID = startIndex, startIndex + 500 do
         Cahce_Spell(spellID)
         self.bar2:SetValue(spellID/MaxSpellID*100)
         self.bar2:SetShown(true)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheSpell(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.3, function() S_CacheSpell(self, startIndex + 500 + 1) end)
 end
 
 --[[
@@ -1006,8 +1006,8 @@ local function Create_Button(name, tab)
     btn.bar:SetSize(Frame:GetWidth()-48-23*3, 18)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
     btn.bar:SetAlpha(0.8)
-    btn.bar:SetMinMaxValues(0, 100)
-    btn.bar:SetValue(0)
+    btn.bar:SetMinMaxValues(0, 100)    
+    btn.bar:SetValue((Save()[name] or 0)/MaxSpellID*100)
     btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
     btn.bar.texture:SetAllPoints(btn.bar)
     btn.bar.texture:SetAtlas('UI-HUD-UnitFrame-Player-PortraitOff-Bar-TempHPLoss-2x')
