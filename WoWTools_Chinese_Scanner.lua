@@ -226,7 +226,6 @@ local function S_Encounter(self, startIndex)
         return
     end
 
-    
     for journalEncounterID = startIndex, startIndex + 250 do
         local link= Save_Encounter(self, journalEncounterID)
         if link then
@@ -292,6 +291,7 @@ local function S_SectionEncounter(self, startIndex)
     do
        EJ_SetDifficulty(difficultyID)
     end
+
     do
         for sectionID=1, MaxSectionEncounterMaxID do
             local link= Save_SectionEncounter(self, sectionID, difficultyID)
@@ -423,7 +423,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.3, function() S_Unit(self, startIndex + 250) end)
+    C_Timer.After(0.5, function() S_Unit(self, startIndex + 250) end)
 end
 --[[
 if (counter >= 3) then
