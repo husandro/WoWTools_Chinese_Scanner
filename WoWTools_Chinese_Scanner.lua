@@ -141,7 +141,7 @@ local function Is_StopRun(self, startIndex, maxID)
            table.remove(Save()[self.name..'Data'], 1)
         end
 
-        local t= date('%D')..' '.. date('%T')..', '..Ver..', '.. self.num
+        local t= date('%D')..' '.. date('%T')..' 版本'..Ver..'|r |cnGREEN_FONT_COLOR:'.. self.num..'条|r 运行'..clock
         table.insert(Save()[self.name..'Data'], 1, t)
 
         self:settings()
