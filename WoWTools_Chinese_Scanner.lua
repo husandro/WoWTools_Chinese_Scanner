@@ -423,7 +423,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.5, function() S_Unit(self, startIndex + 250) end)
+    C_Timer.After(0.1, function() S_Unit(self, startIndex + 250) end)
 end
 --[[
 if (counter >= 3) then
@@ -477,7 +477,7 @@ local function S_CacheItem(self, startIndex)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.5, function() S_CacheItem(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -547,7 +547,7 @@ local function S_Item(self, startIndex)
     end
 
     Set_ValueText(self, startIndex, MaxItemID)
-    C_Timer.After(0.5, function() S_Item(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Item(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Item_Event(self)
@@ -608,7 +608,7 @@ local function S_CacheQuest(self, startIndex)
         self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheQuest(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Objectives(questID)
