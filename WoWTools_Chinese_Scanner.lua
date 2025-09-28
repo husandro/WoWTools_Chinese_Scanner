@@ -1,4 +1,10 @@
---( ) . % + - * ? [ ^ $
+--[[
+( ) . % + - * ? [ ^ $
+C_TooltipInfo.GetHyperlink('spell:'.. spellID)
+C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
+C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
+C_TooltipInfo.GetHyperlink('quest:' .. questID)
+]]
 
 local SpecializationSpells= {
 1245325,--https://wago.tools/db2/SpecializationSpells
@@ -81,10 +87,11 @@ local MaxSectionEncounterID= #DifficultyTab
 local MaxSectionEncounterMaxID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer+6)*100000-- 50w0000 229270
+local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
 
-
-
+--startIndex = 1200000
+local MaxSpell2ID= (GameVer+2)*1000000--120w- 150w
+local MinSpell2ID= 1200000
 local Frame
 local Buttons={}
 
@@ -129,11 +136,22 @@ local function MK(number)
         elseif number>=1e3 then
             number= (number/1e3)
             t='|cffffffffk|r'
+        else
+            return number..''
         end
         local num= format('%0.'..b..'f', number)
         return num:gsub('%.', t)
     end
 end
+
+
+
+
+
+
+
+
+
 local function Is_StopRun(self, startIndex, maxID)
     if self.isStop then
         self.Value:SetFormattedText(
@@ -802,13 +820,110 @@ end
 local function Set_Spell_Event(self)
     self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
     self:SetScript('OnEvent', function(_, _, spellID, success)
-        if spellID and success then
+        if spellID and success and spellID<= MaxSpellID then
             Save_Spell(self, spellID)
         end
     end)
 end
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function Cahce_Spell2(spellID)
+    if not C_Spell.IsSpellDataCached(spellID) then
+        C_Spell.RequestLoadSpellData(spellID)
+    else
+        return true
+    end
+end
+
+local function S_CacheSpell2(self, startIndex)
+    if Is_StopCahceRun(self, startIndex, MaxSpell2ID) then
+        return
+    end
+
+    for spellID = startIndex, startIndex + 500 do
+        Cahce_Spell2(spellID)
+        self.bar2:SetValue(spellID/MaxSpell2ID*100)
+        self.bar2:SetShown(true)
+    end
+
+    Save()[self.name..'Cache']= startIndex
+    C_Timer.After(0.1, function() S_CacheSpell2(self, startIndex + 500 + 1) end)
+end
+
+local function Get_Spell2_Tab(spellID)
+    local title= C_Spell.GetSpellName(spellID)
+    if IsCN(title) then
+        local desc
+        local d= C_Spell.GetSpellDescription(spellID)
+        if IsCN(d) then
+            desc= d
+        end
+        return {
+            ['T']= title,
+            ['D']= desc,
+        }
+    end
+end
+
+
+
+local function Save_Spell2(self, spellID)
+    if WoWTools_SC_Spell2[spellID] then
+        self.num= self.num+1
+        return WoWTools_SC_Spell2[spellID].T
+    else
+        local tab = Get_Spell2_Tab(spellID)
+        if tab then
+            WoWTools_SC_Spell2[spellID] = tab
+            self.num= self.num+1
+            return tab.T
+        end
+    end
+end
+
+
+local function S_Spell2(self, startIndex)
+    if Is_StopRun(self, startIndex, MaxSpell2ID) then
+        return
+    end
+    for spellID = startIndex, startIndex + 500 do
+        local title= Cahce_Spell2(spellID) and Save_Spell2(self, spellID)
+        if title then
+            title= C_Spell.GetSpellLink(spellID) or title
+            self.Name:SetText(title..' '.. spellID)
+        end
+    end
+    Set_ValueText(self, startIndex, MaxSpell2ID)
+    C_Timer.After(0.1, function() S_Spell2(self, startIndex + 500 + 1) end)
+end
+
+local function Set_Spell2_Event(self)
+    self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
+    self:SetScript('OnEvent', function(_, _, spellID, success)
+        if spellID and success and spellID>=MinSpell2ID then
+            Save_Spell2(self, spellID)
+        end
+    end)
+end
 
 
 
@@ -1028,7 +1143,8 @@ local function Create_Button(name, tab)
     btn:SetScript('OnMouseDown', function(self)
         self:settings()
         if not self.isStop then
-            self.func(self, Save()[self.name] or 1)
+            local min= Save()[self.name] or (name=='Spell2' and MinSpell2ID or 1)
+            self.func(self, min)
         end
     end)
 
@@ -1038,7 +1154,7 @@ local function Create_Button(name, tab)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
     btn.bar:SetAlpha(0.8)
     btn.bar:SetMinMaxValues(0, 100)
-    btn.bar:SetValue((Save()[name] or 0)/MaxSpellID*100)
+    btn.bar:SetValue(0)
     btn.bar.texture= btn.bar:CreateTexture(nil, "BACKGROUND")
     btn.bar.texture:SetAllPoints(btn.bar)
     btn.bar.texture:SetAtlas('UI-HUD-UnitFrame-Player-PortraitOff-Bar-TempHPLoss-2x')
@@ -1166,10 +1282,15 @@ local function Create_Button(name, tab)
 
     if name=='Quest' then
         Set_Quest_Event(btn)
+
     elseif name=='Item' then
         Set_Item_Event(btn)
+
     elseif name=='Spell' then
         Set_Spell_Event(btn)
+
+    elseif name=='Spell2' then
+        Set_Spell2_Event(btn)
     end
 
     y= y- 23- 8
@@ -1198,7 +1319,7 @@ local function Init()
         if event=='PLAYER_REGEN_DISABLED' then
             for _, name in pairs(Buttons) do
                 local btn= _G['WoWToolsSC'..name..'Button']
-                if not btn.isStop then
+                if not btn.isStop and not btn.isCahceStop then
                     btn:settings()
                 end
             end
@@ -1206,7 +1327,8 @@ local function Init()
         elseif UnitIsAFK('player') then
             local isRun= false
             for _, name in pairs(Buttons) do
-                if not  _G['WoWToolsSC'..name..'Button'].isStop then
+                local btn= _G['WoWToolsSC'..name..'Button']
+                if not btn.isStop and not btn.isCahceStop then
                     isRun= true
                     break
                 end
@@ -1260,7 +1382,7 @@ local function Init()
         '当前游戏版本 '..Ver
         ..'|n因为数据太大，登入后会出现错误'
         ..(LOCALE_zhCN and '' or '|n|cnRED_FONT_COLOR:需求 简体中文')
-        ..'|n需要备份：'
+        ..'|n登出后，需要备份：'
         ..'|n|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua'
     )
 
@@ -1298,6 +1420,7 @@ do
         ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
         ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w2942 19:50'},
         ['Spell']= {func=S_Spell, cahce=S_CacheSpell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
+        ['Spell2']= {func=S_Spell2, cahce=S_CacheSpell2},
         ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},
     }) do
         Create_Button(name, tab)
@@ -1345,9 +1468,8 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
 
-
     WoWTools_SC= WoWTools_SC or {}
-print(WoWTools_SC_SectionEncounter)
+
     WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
@@ -1355,6 +1477,7 @@ print(WoWTools_SC_SectionEncounter)
 
     WoWTools_SC_Item= WoWTools_SC_Item or {}
     WoWTools_SC_Spell= WoWTools_SC_Spell or {}
+    WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
     WoWTools_SC_Unit= WoWTools_SC_Unit or {}
 
 
