@@ -7,14 +7,6 @@ C_TooltipInfo.GetHyperlink('quest:' .. questID)
 ]]
 
 
---https://wago.tools/db2/Difficulty?locale=zhCN
-local DifficultyTab={
-17, --随机
-16, --史诗
-15, --英雄
-14, --普通
-
-}
 
 
 
