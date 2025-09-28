@@ -1,16 +1,20 @@
+--( ) . % + - * ? [ ^ $
 
---[[
+local SpecializationSpells= {
+1245325,--https://wago.tools/db2/SpecializationSpells
+1244920,
+1238052,
+1231772,
+1229376,
+1222923,
+1219616,
+1217788,
+1214207,
 
-
-]]
-
---[[
-( ) . % + - * ? [ ^ $
-ID, --Name_lang
-https://wago.tools/db2/Difficulty?locale=zhCN
-]]
-
-
+1236392,--https://wago.tools/db2/SpellLearnSpell
+1227751,
+}
+--https://wago.tools/db2/Difficulty?locale=zhCN
 local DifficultyTab={
 236, --游学探奇
 232, --事件
@@ -77,11 +81,8 @@ local MaxSectionEncounterID= #DifficultyTab
 local MaxSectionEncounterMaxID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer+2)*100000-- 50w0000 229270
+local MaxSpellID=(GameVer+6)*100000-- 50w0000 229270
 
-
---local MaxSpecSpellID= 1200000
-local MaxSpellBaseID= (GameVer+2)*100000
 
 
 local Frame
@@ -146,6 +147,7 @@ local function Is_StopRun(self, startIndex, maxID)
     elseif (startIndex > maxID) then
         self.bar:SetValue(100)
         local clock= SecondsToClock(GetTime()-self.time)
+        clock= clock:gsub('：', ':')
         self.Value:SetFormattedText(
             '|cffff00ff完成|r, %s条, %s',
             MK(self.num),
@@ -175,9 +177,11 @@ end
 local function Set_ValueText(self, startIndex, maxID)
     Save()[self.name] = startIndex
     local va= startIndex/maxID*100
+    local clock= SecondsToClock(GetTime()-self.time)
+    clock= clock:gsub('：', ':')
     self.Value:SetFormattedText(
         '%s, %s条, %.1f%%',
-        SecondsToClock(GetTime()-self.time),
+        clock,
         MK(self.num),
         va
     )
@@ -196,7 +200,9 @@ local function Is_StopCahceRun(self, startIndex, maxID)
         self.bar2:SetValue(0)
         self.bar2:Hide()
         Save()[self.name..'Cache']= nil
-        Save()[self.name..'CacheTime']= SecondsToClock(GetTime()-self.cahceTime)
+        local clock= SecondsToClock(GetTime()-self.cahceTime)
+        clock= clock:gsub('：', ':')
+        Save()[self.name..'CacheTime']= clock
         self.isCahceStop= true
         self.cahce:settings()
         return true
@@ -1103,15 +1109,12 @@ local function Create_Button(name, tab)
             local p= self:GetParent()
             if not p then return end
             GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
----@diagnostic disable-next-line: undefined-field
             GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..self.name)
             local clock= Save()[self.name..'CacheTime']
             if clock then
                 GameTooltip:AddLine('上次运行：'..clock)
             end
----@diagnostic disable-next-line: undefined-field
             if p.cahceTime then
----@diagnostic disable-next-line: undefined-field
                 GameTooltip:AddLine('已运行：'..SecondsToClock(GetTime()-p.cahceTime))
             end
             GameTooltip:Show()
@@ -1254,9 +1257,10 @@ local function Init()
     note:SetFontObject('GameFontNormal')
     note:SetPoint('BOTTOM', 0, 12)
     note:SetText(
-        '当前游戏版本 '
-        ..Ver
+        '当前游戏版本 '..Ver
+        ..'|n因为数据太大，登入后会出现错误'
         ..(LOCALE_zhCN and '' or '|n|cnRED_FONT_COLOR:需求 简体中文')
+        ..'|n需要备份：'
         ..'|n|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua'
     )
 
@@ -1265,7 +1269,7 @@ local function Init()
     local clear= CreateFrame('Button', 'WoWToolsSCClearDataButton', Frame, 'UIPanelButtonTemplate')
     clear:SetSize(150, 23)
     --clear:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
-    clear:SetPoint('BOTTOMLEFT', 12, 32)
+    clear:SetPoint('BOTTOMLEFT', 12, 23)
     clear:SetText('|A:bags-button-autosort-up:0:0|a清除所有数据')
     clear:SetScript('OnMouseDown', function()
         for _, name in pairs(Buttons) do
@@ -1284,7 +1288,7 @@ local function Init()
     reload:SetSize(150, 23)
     reload:SetText('重新加载UI')
     reload:SetScript('OnClick', C_UI.Reload)
-    reload:SetPoint('BOTTOMRIGHT', -12, 32)
+    reload:SetPoint('BOTTOMRIGHT', -12, 23)
 
 do
     for name, tab in pairs({
@@ -1308,7 +1312,7 @@ end
         end]]
 
         if not PlayerSpellsFrame then
-            PlayerSpellsFrame_LoadUI();
+            PlayerSpellsFrame_LoadUI()
         end
 
         if not AchievementFrame then
@@ -1341,8 +1345,9 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
 
-    WoWTools_SC= WoWTools_SC or {}
 
+    WoWTools_SC= WoWTools_SC or {}
+print(WoWTools_SC_SectionEncounter)
     WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
     WoWTools_SC_Quest = WoWTools_SC_Quest or {}
     WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
