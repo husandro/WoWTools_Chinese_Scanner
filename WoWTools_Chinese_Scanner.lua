@@ -9,56 +9,11 @@ C_TooltipInfo.GetHyperlink('quest:' .. questID)
 
 --https://wago.tools/db2/Difficulty?locale=zhCN
 local DifficultyTab={
-236, --游学探奇
-232, --事件
-230, --英雄
-220, --剧情
-216, --任务
-208, --地下堡
-205, --追随者
-192, --挑战难度1
-172, --世界首领
-171, --晋升之路：谦逊
-170, --晋升之路：智慧
-169, --晋升之路：忠诚
-168, --晋升之路：勇气
-167, --托加斯特
-153, --繁盛海岛
-152, --恩佐斯的幻象
-151, --随机
-150, --普通调整（1-5）
-149, --英雄
-147, --普通
-45, --PvP
-40, --史诗
-39, --英雄
-38, --普通
-34, --PvP
-33, --时空漫游
-32, --世界PvP场景战役
-30, --事件
-29, --PvEvP场景战役
-25, --世界PvP场景战役
-24, --时空漫游
-23, --史诗
-20, --事件场景战役
-19, --事件
-18, --事件
 17, --随机
 16, --史诗
 15, --英雄
 14, --普通
-12, --场景战役（普通）
-11, --场景战役（英雄）
-9, --40人
-8, --史诗钥石
-7, --随机
-6, --25人（英雄）
-5, --10人（英雄）
-4, --25人
-3, --10人
-2, --英雄
-1, --普通
+
 }
 
 
@@ -70,8 +25,11 @@ local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
 local MaxEncounterID= 25000
-local MaxSectionEncounterID= #DifficultyTab
-local MaxSectionEncounterMaxID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+
+--local MaxSectionEncounterID= #DifficultyTab
+
+--local MaxSectionEncounterMaxID= 
+local MaxSectionEncounterID= (GameVer-9)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
@@ -305,35 +263,30 @@ end
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
 local function Save_SectionEncounter(self, sectionID, difficultyID)
-    local sectionInfo =  C_EncounterJournal.GetSectionInfo(sectionID)
+    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
     if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
-        if not WoWTools_SC_SectionEncounter[sectionID] then
-            WoWTools_SC_SectionEncounter[sectionID]= {
-                ['T']= sectionInfo.title,
-                ['S']={}
-            }
-        end
+        local desc
         if IsCN(sectionInfo.description) then
-            WoWTools_SC_SectionEncounter[sectionID].S[difficultyID]= sectionInfo.description
+            desc= sectionInfo.description
         end
-        self.num= self.num+1
+        WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID]= {
+            ['T']= sectionInfo.title,
+            ['D']=desc
+        }
+        self.num= self.num + 1
         return sectionInfo.link or sectionInfo.title
     end
 end
+
 
 local function S_SectionEncounter(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
         return
     end
 
-    local difficultyID= DifficultyTab[startIndex]
-
-    do
-       EJ_SetDifficulty(difficultyID)
-    end
-
-    do
-        for sectionID=1, MaxSectionEncounterMaxID do
+    for _, difficultyID in ipairs({16, 15, 14, 17}) do--17随机 16史诗 15英雄 14普通
+        EJ_SetDifficulty(difficultyID)
+        for sectionID = startIndex, startIndex + 100 do
             local link= Save_SectionEncounter(self, sectionID, difficultyID)
             if link then
                 self.Name:SetText(link)
@@ -343,7 +296,8 @@ local function S_SectionEncounter(self, startIndex)
 
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
-    C_Timer.After(1, function() S_SectionEncounter(self, startIndex + 1) end)
+
+    C_Timer.After(0.5, function() S_SectionEncounter(self, startIndex + 100+ 1) end)
 end
 
 
@@ -493,7 +447,7 @@ local function S_CacheItem(self, startIndex)
 end
 
 --[[
-C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
+C_TooltipInfo.GetHyperlink('item:237647:0:0:0:0:0:0:0')
 C_Item.IsItemDataCachedByID(207786)
 C_Item.RequestLoadItemDataByID(207786)
 ]]
@@ -1404,8 +1358,8 @@ local function Init()
 
 do
     for name, tab in pairs({
-        ['Encounter']= {func=S_Encounter, tooltip='1k103 01:46'},
-        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:56'},
+        ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
+        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='1w7638 01:40'},
         ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
         ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
         ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w2942 19:50'},
