@@ -6,20 +6,7 @@ C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
 C_TooltipInfo.GetHyperlink('quest:' .. questID)
 ]]
 
-local SpecializationSpells= {
-1245325,--https://wago.tools/db2/SpecializationSpells
-1244920,
-1238052,
-1231772,
-1229376,
-1222923,
-1219616,
-1217788,
-1214207,
 
-1236392,--https://wago.tools/db2/SpellLearnSpell
-1227751,
-}
 --https://wago.tools/db2/Difficulty?locale=zhCN
 local DifficultyTab={
 236, --游学探奇
@@ -89,7 +76,7 @@ local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.t
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
 
---startIndex = 1200000
+
 local MaxSpell2ID= (GameVer+2)*1000000--120w- 150w
 local MinSpell2ID= 1200000
 local Frame
@@ -1143,7 +1130,10 @@ local function Create_Button(name, tab)
     btn:SetScript('OnMouseDown', function(self)
         self:settings()
         if not self.isStop then
-            local min= Save()[self.name] or (name=='Spell2' and MinSpell2ID or 1)
+            if self.name=='Spell' then
+                C_Spell.RequestLoadSpellData(258483)
+            end
+            local min= Save()[self.name] or (self.name=='Spell2' and MinSpell2ID or 1)
             self.func(self, min)
         end
     end)
