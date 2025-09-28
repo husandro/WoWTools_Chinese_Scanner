@@ -997,7 +997,7 @@ local function Create_Button(name, tab)
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
-    btn:SetPoint('TOPRIGHT', -70, y)
+    btn:SetPoint('TOPRIGHT', -50, y)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
@@ -1020,7 +1020,7 @@ local function Create_Button(name, tab)
 
     btn.bar= CreateFrame('StatusBar', nil, btn)
     btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
-    btn.bar:SetSize(Frame:GetWidth()-48-23*3, 18)
+    btn.bar:SetSize(Frame:GetWidth()-55-23*3, 18)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
     btn.bar:SetAlpha(0.8)
     btn.bar:SetMinMaxValues(0, 100)
@@ -1064,7 +1064,7 @@ local function Create_Button(name, tab)
     btn.clear:SetNormalAtlas('bags-button-autosort-up')
     btn.clear:SetPushedAtlas('PetList-ButtonSelect')
     btn.clear:SetHighlightAtlas('PetList-ButtonHighlight')
-    btn.clear:SetPoint('LEFT', btn, 'RIGHT', 26, 0)
+    btn.clear:SetPoint('RIGHT', btn.bar, 'LEFT', -2, 0)
     btn.clear:SetSize(23,23)
     btn.clear:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn.clear:SetScript('OnEnter', function(self)
@@ -1113,7 +1113,6 @@ local function Create_Button(name, tab)
            self:set_tooltip()
         end)
         function btn.cahce:settings()
----@diagnostic disable-next-line: undefined-field
             if not self:GetParent().isCahceStop then
                 self:SetNormalAtlas('Perks-PreviewOn')
             else
@@ -1122,14 +1121,20 @@ local function Create_Button(name, tab)
         end
         btn.isCahceStop= true
         btn.cahce:settings()
-        btn.cahce:SetScript('OnMouseDown', function(b)
-            local self= b:GetParent()
-            self.isCahceStop= not self.isCahceStop and true or false
-            b.func(self, Save()[self.name..'Cache'] or 1)
-            self.cahceTime= not self.isCahceStop and GetTime() or nil
-            b:settings()
-            b:set_tooltip()
+        function btn.cahce:run()
+            local p= self:GetParent()
+            p.isCahceStop= not p.isCahceStop and true or false
+            self.func(p, Save()[self.name..'Cache'] or 1)
+            p.cahceTime= not p.isCahceStop and GetTime() or nil
+            self:settings()
+            self:set_tooltip()
+        end
+        btn.cahce:SetScript('OnMouseDown', function(self)
+            self:run()
         end)
+        if Save()[name..'Cache'] then
+            btn.cahce:run()
+        end
     end
 
     function btn:settings()
@@ -1188,7 +1193,16 @@ local function Init()
             end
 
         elseif UnitIsAFK('player') then
-            C_MountJournal.SummonByID(0)
+            local isRun= false
+            for _, name in pairs(Buttons) do
+                if not  _G['WoWToolsSC'..name..'Button'].isStop then
+                    isRun= true
+                    break
+                end
+            end
+            if isRun then
+                C_MountJournal.SummonByID(0)
+            end
         end
     end)
     Frame:SetMovable(true)
@@ -1271,8 +1285,8 @@ do
         ['Unit']= {func=S_Unit},
         ['Quest']= {func=S_Quest, cahce=S_CacheQuest},
         ['Item']= {func=S_Item, cahce=S_CacheItem},
-        ['Spell']= {func=S_Spell, cahce=S_CacheSpell},
-        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement},
+        ['Spell']= {func=S_Spell, cahce=S_CacheSpell, atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
+        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, atlas='UI-Achievement-Shield-NoPoints'},
     }) do
         Create_Button(name, tab)
 

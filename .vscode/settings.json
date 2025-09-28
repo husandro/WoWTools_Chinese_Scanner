@@ -44,5 +44,10 @@
         "LOCALE_zhCN",
         "Settings",
         "RANGE_INDICATOR"
+    ],
+    "Lua.diagnostics.disable": [
+        "inject-field",
+        "need-check-nil",
+        "undefined-field"
     ]
 }
