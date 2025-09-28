@@ -993,7 +993,11 @@ local function Create_Button(name, tab)
     btn.name= name
     btn.func= tab.func
 
-    btn:SetNormalAtlas('common-dropdown-icon-next')
+    if tab.texture then
+        btn:SetNormalTexture(tab.texture)
+    else
+        btn:SetNormalAtlas(tab.atlas or 'common-dropdown-icon-next')
+    end
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
@@ -1006,8 +1010,12 @@ local function Create_Button(name, tab)
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
         end
-        for _, t in pairs (Save()[self.name..'Data'] or {}) do
-            GameTooltip:AddLine(t)
+        if Save()[self.name..'Data']  then
+            for _, t in pairs (Save()[self.name..'Data']) do
+                GameTooltip:AddLine(t)
+            end
+        elseif tab.tooltip then
+            GameTooltip:AddLine(tab.tooltip)
         end
         GameTooltip:Show()
     end)
@@ -1280,13 +1288,13 @@ local function Init()
 
 do
     for name, tab in pairs({
-        ['Encounter']= {func=S_Encounter},
-        ['SectionEncounter']= {func=S_SectionEncounter},
-        ['Unit']= {func=S_Unit},
-        ['Quest']= {func=S_Quest, cahce=S_CacheQuest},
-        ['Item']= {func=S_Item, cahce=S_CacheItem},
-        ['Spell']= {func=S_Spell, cahce=S_CacheSpell, atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
-        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, atlas='UI-Achievement-Shield-NoPoints'},
+        ['Encounter']= {func=S_Encounter, tooltip='1k103 01:46'},
+        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:56'},
+        ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
+        ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
+        ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w2942 19:50'},
+        ['Spell']= {func=S_Spell, cahce=S_CacheSpell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
+        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},
     }) do
         Create_Button(name, tab)
 
