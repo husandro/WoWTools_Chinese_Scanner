@@ -276,7 +276,7 @@ local function S_Encounter(self, startIndex)
     end
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
-    C_Timer.After(0.3, function() S_Encounter(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_Encounter(self, startIndex + 100 + 1) end)
 end
 
 
@@ -443,7 +443,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.3, function() S_Unit(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_Unit(self, startIndex + 100 + 1) end)
 end
 
 
@@ -489,7 +489,7 @@ local function S_CacheItem(self, startIndex)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheItem(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_CacheItem(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -559,7 +559,7 @@ local function S_Item(self, startIndex)
     end
 
     Set_ValueText(self, startIndex, MaxItemID)
-    C_Timer.After(0.3, function() S_Item(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_Item(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Item_Event(self)
@@ -622,7 +622,7 @@ local function S_CacheQuest(self, startIndex)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheQuest(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_CacheQuest(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Objectives(questID)
@@ -694,7 +694,7 @@ local function S_Quest(self, startIndex)
     end
 
     Set_ValueText(self, startIndex, MaxQuestID)
-    C_Timer.After(0.1, function() S_Quest(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_Quest(self, startIndex + 100 + 1) end)
 end
 
 
@@ -752,7 +752,7 @@ local function S_CacheSpell(self, startIndex)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_CacheSpell(self, startIndex + 100 + 1) end)
 end
 
 --[[
@@ -801,13 +801,13 @@ local function S_Spell(self, startIndex)
         end
     end
     Set_ValueText(self, startIndex, MaxSpellID)
-    C_Timer.After(0.3, function() S_Spell(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_Spell(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Spell_Event(self)
     self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
     self:SetScript('OnEvent', function(_, _, spellID, success)
-        if spellID and success and spellID<= MaxSpellID then
+        if spellID and success and spellID< MinSpell2ID then
             Save_Spell(self, spellID)
         end
     end)
@@ -846,14 +846,14 @@ local function S_CacheSpell2(self, startIndex)
         return
     end
 
-    for spellID = startIndex, startIndex + 500 do
+    for spellID = startIndex, startIndex + 100 do
         Cahce_Spell2(spellID)
         self.bar2:SetValue(spellID/MaxSpell2ID*100)
         self.bar2:SetShown(true)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheSpell2(self, startIndex + 500 + 1) end)
+    C_Timer.After(0.5, function() S_CacheSpell2(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Spell2_Tab(spellID)
@@ -892,7 +892,7 @@ local function S_Spell2(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSpell2ID) then
         return
     end
-    for spellID = startIndex, startIndex + 500 do
+    for spellID = startIndex, startIndex + 100 do
         local title= Cahce_Spell2(spellID) and Save_Spell2(self, spellID)
         if title then
             title= C_Spell.GetSpellLink(spellID) or title
@@ -900,7 +900,7 @@ local function S_Spell2(self, startIndex)
         end
     end
     Set_ValueText(self, startIndex, MaxSpell2ID)
-    C_Timer.After(0.1, function() S_Spell2(self, startIndex + 500 + 1) end)
+    C_Timer.After(0.5, function() S_Spell2(self, startIndex + 100 + 1) end)
 end
 
 local function Set_Spell2_Event(self)
@@ -946,7 +946,7 @@ local function S_CacheAchievement(self, startIndex)
         self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.3, function() S_CacheAchievement(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_CacheAchievement(self, startIndex + 100 + 1) end)
 end
 
 local function Get_Achievement_Tab(achievementID)
@@ -1011,7 +1011,7 @@ local function S_Achievement(self, startIndex)
         end
     end
     Set_ValueText(self, startIndex, MaxAchievementID)
-    C_Timer.After(0.3, function() S_Achievement(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.5, function() S_Achievement(self, startIndex + 100 + 1) end)
 end
 
 
