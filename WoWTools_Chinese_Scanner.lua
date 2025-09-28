@@ -77,7 +77,7 @@ local MaxSectionEncounterID= #DifficultyTab
 local MaxSectionEncounterMaxID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer+2)*1000000-- 50w0000 229270
+local MaxSpellID=(GameVer+2)*100000-- 50w0000 229270
 
 
 --local MaxSpecSpellID= 1200000
@@ -782,17 +782,12 @@ local function S_Spell(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSpellID) then
         return
     end
-
     for spellID = startIndex, startIndex + 100 do
         local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
         if title then
             title= C_Spell.GetSpellLink(spellID) or title
             self.Name:SetText(title..' '.. spellID)
         end
-    end
-
-    if startIndex==MaxSpellBaseID then
-        startIndex = 1200000
     end
     Set_ValueText(self, startIndex, MaxSpellID)
     C_Timer.After(0.3, function() S_Spell(self, startIndex + 100 + 1) end)
