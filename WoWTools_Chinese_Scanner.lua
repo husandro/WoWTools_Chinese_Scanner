@@ -21,7 +21,7 @@ local MaxEncounterID= 25000
 --local MaxSectionEncounterID= #DifficultyTab
 
 --local MaxSectionEncounterMaxID= 
-local MaxSectionEncounterID= (GameVer-9)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+local MaxSectionEncounterID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
@@ -255,16 +255,20 @@ end
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
 local function Save_SectionEncounter(self, sectionID, difficultyID)
-    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-    if sectionInfo and not sectionInfo.filteredByDifficulty and IsCN(sectionInfo.title) then
-        local desc
-        if IsCN(sectionInfo.description) then
-            desc= sectionInfo.description
+    do
+        if EJ_GetDifficulty()~=difficultyID then
+            EJ_SetDifficulty(difficultyID)
         end
-        WoWTools_SC_SectionEncounter[sectionID..'x'..difficultyID]= {
+    end
+    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+    if sectionInfo and IsCN(sectionInfo.title) then
+        WoWTools_SC_SectionEncounter[sectionID]= WoWTools_SC_SectionEncounter[sectionID] or {
             ['T']= sectionInfo.title,
-            ['D']=desc
         }
+        if IsCN(sectionInfo.description) then
+            WoWTools_SC_SectionEncounter[sectionID].S= WoWTools_SC_SectionEncounter[sectionID].S or {}
+            WoWTools_SC_SectionEncounter[sectionID].S[difficultyID]= sectionInfo.description
+        end
         self.num= self.num + 1
         return sectionInfo.link or sectionInfo.title
     end
@@ -276,9 +280,9 @@ local function S_SectionEncounter(self, startIndex)
         return
     end
 
-    for _, difficultyID in ipairs({16, 15, 14, 17}) do--17随机 16史诗 15英雄 14普通
-        EJ_SetDifficulty(difficultyID)
-        for sectionID = startIndex, startIndex + 100 do
+
+    for _, difficultyID in ipairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+        for sectionID = startIndex + 100, startIndex, -1 do
             local link= Save_SectionEncounter(self, sectionID, difficultyID)
             if link then
                 self.Name:SetText(link)
@@ -289,7 +293,7 @@ local function S_SectionEncounter(self, startIndex)
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.5, function() S_SectionEncounter(self, startIndex + 100+ 1) end)
+    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100+ 1) end)
 end
 
 
@@ -1351,7 +1355,7 @@ local function Init()
 do
     for name, tab in pairs({
         ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
-        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='1w7638 01:40'},
+        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='7w7312 00:30'},
         ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
         ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
         ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w2942 19:50'},
