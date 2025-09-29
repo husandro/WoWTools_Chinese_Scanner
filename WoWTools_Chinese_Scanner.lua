@@ -261,13 +261,13 @@ local function Save_SectionEncounter(self, sectionID, difficultyID)
         end
     end
     local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-    if sectionInfo and IsCN(sectionInfo.title) then
+    if sectionInfo and IsCN(sectionInfo.title) and not sectionInfo.filteredByDifficulty then
         WoWTools_SC_SectionEncounter[sectionID]= WoWTools_SC_SectionEncounter[sectionID] or {
             ['T']= sectionInfo.title,
         }
         if IsCN(sectionInfo.description) then
             WoWTools_SC_SectionEncounter[sectionID].S= WoWTools_SC_SectionEncounter[sectionID].S or {}
-            WoWTools_SC_SectionEncounter[sectionID].S[difficultyID]= sectionInfo.description
+            WoWTools_SC_SectionEncounter[sectionID].S[EJ_GetDifficulty()]= sectionInfo.description
         end
         self.num= self.num + 1
         return sectionInfo.link or sectionInfo.title
@@ -281,13 +281,19 @@ local function S_SectionEncounter(self, startIndex)
     end
 
 
-    for _, difficultyID in ipairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
-        for sectionID = startIndex + 100, startIndex, -1 do
-            local link= Save_SectionEncounter(self, sectionID, difficultyID)
-            if link then
-                self.Name:SetText(link)
+    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+        --if EJ_IsValidInstanceDifficulty(difficultyID) then
+            do
+                if EJ_GetDifficulty()~=difficultyID then
+                    EJ_SetDifficulty(difficultyID)
+                end
+                for sectionID = startIndex + 100, startIndex, -1 do
+                    local link= Save_SectionEncounter(self, sectionID, difficultyID)
+                    if link then
+                        self.Name:SetText(link)
+                    end
+                end
             end
-        end
     end
 
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
@@ -301,7 +307,33 @@ end
 
 
 
+function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
+  if (startIndex > 50000) then
+    WoWeuCN_Scanner_Index = 0
+    return;
+  end
+  for difficultyId = 1, 45 do
+    EJ_SetDifficulty(difficultyId)
+    for i = startIndex, startIndex + 100 do
+      local sectionInfo =  C_EncounterJournal.GetSectionInfo(i)
+      if (sectionInfo and not sectionInfo.filteredByDifficulty) then
+        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i] = {}
+        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Title"] = sectionInfo.title
 
+        print(sectionInfo.title)
+        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Description"] = sectionInfo.description
+      end
+    end
+  end
+  print(attempt)
+  print('index ' .. startIndex)
+  WoWeuCN_Scanner_Index = startIndex
+  if (counter >= 2) then
+     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex + 100, attempt + 1, 0)
+  else
+     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex, attempt + 1, counter + 1)
+  end
+end
 
 
 
@@ -1321,7 +1353,7 @@ local function Init()
     note:SetText(
         '当前游戏版本 '..Ver
         ..'|n因为数据太大，登入后会出现错误'
-        ..(LOCALE_zhCN and '' or '|n|cnRED_FONT_COLOR:需求 简体中文')
+        ..(LOCALE_zhCN and '' or '|n|cnRED_FONT_COLOR:需求 简体中文|r')
         ..'|n登出后，需要备份：'
         ..'|n|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua'
     )
@@ -1355,7 +1387,7 @@ local function Init()
 do
     for name, tab in pairs({
         ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
-        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='7w7312 00:30'},
+        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:50'},
         ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
         ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
         ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w2942 19:50'},
