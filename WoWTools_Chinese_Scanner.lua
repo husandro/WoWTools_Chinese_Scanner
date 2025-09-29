@@ -283,17 +283,17 @@ local function S_SectionEncounter(self, startIndex)
 
     for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
         --if EJ_IsValidInstanceDifficulty(difficultyID) then
-            do
-                if EJ_GetDifficulty()~=difficultyID then
-                    EJ_SetDifficulty(difficultyID)
-                end
-                for sectionID = startIndex + 100, startIndex, -1 do
-                    local link= Save_SectionEncounter(self, sectionID, difficultyID)
-                    if link then
-                        self.Name:SetText(link)
-                    end
-                end
+        do
+            if EJ_GetDifficulty()~=difficultyID then
+                EJ_SetDifficulty(difficultyID)
             end
+        end
+        for sectionID = startIndex + 100, startIndex, -1 do
+            local link= Save_SectionEncounter(self, sectionID, difficultyID)
+            if link then
+                self.Name:SetText(link)
+            end
+        end
     end
 
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
