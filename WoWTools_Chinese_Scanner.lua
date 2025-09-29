@@ -260,38 +260,84 @@ local function Save_SectionEncounter(self, sectionID, difficultyID)
             EJ_SetDifficulty(difficultyID)
         end
     end
+
+    difficultyID= EJ_GetDifficulty() or difficultyID
+
     local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-    if sectionInfo and IsCN(sectionInfo.title) and not sectionInfo.filteredByDifficulty then
-        WoWTools_SC_SectionEncounter[sectionID]= WoWTools_SC_SectionEncounter[sectionID] or {
-            ['T']= sectionInfo.title,
-        }
-        if IsCN(sectionInfo.description) then
-            WoWTools_SC_SectionEncounter[sectionID].S= WoWTools_SC_SectionEncounter[sectionID].S or {}
-            WoWTools_SC_SectionEncounter[sectionID].S[EJ_GetDifficulty()]= sectionInfo.description
+    if sectionInfo  and not sectionInfo.filteredByDifficulty then
+        local title, desc
+        if IsCN(sectionInfo.title) then
+            title= IsCN(sectionInfo.title)
         end
-        self.num= self.num + 1
-        return sectionInfo.link or sectionInfo.title
+        if IsCN(sectionInfo.description) then
+            desc= sectionInfo.description
+        end
+        if title or desc then
+            WoWTools_SC_SectionEncounter[sectionID]= WoWTools_SC_SectionEncounter[sectionID] or {}
+            if title then
+                WoWTools_SC_SectionEncounter[sectionID].T= title
+            end
+            if desc then
+                WoWTools_SC_SectionEncounter[sectionID].S= WoWTools_SC_SectionEncounter[sectionID].S or {}
+                WoWTools_SC_SectionEncounter[sectionID].S[difficultyID]= desc
+            end
+            self.num= self.num + 1
+            return sectionInfo.link or title
+        end
     end
 end
 
 
-local function S_SectionEncounter(self, startIndex)
+--[[local function S_SectionEncounter(self, startIndex)
+    if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
+        return
+    end
+    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+        for sectionID =startIndex, startIndex + 100 do
+            local link= Save_SectionEncounter(self, sectionID, difficultyID)
+            if link then
+                self.Name:SetText(link)
+            end
+        end
+    end
+    Set_ValueText(self, startIndex, MaxSectionEncounterID)
+    Save()[self.name] = startIndex
+
+    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100+ 1) end)
+end]]
+
+local function S_SectionEncounter(self, startIndex, counter)
+    counter= counter or 0
+
     if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
         return
     end
 
-
-    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
-        --if EJ_IsValidInstanceDifficulty(difficultyID) then
-        do
-            if EJ_GetDifficulty()~=difficultyID then
-                EJ_SetDifficulty(difficultyID)
-            end
-        end
-        for sectionID = startIndex + 100, startIndex, -1 do
-            local link= Save_SectionEncounter(self, sectionID, difficultyID)
-            if link then
-                self.Name:SetText(link)
+    for difficultyID = 1, 45 do
+        EJ_SetDifficulty(difficultyID)
+        for sectionID = startIndex, startIndex + 100 do
+            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+            if sectionInfo  and not sectionInfo.filteredByDifficulty then
+                local title, desc
+                if IsCN(sectionInfo.title) then
+                    title= IsCN(sectionInfo.title)
+                end
+                if IsCN(sectionInfo.description) then
+                    desc= sectionInfo.description
+                end
+                if title or desc then
+                    WoWTools_SC_SectionEncounter[sectionID]= WoWTools_SC_SectionEncounter[sectionID] or {}
+                    if title then
+                        WoWTools_SC_SectionEncounter[sectionID].T= title
+                    end
+                    if desc then
+                        WoWTools_SC_SectionEncounter[sectionID].S= WoWTools_SC_SectionEncounter[sectionID].S or {}
+                        WoWTools_SC_SectionEncounter[sectionID].S[EJ_GetDifficulty()]= desc
+                    end
+                    self.num= self.num + 1
+                    self.Name:SetText(sectionInfo.link or title)
+                    --return sectionInfo.link or title
+                end
             end
         end
     end
@@ -299,13 +345,16 @@ local function S_SectionEncounter(self, startIndex)
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100+ 1) end)
+
+    if (counter >= 2) then
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100 +1,  0) end)
+    else
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100 +1,  counter+1) end)
+    end
 end
 
 
-
-
-
+--[[
 
 function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
   if (startIndex > 50000) then
@@ -334,7 +383,7 @@ function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
      WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex, attempt + 1, counter + 1)
   end
 end
-
+]]
 
 
 
