@@ -43,7 +43,8 @@
         "EncounterJournal",
         "LOCALE_zhCN",
         "Settings",
-        "RANGE_INDICATOR"
+        "RANGE_INDICATOR",
+        "ItemEventListener"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
