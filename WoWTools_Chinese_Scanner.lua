@@ -23,7 +23,7 @@ local MaxEncounterID= 25000
 --local MaxSectionEncounterMaxID= 
 local MaxSectionEncounterID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
-local MaxItemID= (GameVer-8)*100000--30w00000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxItemID= (GameVer-8)*100000--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
 
 
@@ -126,6 +126,7 @@ local function Is_StopRun(self, startIndex, maxID)
 
         self:settings()
         self.num= 0
+        table.sort(_G['WoWTools_SC_'..self.name])
         return true
     end
 end
@@ -197,7 +198,7 @@ local function Save_Encounter(self, journalEncounterID)
         desc= d
     end
     if name or desc then
-        WoWTools_SC_Encounter[journalEncounterID] = {
+        _G['WoWTools_SC_'..self.name][journalEncounterID] = {
             ['T']=name,
             ['D']=desc
         }
@@ -265,7 +266,7 @@ local function Save_SectionEncounter(self, sectionID, difficultyID)
         end
         if title or desc then
             local t= EJ_GetDifficulty()..'x'..sectionID
-            WoWTools_SC_SectionEncounter[t]={
+            _G['WoWTools_SC_'..self.name][t]={
                 T=title,
                 D= desc,
             }
@@ -353,7 +354,7 @@ end
 local function Save_Unit(self, unit)--字符
     local tab = Get_Unit_Tab(unit)
     if tab then
-        WoWTools_SC_Unit[unit] = tab
+        _G['WoWTools_SC_'..self.name][unit] = tab
         self.num= self.num+1
         return tab.T
     end
@@ -398,6 +399,7 @@ end
 
 
 --[[
+C_TooltipInfo.GetItemByID(237590)
 C_TooltipInfo.GetHyperlink('item:212021:0:0:0:0:0:0:0')
 C_Item.IsItemDataCachedByID(212021)
 C_Item.RequestLoadItemDataByID(212021)
@@ -406,32 +408,20 @@ C_Item.RequestLoadItemDataByID(212021)
 local function Cahce_Item(itemID)
     if itemID and C_Item.GetItemInfoInstant(itemID) then
         if not C_Item.IsItemDataCachedByID(itemID) then
+            C_TooltipInfo.GetItemByID(itemID)
             C_Item.RequestLoadItemDataByID(itemID)
         else
             return true
         end
     end
 end
-local function Load_Item(startIndex)
-    if startIndex>1 then
-        return
-    end
-    for classID= 1, GetNumClasses() do
-        local itemSets= C_LootJournal.GetItemSets(classID) or {}
-        for _, data in pairs(itemSets) do
-            local items= C_LootJournal.GetItemSetItems(data.setID) or {}
-            for _, info in pairs(items) do
-                Cahce_Item(info.itemID)
-            end
-        end
-    end
-end
+
+
 
 local function S_CacheItem(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxItemID) then
         return
     end
-    Load_Item(startIndex)
     for itemID = startIndex, startIndex + 100 do
         Cahce_Item(itemID)
         self.bar2:SetValue(itemID/MaxItemID*100)
@@ -442,20 +432,15 @@ local function S_CacheItem(self, startIndex)
     C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 100 + 1) end)
 end
 
-local function Get_Item_Tab(itemID)
-    --local data= C_TooltipInfo.GetHyperlink('item:'..itemID..':0:0:0:0:0:0:0')
-    local data= C_TooltipInfo.GetItemByID(itemID)
-    if not data
-        or not data.lines
-        or not data.lines[1]
-        or not IsCN(data.lines[1].leftText)
-    then
+
+local SpecItemTabs={}
+
+local function Get_Item_Lines(lines)
+    if not lines then
         return
     end
-
-    local title= C_Item.GetItemInfo(itemID) or data.lines[1].leftText
     local desc
-    for index, line in pairs(data.lines) do
+    for index, line in pairs(lines) do
         local text= line.leftText
         if index>1 and IsCN(text) and (
             text:find('套装：(.+)')
@@ -463,44 +448,100 @@ local function Get_Item_Tab(itemID)
             or text:find('击中时可能：(.+)')
             or text:find('装备：(.+)')
             or text:find('需要：(.+)')
+            or text:find('用于：(.+)')
+            --or text:find('职业：(.+)')
             or text:find('^".+"$')
-            --or text:find('^用于：')
             or text:find('|c........')
         )
         then
             desc= (desc and desc..'|n' or '')..(text:match('"(.+)"') or text)
         end
     end
-    return {
-        ['T']= title,
-        ['D']= desc,
-    }
+    return desc
 end
+
+local function Get_ItemSets(itemID)
+    local specTab= SpecItemTabs[itemID]
+    if not specTab then
+        return
+    end
+    local itemLink= select(2, C_Item.GetItemInfo(itemID)) or ('item:'..itemID..':0:0:0:0:0:0:0')
+    for specID, tab in pairs(specTab) do
+        local data= C_TooltipInfo.GetHyperlink(itemLink, tab.classID, specID)
+        local desc= data and Get_Item_Lines(data.lines)
+        if desc then
+            local setID= tab.setID
+            WoWTools_SC_SetsItem[setID]= WoWTools_SC_SetsItem[setID] or {}
+            WoWTools_SC_SetsItem[setID][specID]= desc
+        end
+    end
+
+end
+
+local function Get_Item_Tab(itemID)
+    local data= C_TooltipInfo.GetItemByID(itemID)
+    if data
+        and data.lines
+        and data.lines[1]
+        and IsCN(data.lines[1].leftText)
+    then
+
+        Get_ItemSets(itemID)
+
+        return {
+            ['T']= C_Item.GetItemInfo(itemID) or data.lines[1].leftText,
+            ['D']= Get_Item_Lines(data.lines),
+        }
+    end
+end
+
+
 
 local function Save_Item(self, itemID)--字符
     local tab = Get_Item_Tab(itemID)
     if tab then
-        WoWTools_SC_Item[itemID] = tab
+        _G['WoWTools_SC_'..self.name][itemID] = tab
         self.num= self.num+1
         return select(2, C_Item.GetItemInfo(itemID)) or tab.T
     end
 end
 
 
+local function Load_Item()
+    for classID= 1, GetNumClasses() do
+		classID = select(3, GetClassInfo(classID)) or classID
+        for specIndex = 1, C_SpecializationInfo.GetNumSpecializationsForClassID(classID) or 0 do
+            local specID= GetSpecializationInfoForClassID(classID, specIndex)
+            if specID then
+                for _, data in pairs(C_LootJournal.GetItemSets(classID, specID) or {}) do
+                    for _, sets in pairs(C_LootJournal.GetItemSetItems(data.setID) or {}) do
+                        local itemID= sets.itemID
+                        if itemID then
+                            SpecItemTabs[itemID]= SpecItemTabs[itemID] or {}
+                            SpecItemTabs[itemID][specID]= {classID= classID, setID=data.setID}
+
+                            --local itemLink= select(2, C_Item.GetItemInfo(itemID)) or ('item:'..itemID..':0:0:0:0:0:0:0')
+                            --C_TooltipInfo.GetHyperlink(itemLink, classID, specID)
+                            C_Item.RequestLoadItemDataByID(itemID)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 local function S_Item(self, startIndex)
     if Is_StopRun(self, startIndex, MaxItemID) then
         return
     end
-
     for itemID = startIndex, startIndex + 100 do
         local title= Cahce_Item(itemID) and Save_Item(self, itemID)
         if title then
             self.Name:SetText(title..' '..itemID)
         end
     end
-
     Set_ValueText(self, startIndex, MaxItemID)
-
     C_Timer.After(0.1, function() S_Item(self, startIndex + 100 + 1) end)
 end
 
@@ -561,6 +602,7 @@ local function S_CacheQuest(self, startIndex)
         return
     end
 
+
     for questID = startIndex, startIndex + 100 do
         Cahce_Quest(questID)
         self.bar2:SetValue(questID/MaxQuestID*100)
@@ -617,7 +659,7 @@ end
 local function Save_Quest(self, questID)
     local tab = Get_Quest_Tab(questID)
     if tab then
-        WoWTools_SC_Quest[questID] = tab
+        _G['WoWTools_SC_'..self.name][questID] = tab
         self.num= self.num+1
         return true
     end
@@ -722,7 +764,7 @@ end
 local function Save_Spell(self, spellID)
     local tab = Get_Spell_Tab(spellID)
     if tab then
-        WoWTools_SC_Spell[spellID] = tab
+        _G['WoWTools_SC_'..self.name][spellID] = tab
         self.num= self.num+1
         return tab.T
     end
@@ -820,7 +862,8 @@ end
 local function Save_Spell2(self, spellID)
     local tab = Get_Spell2_Tab(spellID)
     if tab then
-        WoWTools_SC_Spell2[spellID] = tab
+        --WoWTools_SC_Spell2[spellID] = tab
+        _G['WoWTools_SC_'..self.name][spellID] = tab
         self.num= self.num+1
         return tab.T
     end
@@ -930,7 +973,7 @@ end
 local function Save_Achievement(self, achievementID)
     local tab = Get_Achievement_Tab(achievementID)
     if tab then
-        WoWTools_SC_Achievement[achievementID] = tab
+        _G['WoWTools_SC_'..self.name][achievementID] = tab
         self.num= self.num+1
         return tab.T
     end
@@ -1051,8 +1094,8 @@ local function Create_Button(name, tab)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cff626262暂停').. '|r '..self.name)
-        GameTooltip:AddLine('运行前，请关闭所有插件')
+        GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停').. '|r '..self.name)
+        --GameTooltip:AddLine('运行前，请关闭所有插件')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
         end
@@ -1365,6 +1408,8 @@ end
         end
     end
 
+Load_Item()
+
     Init=function()end
 end
 
@@ -1393,10 +1438,11 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
 
     WoWTools_SC_Item= WoWTools_SC_Item or {}
+    WoWTools_SC_SetsItem= WoWTools_SC_SetsItem or {}
+
     WoWTools_SC_Spell= WoWTools_SC_Spell or {}
     WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
     WoWTools_SC_Unit= WoWTools_SC_Unit or {}
-
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
