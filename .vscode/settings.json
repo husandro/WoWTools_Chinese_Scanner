@@ -47,7 +47,8 @@
         "ItemEventListener",
         "ToggleCalendar",
         "CalendarFrame",
-        "QuestMapFrame_OpenToQuestDetails"
+        "QuestMapFrame_OpenToQuestDetails",
+        "SOUNDKIT"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

@@ -125,9 +125,9 @@ local function Is_StopRun(self, startIndex, maxID)
 
         self:settings()
         self.num= 0
-        
+
         --table.sort(_G['WoWTools_SC_'..self.name])
-        
+
         return true
     end
 end
@@ -545,10 +545,10 @@ end
 
 local function Set_Item_Event(self)
     self:RegisterEvent('ITEM_DATA_LOAD_RESULT')--ItemEventListener:AddCancelableCallback(self:GetItemID(), callbackFunction)
-    self:SetScript('OnHide', self.UnregisterAllEvents)
+    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('ITEM_DATA_LOAD_RESULT')
-    end)
+    end)]]
     self:SetScript('OnEvent', function(f, _, itemID, success)
         if itemID then
             if success then
@@ -693,10 +693,10 @@ end
 
 local function Set_Quest_Event(self)
     self:RegisterEvent('QUEST_DATA_LOAD_RESULT')
-    self:SetScript('OnHide', self.UnregisterAllEvents)
+    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('QUEST_DATA_LOAD_RESULT')
-    end)
+    end)]]
     self:SetScript('OnEvent', function(_, _, questID, success)
         if questID then
             if success then
@@ -802,10 +802,10 @@ end
 
 local function Set_Spell_Event(self)
     self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    self:SetScript('OnHide', self.UnregisterAllEvents)
+    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    end)
+    end)]]
     self:SetScript('OnEvent', function(_, _, spellID, success)
         if spellID and spellID< MinSpell2ID then
             if success then
@@ -905,10 +905,10 @@ end
 
 local function Set_Spell2_Event(self)
     self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    self:SetScript('OnHide', self.UnregisterAllEvents)
+    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    end)
+    end)]]
     self:SetScript('OnEvent', function(_, _, spellID, success)
         if spellID and spellID>=MinSpell2ID then
             if success then
@@ -1349,9 +1349,33 @@ end
 
 
 
+local function Set_Point(self)
+     local point= Save().point
+    if point and point[1] then
+        self:SetPoint(point[1], UIParent, point[3], point[4], point[5])
+    else
+        self:SetPoint('CENTER')
+    end
+end
 
-
-
+local function Save_Point(self)
+     ResetCursor()
+    self:StopMovingOrSizing()
+--确认框架中心点，在屏幕内
+    local isInSchermo= true
+    local centerX, centerY = self:GetCenter()
+    local screenWidth, screenHeight = UIParent:GetWidth(), UIParent:GetHeight()
+    if not centerX or not centerY then
+        isInSchermo= false
+    end
+    if centerX < 0 or centerX > screenWidth or centerY < 0 or centerY > screenHeight then
+        isInSchermo = false
+    end
+    if isInSchermo then
+        Save().point= {Frame:GetPoint(1)}
+        Save().point[2]= nil
+    end
+end
 
 
 
@@ -1361,57 +1385,72 @@ local function Init()
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
     Frame:SetSize(520, 400)
-    Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
+    --Frame:RegisterEvent('PLAYER_REGEN_DISABLED')
     Frame:RegisterUnitEvent('PLAYER_FLAGS_CHANGED', 'player')
-    Frame:SetScript('OnEvent', function(_,  event)
-        if event=='PLAYER_REGEN_DISABLED' then
-            for _, name in pairs(Buttons) do
-                local btn= _G['WoWToolsSC'..name..'Button']
-                if not btn.isStop and not btn.isCahceStop then
-                    btn:settings()
-                end
-            end
-
-        elseif UnitIsAFK('player') then
+    Frame:SetScript('OnEvent', function()
+        if UnitIsAFK('player') then
             C_MountJournal.SummonByID(0)
         end
     end)
     Frame:SetMovable(true)
     Frame:RegisterForDrag("LeftButton", "RightButton")
-    Frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-    Frame:SetScript("OnDragStop", function(self)
-        ResetCursor()
-        self:StopMovingOrSizing()
---确认框架中心点，在屏幕内
-        local isInSchermo= true
-        local centerX, centerY = self:GetCenter()
-        local screenWidth, screenHeight = UIParent:GetWidth(), UIParent:GetHeight()
-        if not centerX or not centerY then
-            isInSchermo= false
-        end
-        if centerX < 0 or centerX > screenWidth or centerY < 0 or centerY > screenHeight then
-            isInSchermo = false
-        end
-        if isInSchermo then
-            Save().point= {Frame:GetPoint(1)}
-            Save().point[2]= nil
-        end
-    end)
-    local point= Save().point
-    if point and point[1] then
-        Frame:SetPoint(point[1], UIParent, point[3], point[4], point[5])
-    else
-        Frame:SetPoint('CENTER')
-    end
     Frame:SetScript("OnMouseDown", function() SetCursor('UI_MOVE_CURSOR') end)
     Frame:SetScript("OnMouseUp", function() ResetCursor() end)
     Frame:SetScript("OnLeave", function() ResetCursor() end)
+    Frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    Frame:SetScript("OnDragStop", function(self)
+       Save_Point(self)
+    end)
+    Frame:SetScript('OnShow', function(self)
+        Set_Point(self)
+    end)
+    Set_Point(Frame)
+    
+    local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
+    maxButton:SetFrameStrata('HIGH')
+    maxButton:SetFrameLevel(501)
+    maxButton:Hide()
+    maxButton:SetSize(23, 23)
+    maxButton:SetNormalAtlas('RedButton-Expand')
+    maxButton:SetPushedAtlas('RedButton-Expand-Pressed')
+    maxButton:SetHighlightAtlas('RedButton-Highlight')
+    maxButton:SetMovable(true)
+    maxButton:SetClampedToScreen(true)
+    maxButton:RegisterForDrag("RightButton")
+    maxButton:SetScript("OnMouseDown", function(_, d)
+        if d=='LeftButton' then
+            Frame:Show()
+        end
+        SetCursor('UI_MOVE_CURSOR')
+    end)
+    maxButton:SetScript("OnMouseUp", function() ResetCursor() end)
+    maxButton:SetScript("OnLeave", function() ResetCursor() end)
+    maxButton:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    maxButton:SetScript("OnDragStop", function(self)
+       Save_Point(self)
+    end)
+    maxButton:SetScript('OnShow', function(self)
+        Set_Point(self)
+    end)
+    
+
+    local minButton= CreateFrame('Button', 'WoWTools_SC_FrameMinimizeButton', Frame)
+    minButton:SetSize(23,23)
+    minButton:SetNormalAtlas('RedButton-Condense')
+    minButton:SetPushedAtlas('RedButton-Condense-Pressed')
+    minButton:SetHighlightAtlas('RedButton-Highlight')
+    minButton:SetPoint('TOPRIGHT')
+    minButton:SetScript('OnMouseDown', function(self)
+        self:GetParent():Hide()
+    end)
+
 
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
-    Frame.CloseButton=CreateFrame('Button', 'WoWTools_SC_FrameCloseButton', Frame, 'UIPanelCloseButton')--SharedUIPanelTemplates.xml
-    Frame.CloseButton:SetPoint('TOPRIGHT')
+    --[[Frame.CloseButton=CreateFrame('Button', 'WoWTools_SC_FrameCloseButton', Frame, 'UIPanelCloseButton')--SharedUIPanelTemplates.xml
+    Frame.CloseButton:SetPoint('TOPRIGHT')]]
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
     Frame.Header:Setup(addName)
+
 
     local note= Frame:CreateFontString(nil, "OVERLAY")
     note:SetFontObject('GameFontNormal')
@@ -1450,6 +1489,14 @@ local function Init()
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 23)
 
+
+
+
+
+
+
+
+
 do
     for name, tab in pairs({
         ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
@@ -1467,6 +1514,7 @@ do
         table.insert(Buttons, name)
     end
 end
+
 
     Frame:SetHeight(-y+75)
 
