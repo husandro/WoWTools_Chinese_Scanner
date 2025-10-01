@@ -126,7 +126,7 @@ local function Is_StopRun(self, startIndex, maxID)
         self:settings()
         self.num= 0
         
-        table.sort(_G['WoWTools_SC_'..self.name])
+        --table.sort(_G['WoWTools_SC_'..self.name])
         
         return true
     end
