@@ -1349,6 +1349,16 @@ end
 
 
 
+
+
+
+
+
+
+
+
+
+
 local function Set_Point(self)
      local point= Save().point
     if point and point[1] then
@@ -1408,8 +1418,8 @@ local function Init()
     
     local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
     maxButton:SetFrameStrata('HIGH')
-    maxButton:SetFrameLevel(501)
-    maxButton:Hide()
+    maxButton:SetFrameLevel(502)
+   --maxButton:Hide()
     maxButton:SetSize(23, 23)
     maxButton:SetNormalAtlas('RedButton-Expand')
     maxButton:SetPushedAtlas('RedButton-Expand-Pressed')
