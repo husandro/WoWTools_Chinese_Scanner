@@ -1461,7 +1461,7 @@ do
         ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
         ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:50'},
         ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
-        ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
+        ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w19962 04:08'},
         ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w3018 05:50'},
         ['Spell']= {func=S_Spell, cahce=S_CacheSpell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         ['Spell2']= {func=S_Spell2, cahce=S_CacheSpell2},
