@@ -46,7 +46,8 @@
         "RANGE_INDICATOR",
         "ItemEventListener",
         "ToggleCalendar",
-        "CalendarFrame"
+        "CalendarFrame",
+        "QuestMapFrame_OpenToQuestDetails"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

@@ -550,8 +550,12 @@ local function Set_Item_Event(self)
         f:RegisterEvent('ITEM_DATA_LOAD_RESULT')
     end)
     self:SetScript('OnEvent', function(f, _, itemID, success)
-        if itemID and success then
-            Save_Item(f, itemID)
+        if itemID then
+            if success then
+                Save_Item(f, itemID)
+            else
+                C_Item.RequestLoadItemDataByID(itemID)
+            end
         end
     end)
 end
@@ -633,6 +637,13 @@ local function Get_Objectives(questID)
     end
 end
 
+--[[
+local quest = QuestCache:Get(questID);
+if quest.isAutoComplete and quest:IsComplete() then
+C_QuestLog.RequestLoadQuestByID(77794)
+]]
+
+
 local function Get_Quest_Tab(questID)
     local data= C_TooltipInfo.GetHyperlink('quest:' .. questID)
     if not data or
@@ -647,6 +658,7 @@ local function Get_Quest_Tab(questID)
     if data.lines[3] and IsCN(data.lines[3].leftText) then
         obj= data.lines[3].leftText
     end
+
     return {
         ['T']= title,
         ['O']= obj,
@@ -686,8 +698,12 @@ local function Set_Quest_Event(self)
         f:RegisterEvent('QUEST_DATA_LOAD_RESULT')
     end)
     self:SetScript('OnEvent', function(_, _, questID, success)
-        if questID and success then
-            Save_Quest(self, questID)
+        if questID then
+            if success then
+                Save_Quest(self, questID)
+            else
+                C_QuestLog.RequestLoadQuestByID(questID)
+            end
         end
     end)
 end
@@ -791,8 +807,12 @@ local function Set_Spell_Event(self)
         f:RegisterEvent('SPELL_DATA_LOAD_RESULT')
     end)
     self:SetScript('OnEvent', function(_, _, spellID, success)
-        if success and spellID and spellID< MinSpell2ID then
-            Save_Spell(self, spellID)
+        if spellID and spellID< MinSpell2ID then
+            if success then
+                Save_Spell(self, spellID)
+            else
+                C_Spell.RequestLoadSpellData(spellID)
+            end
         end
     end)
 end
@@ -890,8 +910,12 @@ local function Set_Spell2_Event(self)
         f:RegisterEvent('SPELL_DATA_LOAD_RESULT')
     end)
     self:SetScript('OnEvent', function(_, _, spellID, success)
-        if success and spellID and spellID>=MinSpell2ID then
-            Save_Spell2(self, spellID)
+        if spellID and spellID>=MinSpell2ID then
+            if success then
+                Save_Spell2(self, spellID)
+            else
+                C_Spell.RequestLoadSpellData(spellID)
+            end
         end
     end)
 end
@@ -1243,7 +1267,7 @@ local function Create_Button(name, tab)
         StaticPopup_Show('WoWTools_SC', n, '', n)
     end)
 
-    if tab.cahce then
+    --[[if tab.cahce then
         btn.cahce= CreateFrame('Button', nil, btn)
         btn.cahce:SetPushedAtlas('PetList-ButtonSelect')
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
@@ -1292,7 +1316,7 @@ local function Create_Button(name, tab)
         if Save()[name..'Cache'] then
             btn.cahce:run()
         end
-    end
+    end]]
 
     function btn:settings()
         self.isStop= not self.isStop and true or nil
