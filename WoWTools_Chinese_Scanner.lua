@@ -1012,7 +1012,7 @@ end
 
 
 local function S_Holyday(self, startIndex)
-    
+
    if Is_StopRun(self, startIndex, 25) then
         return
     end
@@ -1021,39 +1021,40 @@ local function S_Holyday(self, startIndex)
         if not CalendarFrame:IsShown() then
             ToggleCalendar()
         end
+
+
         WoWTools_SC_Holyday={}
         self.num= 0
+        C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
         C_Calendar.SetMonth(-13)
     end
 
 
-        C_Calendar.SetMonth(1)
-    
+    C_Calendar.SetMonth(1)
+
 
     for day=1, 31 do
-        if  C_Calendar.GetNumDayEvents(0, day)>0 then
-            print(day)
-        end
-        for index= 1, C_Calendar.GetNumDayEvents(0, day) or 0, 1 do
+        for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
             local data= C_Calendar.GetDayEvent(0, day, index)
-            if data and data.title and data.eventID  then
+            
+            if data and data.eventID  then
                 local holiday= C_Calendar.GetHolidayInfo(0, day, index)
                 local desc
-                if holiday and IsCN(holiday.description) then
+                local title= data.title
+                if holiday then
                     desc= holiday.description
                 end
+                if title or desc then
+                    WoWTools_SC_Holyday[data.eventID]= {
+                        T=title,
+                        D=desc
+                    }
 
-                if not WoWTools_SC_Holyday[data.eventID] then
                     self.num= self.num+1
-                      
                 end
-
-                WoWTools_SC_Holyday[data.eventID]= {
-                    T=data.title,
-                    D=desc
-                }
-
-                print(data.eventID, data.title, desc)
+                if data.eventID ==610 then
+                    print(title, desc)
+                end
             end
         end
     end
@@ -1062,7 +1063,7 @@ local function S_Holyday(self, startIndex)
     Set_ValueText(self, startIndex, 25)
     Save()[self.name]= startIndex
 
-    C_Timer.After(0.5, function() S_Holyday(self, startIndex + 1) end)
+    C_Timer.After(0.3, function() S_Holyday(self, startIndex + 1) end)
 end
 
 
