@@ -111,7 +111,6 @@ local function Is_StopRun(self, startIndex, maxID)
         self.Name:SetText(self.name)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
-        Save()[self.name..'Time']= clock
 
         Save()[self.name..'Data']= Save()[self.name..'Data'] or {}
         if #Save()[self.name..'Data']>5 then
@@ -126,7 +125,9 @@ local function Is_StopRun(self, startIndex, maxID)
 
         self:settings()
         self.num= 0
+        
         table.sort(_G['WoWTools_SC_'..self.name])
+        
         return true
     end
 end
@@ -1018,9 +1019,9 @@ local function S_Holyday(self, startIndex)
     end
 
     if startIndex==1 then
-        if not CalendarFrame:IsShown() then
+        --[[if not CalendarFrame:IsShown() then
             ToggleCalendar()
-        end
+        end]]
 
 
         WoWTools_SC_Holyday={}
@@ -1029,15 +1030,14 @@ local function S_Holyday(self, startIndex)
         C_Calendar.SetMonth(-13)
     end
 
-
-    C_Calendar.SetMonth(1)
-
+    do
+        C_Calendar.SetMonth(1)
+    end
 
     for day=1, 31 do
         for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
             local data= C_Calendar.GetDayEvent(0, day, index)
-            
-            if data and data.eventID  then
+            if data and data.eventID and not WoWTools_SC_Holyday[data.eventID] and data.calendarType~='PLAYER' then
                 local holiday= C_Calendar.GetHolidayInfo(0, day, index)
                 local desc
                 local title= data.title
@@ -1052,13 +1052,12 @@ local function S_Holyday(self, startIndex)
 
                     self.num= self.num+1
                 end
-                if data.eventID ==610 then
-                    print(title, desc)
+                if not title and not desc then
+                    print(data.eventID)
                 end
             end
         end
     end
-
 
     Set_ValueText(self, startIndex, 25)
     Save()[self.name]= startIndex
@@ -1135,7 +1134,7 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 
-local y= -70
+local y= -40
 local function Create_Button(name, tab)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
@@ -1443,13 +1442,15 @@ do
         ['Spell']= {func=S_Spell, cahce=S_CacheSpell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         ['Spell2']= {func=S_Spell2, cahce=S_CacheSpell2},
         ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},
-        ['Holyday']= {func=S_Holyday, tooltip='119条'},
+        --['Holyday']= {func=S_Holyday, tooltip='119条'},
     }) do
         Create_Button(name, tab)
 
         table.insert(Buttons, name)
     end
 end
+
+    Frame:SetHeight(-y+75)
 
     if not InCombatLockdown() then
         if not CollectionsJournal then
@@ -1514,7 +1515,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
     WoWTools_SC_Unit= WoWTools_SC_Unit or {}
 
-    WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
+   -- WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
