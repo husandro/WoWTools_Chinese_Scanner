@@ -44,7 +44,9 @@
         "LOCALE_zhCN",
         "Settings",
         "RANGE_INDICATOR",
-        "ItemEventListener"
+        "ItemEventListener",
+        "ToggleCalendar",
+        "CalendarFrame"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

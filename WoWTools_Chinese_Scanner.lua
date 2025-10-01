@@ -519,9 +519,6 @@ local function Load_Item()
                         if itemID then
                             SpecItemTabs[itemID]= SpecItemTabs[itemID] or {}
                             SpecItemTabs[itemID][specID]= {classID= classID, setID=data.setID}
-
-                            --local itemLink= select(2, C_Item.GetItemInfo(itemID)) or ('item:'..itemID..':0:0:0:0:0:0:0')
-                            --C_TooltipInfo.GetHyperlink(itemLink, classID, specID)
                             C_Item.RequestLoadItemDataByID(itemID)
                         end
                     end
@@ -1014,6 +1011,68 @@ end
 
 
 
+local function S_Holyday(self, startIndex)
+    
+   if Is_StopRun(self, startIndex, 25) then
+        return
+    end
+
+    if startIndex==1 then
+        if not CalendarFrame:IsShown() then
+            ToggleCalendar()
+        end
+        WoWTools_SC_Holyday={}
+        self.num= 0
+        C_Calendar.SetMonth(-13)
+    end
+
+
+        C_Calendar.SetMonth(1)
+    
+
+    for day=1, 31 do
+        if  C_Calendar.GetNumDayEvents(0, day)>0 then
+            print(day)
+        end
+        for index= 1, C_Calendar.GetNumDayEvents(0, day) or 0, 1 do
+            local data= C_Calendar.GetDayEvent(0, day, index)
+            if data and data.title and data.eventID  then
+                local holiday= C_Calendar.GetHolidayInfo(0, day, index)
+                local desc
+                if holiday and IsCN(holiday.description) then
+                    desc= holiday.description
+                end
+
+                if not WoWTools_SC_Holyday[data.eventID] then
+                    self.num= self.num+1
+                      
+                end
+
+                WoWTools_SC_Holyday[data.eventID]= {
+                    T=data.title,
+                    D=desc
+                }
+
+                print(data.eventID, data.title, desc)
+            end
+        end
+    end
+
+
+    Set_ValueText(self, startIndex, 25)
+    Save()[self.name]= startIndex
+
+    C_Timer.After(0.5, function() S_Holyday(self, startIndex + 1) end)
+end
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1379,10 +1438,11 @@ do
         ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:50'},
         ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
         ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w7340 04:08'},
-        ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w2656 05:50'},
+        ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w3018 05:50'},
         ['Spell']= {func=S_Spell, cahce=S_CacheSpell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         ['Spell2']= {func=S_Spell2, cahce=S_CacheSpell2},
         ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},
+        ['Holyday']= {func=S_Holyday, tooltip='119条'},
     }) do
         Create_Button(name, tab)
 
@@ -1406,13 +1466,22 @@ end
         if not EncounterJournal then
             EncounterJournal_LoadUI()
         end
+
+        EventRegistry:RegisterFrameEventAndCallback("CALENDAR_UPDATE_EVENT_LIST", function(owner)
+            if CalendarFrame:IsShown() then
+                ToggleCalendar()
+            end
+            EventRegistry:UnregisterCallback('CALENDAR_UPDATE_EVENT_LIST', owner)
+        end)
+        if not CalendarFrame then
+            ToggleCalendar()
+        end
     end
 
-Load_Item()
+    Load_Item()
 
     Init=function()end
 end
-
 
 
 
@@ -1443,6 +1512,8 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_Spell= WoWTools_SC_Spell or {}
     WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
     WoWTools_SC_Unit= WoWTools_SC_Unit or {}
+
+    WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
