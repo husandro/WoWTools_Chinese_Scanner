@@ -1043,11 +1043,6 @@ local function S_Holyday(self, startIndex)
     end
 
     if startIndex==1 then
-        --[[if not CalendarFrame:IsShown() then
-            ToggleCalendar()
-        end]]
-
-
         WoWTools_SC_Holyday={}
         self.num= 0
         C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
@@ -1063,9 +1058,11 @@ local function S_Holyday(self, startIndex)
             local data= C_Calendar.GetDayEvent(0, day, index)
             if data and data.eventID and not WoWTools_SC_Holyday[data.eventID] and data.calendarType~='PLAYER' then
                 local holiday= C_Calendar.GetHolidayInfo(0, day, index)
-                local desc
-                local title= data.title
-                if holiday then
+                local desc, title
+                if IsCN(data.title) then
+                    title= data.title
+                end
+                if holiday and IsCN(holiday.description) then
                     desc= holiday.description
                 end
                 if title or desc then
@@ -1075,9 +1072,6 @@ local function S_Holyday(self, startIndex)
                     }
 
                     self.num= self.num+1
-                end
-                if not title and not desc then
-                    print(data.eventID)
                 end
             end
         end
