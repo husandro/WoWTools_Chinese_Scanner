@@ -63,8 +63,8 @@ local function MK(number)
     if number then
         local b=3
         local t=''
-        if number>=1e7 then
-            number= (number/1e7)
+        if number>=1e8 then
+            number= (number/1e8)
             t='|cffff00ffm|r'
             b=6
         elseif number>= 1e4 then
@@ -396,7 +396,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
+    C_Timer.After(0.3, function() S_Unit(self, startIndex + 101) end)
 end
 
 
@@ -1486,9 +1486,9 @@ do
         {name='Spell', func=S_Spell, tooltip='30w0234 09:55', text='法术 <'..MK(MaxSpellID), atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
         {name='Spell2', func=S_Spell2, text='法术 '..MK(MinSpell2ID)..' - '..MK(MaxSpell2ID)},--, cahce=S_CacheSpell2
         {name='Item', func=S_Item, tooltip='16w3018 05:50', text='物品 <'..MK(MaxItemID)},--cahce=S_CacheItem, 
-        {name='Unit', func=S_Unit, tooltip='10w7939 19:48', text='怪物名称 <'..MK(MaxUnitID)},
+        {name='Unit', func=S_Unit, tooltip='10w7939 15:00', text='怪物名称 <'..MK(MaxUnitID)},
         {name='Quest', func=S_Quest, tooltip='1w9962 04:08', text='任务 <'..MK(MaxQuestID)},--cahce=S_CacheQuest, 
-        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, text='成就 <'..MK(MaxAchievementID), tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},--
+        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, text='成就 <'..MK(MaxAchievementID), tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},--
         {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', text='Boss 综述 <'..MK(MaxEncounterID)},
         {name='SectionEncounter', func=S_SectionEncounter, text='Boss 技能 <'..MK(MaxSectionEncounterID), tooltip='6w3134 00:50'},
         --{name='Holyday', func=S_Holyday, tooltip='119条'},
