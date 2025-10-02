@@ -64,7 +64,7 @@ local function MK(number)
         local b=3
         local t=''
         if number>=1e7 then
-            number= (number/1e9)
+            number= (number/1e7)
             t='|cffff00ffm|r'
             b=6
         elseif number>= 1e4 then
