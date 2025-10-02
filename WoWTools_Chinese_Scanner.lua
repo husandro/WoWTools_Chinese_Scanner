@@ -29,7 +29,7 @@ local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
 
 local MaxSpell2ID= (GameVer+2)*1000000--120w- 150w
 local MinSpell2ID= 1200000
-local Frame
+local Frame, MaxButtonLabel
 local Buttons={}
 
 local function Save()
@@ -127,7 +127,7 @@ local function Is_StopRun(self, startIndex, maxID)
         self.num= 0
 
         --table.sort(_G['WoWTools_SC_'..self.name])
-
+        MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
         return true
     end
 end
@@ -142,6 +142,7 @@ local function Set_ValueText(self, startIndex, maxID)
         MK(self.num),
         va
     )
+    MaxButtonLabel:SetFormattedText('%.1f%%', va)
     self.bar:SetValue(va)
 end
 
@@ -1036,52 +1037,6 @@ end
 
 
 
-local function S_Holyday(self, startIndex)
-
-   if Is_StopRun(self, startIndex, 25) then
-        return
-    end
-
-    if startIndex==1 then
-        WoWTools_SC_Holyday={}
-        self.num= 0
-        C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
-        C_Calendar.SetMonth(-13)
-    end
-
-    do
-        C_Calendar.SetMonth(1)
-    end
-
-    for day=1, 31 do
-        for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
-            local data= C_Calendar.GetDayEvent(0, day, index)
-            if data and data.eventID and not WoWTools_SC_Holyday[data.eventID] and data.calendarType~='PLAYER' then
-                local holiday= C_Calendar.GetHolidayInfo(0, day, index)
-                local desc, title
-                if IsCN(data.title) then
-                    title= data.title
-                end
-                if holiday and IsCN(holiday.description) then
-                    desc= holiday.description
-                end
-                if title or desc then
-                    WoWTools_SC_Holyday[data.eventID]= {
-                        T=title,
-                        D=desc
-                    }
-
-                    self.num= self.num+1
-                end
-            end
-        end
-    end
-
-    Set_ValueText(self, startIndex, 25)
-    Save()[self.name]= startIndex
-
-    C_Timer.After(0.3, function() S_Holyday(self, startIndex + 1) end)
-end
 
 
 
@@ -1370,7 +1325,7 @@ local function Set_Point(self)
 end
 
 local function Save_Point(self)
-     ResetCursor()
+    ResetCursor()
     self:StopMovingOrSizing()
 --确认框架中心点，在屏幕内
     local isInSchermo= true
@@ -1383,7 +1338,7 @@ local function Save_Point(self)
         isInSchermo = false
     end
     if isInSchermo then
-        Save().point= {Frame:GetPoint(1)}
+        Save().point= {self:GetPoint(1)}
         Save().point[2]= nil
     end
 end
@@ -1416,7 +1371,7 @@ local function Init()
         Set_Point(self)
     end)
     Set_Point(Frame)
-    
+
     local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
     maxButton:SetFrameStrata('HIGH')
     maxButton:SetFrameLevel(502)
@@ -1429,13 +1384,14 @@ local function Init()
     maxButton:SetMovable(true)
     maxButton:SetClampedToScreen(true)
     maxButton:RegisterForDrag("RightButton")
-    maxButton:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    maxButton:SetScript("OnLeave", function() GameTooltip:Hide() ResetCursor() end)
     maxButton:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText(addName)
         GameTooltip:AddDoubleLine('|A:plunderstorm-pickup-mouseclick-left:0:0|a显示', '移动|A:plunderstorm-pickup-mouseclick-right:0:0|a')
         GameTooltip:Show()
     end)
+    maxButton:SetScript("OnMouseUp", function() ResetCursor() end)
     maxButton:SetScript("OnMouseDown", function(self, d)
         if d=='LeftButton' then
             Frame:Show()
@@ -1443,8 +1399,6 @@ local function Init()
         end
         SetCursor('UI_MOVE_CURSOR')
     end)
-    maxButton:SetScript("OnMouseUp", function() ResetCursor() end)
-    maxButton:SetScript("OnLeave", function() ResetCursor() end)
     maxButton:SetScript("OnDragStart", function(self) self:StartMoving() end)
     maxButton:SetScript("OnDragStop", function(self)
        Save_Point(self)
@@ -1452,8 +1406,16 @@ local function Init()
     maxButton:SetScript('OnShow', function(self)
         Set_Point(self)
         self:SetButtonState('NORMAL')
+        self:SetScale(2)
+        C_Timer.After(0.3, function() self:SetScale(1) end)
+        C_Timer.After(0.6, function() self:SetScale(2) end)
+        C_Timer.After(1, function() self:SetScale(1) end)
+        MaxButtonLabel:SetText('')
     end)
-    
+
+    MaxButtonLabel= maxButton:CreateFontString('WoWToolsSCMaxButtonLabel', "OVERLAY")
+    MaxButtonLabel:SetFontObject('GameFontNormal')
+    MaxButtonLabel:SetPoint('BOTTOM', maxButton, 'TOP')
 
     local minButton= CreateFrame('Button', 'WoWTools_SC_FrameMinimizeButton', Frame)
     minButton:SetSize(23,23)
@@ -1463,6 +1425,7 @@ local function Init()
     minButton:SetPoint('TOPRIGHT')
     minButton:SetScript('OnShow', function(self)
         self:SetButtonState('NORMAL')
+
     end)
     minButton:SetScript('OnMouseDown', function(self)
         self:GetParent():Hide()
@@ -1617,3 +1580,73 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
     Init()
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function S_Holyday(self, startIndex)
+
+   if Is_StopRun(self, startIndex, 25) then
+        return
+    end
+
+    if startIndex==1 then
+        WoWTools_SC_Holyday={}
+        self.num= 0
+        C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
+        C_Calendar.SetMonth(-13)
+    end
+
+    do
+        C_Calendar.SetMonth(1)
+    end
+
+    for day=1, 31 do
+        for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
+            local data= C_Calendar.GetDayEvent(0, day, index)
+            if data and data.eventID and not WoWTools_SC_Holyday[data.eventID] and data.calendarType~='PLAYER' then
+                local holiday= C_Calendar.GetHolidayInfo(0, day, index)
+                local desc, title
+                if IsCN(data.title) then
+                    title= data.title
+                end
+                if holiday and IsCN(holiday.description) then
+                    desc= holiday.description
+                end
+                if title or desc then
+                    WoWTools_SC_Holyday[data.eventID]= {
+                        T=title,
+                        D=desc
+                    }
+
+                    self.num= self.num+1
+                end
+            end
+        end
+    end
+
+    Set_ValueText(self, startIndex, 25)
+    Save()[self.name]= startIndex
+
+    C_Timer.After(0.3, function() S_Holyday(self, startIndex + 1) end)
+end
