@@ -14,21 +14,21 @@ local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
-local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
-local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
-local MaxEncounterID= (GameVer-9)*10000+5000--25000
+local MaxAchievementID= (GameVer-4)*1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+local MaxQuestID= GameVer*1e4--11.2.5 版本 93516
+local MaxEncounterID= (GameVer-8)*1e4--25000
 
 --local MaxSectionEncounterID= #DifficultyTab
 
 --local MaxSectionEncounterMaxID= 
-local MaxSectionEncounterID= (GameVer-7)*10000--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
-local MaxUnitID= (GameVer-8)*100000--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
-local MaxItemID= (GameVer-8)*100000--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer-6)*100000-- 50w0000 229270
+local MaxSectionEncounterID= (GameVer-7)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+local MaxUnitID= (GameVer-8)*1e5--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
+local MaxItemID= (GameVer-8)*1e5--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxSpellID=(GameVer-6)*1e5-- 50w0000 229270
 
 
-local MaxSpell2ID= (GameVer+2)*1000000--120w- 150w
-local MinSpell2ID= 1200000
+local MaxSpell2ID= (GameVer+2)*1e5--120w- 150w
+local MinSpell2ID= 12*1e5
 local Frame, MaxButtonLabel
 local Buttons={}
 
@@ -64,9 +64,9 @@ local function MK(number)
         local b=3
         local t=''
         if number>=1e8 then
-            number= (number/1e8)
+            number= (number/1e8)-- 1 0000 0000
             t='|cffff00ffm|r'
-            b=6
+            b=8
         elseif number>= 1e4 then
             number= (number/1e4)
             t='|cff00ff00w|r'
