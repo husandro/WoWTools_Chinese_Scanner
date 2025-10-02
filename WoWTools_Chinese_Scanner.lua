@@ -65,20 +65,25 @@ local function MK(number)
         local t=''
         if number>=1e8 then
             number= (number/1e8)-- 1 0000 0000
-            t='|cffff00ffm|r'
+            t='|cffff4800m|r'
             b=8
         elseif number>= 1e4 then
             number= (number/1e4)
-            t='|cff00ff00w|r'
+            t='|cffff00ffw|r'
             b=4
         elseif number>=1e3 then
             number= (number/1e3)
-            t='|cffffffffk|r'
+            t='|cff00ff00k|r'
         else
             return number..''
         end
-        local num= format('%0.'..b..'f', number)
-        return num:gsub('%.', t)
+
+        local num, point= math.modf(number)
+        if point==0 then
+            return num..t
+        else--0.5/10^bit
+            return format('%0.'..b..'f', number):gsub('%.', t)
+        end
     end
 end
 
@@ -90,17 +95,17 @@ end
 
 
 
-local function Is_StopRun(self, startIndex, maxID)
+local function Is_StopRun(self, startIndex)
     if self.isStop then
         self.Value:SetFormattedText(
             '|cffff8200暂停, %s条, %.1f%%',
-            MK(startIndex),
-            startIndex/maxID*100
+            MK(self.num),
+            (startIndex-self.min)/(self.max-self.min)*100
         )
-        self.Name:SetText(self.text or self.name)
+        self.Name:SetText(self.text)
         return true
 
-    elseif (startIndex > maxID) then
+    elseif (startIndex > self.max) then
         self.bar:SetValue(100)
         local clock= SecondsToClock(GetTime()-self.time)
         clock= clock:gsub('：', ':')
@@ -109,7 +114,7 @@ local function Is_StopRun(self, startIndex, maxID)
             MK(self.num),
             clock
         )
-        self.Name:SetText(self.text or self.name)
+        self.Name:SetText(self.text)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
 
@@ -134,9 +139,9 @@ local function Is_StopRun(self, startIndex, maxID)
     end
 end
 
-local function Set_ValueText(self, startIndex, maxID)
+local function Set_ValueText(self, startIndex)
     Save()[self.name] = startIndex
-    local va= startIndex/maxID*100
+    local va= (startIndex-self.min)/(self.max-self.min)*100
     local clock= SecondsToClock(GetTime()-self.time)
     clock= clock:gsub('：', ':')
     self.Value:SetFormattedText(
@@ -145,18 +150,18 @@ local function Set_ValueText(self, startIndex, maxID)
         MK(self.num),
         va
     )
-    MaxButtonLabel:SetFormattedText('%.1f%%', va)
+    MaxButtonLabel:SetFormattedText('%.1f', va)
     self.bar:SetValue(va)
 end
 
-local function Is_StopCahceRun(self, startIndex, maxID)
+local function Is_StopCahceRun(self, startIndex)
     if self.isCahceStop then
         print(addName, '|cffff0000停止|r, 获取“'..self.name..'”数据')
         self.bar2:Hide()
         self.bar2:SetValue(0)
         return true
 
-    elseif (startIndex > maxID) then
+    elseif (startIndex > self.max) then
         print(addName, '获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
         self.bar2:SetValue(0)
         self.bar2:Hide()
@@ -212,7 +217,7 @@ end
 --Encounter [字符journalEncounterID]= {T=, D=}
 local function Save_Encounter(self, journalEncounterID)
     local name, desc
-    local n, d, _, _, link = EJ_GetEncounterInfo(journalEncounterID)
+    local n, d = EJ_GetEncounterInfo(journalEncounterID)
     if IsCN(n) then
         name= n
     end
@@ -225,22 +230,22 @@ local function Save_Encounter(self, journalEncounterID)
             D=desc
         }
         self.num= self.num+1
-        return link or name
+        return name
     end
 
 end
 
 local function S_Encounter(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxEncounterID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     for journalEncounterID = startIndex, startIndex + 100 do
-        local link= Save_Encounter(self, journalEncounterID)
-        if link then
-            self.Name:SetText(link)
+        local title= Save_Encounter(self, journalEncounterID)
+        if title then
+            self.Name:SetText(title)
         end
     end
-    Set_ValueText(self, startIndex, MaxEncounterID)
+    Set_ValueText(self, startIndex)
     Save()[self.name] = startIndex
     C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101) end)
 end
@@ -300,7 +305,7 @@ end
 
 
 local function S_SectionEncounter(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxSectionEncounterID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
@@ -311,7 +316,7 @@ local function S_SectionEncounter(self, startIndex)
             end
         end
     end
-    Set_ValueText(self, startIndex, MaxSectionEncounterID)
+    Set_ValueText(self, startIndex)
     Save()[self.name] = startIndex
 
     C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
@@ -382,7 +387,7 @@ local function Save_Unit(self, unit)--字符
     end
 end
 local function S_Unit(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxUnitID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
 
@@ -393,7 +398,7 @@ local function S_Unit(self, startIndex)
         end
     end
 
-    Set_ValueText(self, startIndex, MaxUnitID)
+    Set_ValueText(self, startIndex)
     Save()[self.name] = startIndex
 
     C_Timer.After(0.3, function() S_Unit(self, startIndex + 101) end)
@@ -432,12 +437,12 @@ C_Item.RequestLoadItemDataByID(212021)
 
 --[[
 local function S_CacheItem(self, startIndex)
-    if Is_StopCahceRun(self, startIndex, MaxItemID) then
+    if Is_StopCahceRun(self, startIndex) then
         return
     end
     for itemID = startIndex, startIndex + 100 do
         Cahce_Item(self, itemID)
-        self.bar2:SetValue(itemID/MaxItemID*100)
+        self.bar2:SetValue(itemID/self.max*100)
         self.bar2:SetShown(true)
     end
 
@@ -526,14 +531,13 @@ end
 
 
 local function Cahce_Item(self, itemID)
-    if itemID and C_Item.GetItemInfoInstant(itemID) then
-        if not C_Item.IsItemDataCachedByID(itemID) then
-            ItemEventListener:AddCallback(itemID, function()
-                Save_Item(self, itemID)
-            end)
-        else
-            return Save_Item(self, itemID)--字符
-        end
+    --if itemID and C_Item.GetItemInfoInstant(itemID) then
+    if not C_Item.IsItemDataCachedByID(itemID) then
+        ItemEventListener:AddCallback(itemID, function()
+            Save_Item(self, itemID)
+        end)
+    else
+        return Save_Item(self, itemID)--字符
     end
 end
 
@@ -561,7 +565,7 @@ end
 
 
 local function S_Item(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxItemID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     for itemID = startIndex, startIndex + 100 do
@@ -570,7 +574,7 @@ local function S_Item(self, startIndex)
             self.Name:SetText(title..' '..itemID)
         end
     end
-    Set_ValueText(self, startIndex, MaxItemID)
+    Set_ValueText(self, startIndex)
     C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
 end
 --[[
@@ -711,7 +715,7 @@ local function Cahce_Quest(self, questID)
 end
 
 local function S_Quest(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxQuestID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
 
@@ -722,7 +726,7 @@ local function S_Quest(self, startIndex)
         end
     end
 
-    Set_ValueText(self, startIndex, MaxQuestID)
+    Set_ValueText(self, startIndex)
     C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
 end
 
@@ -793,7 +797,7 @@ local function Save_Spell(self, spellID)
     if tab then
         _G['WoWTools_SC_'..self.name][spellID] = tab
         self.num= self.num+1
-        return C_Spell.GetSpellLink(spellID) or tab.T
+        return tab.T
     end
 end
 
@@ -809,7 +813,7 @@ end
 
 
 local function S_Spell(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxSpellID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     for spellID = startIndex, startIndex + 100 do
@@ -818,13 +822,13 @@ local function S_Spell(self, startIndex)
             self.Name:SetText(title..' '.. spellID)
         end
     end
-    Set_ValueText(self, startIndex, MaxSpellID)
+    Set_ValueText(self, startIndex)
     C_Timer.After(0.1, function() S_Spell(self, startIndex + 101) end)
 end
 
 
 local function S_Spell2(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxSpell2ID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     for spellID = startIndex, startIndex + 100 do
@@ -833,7 +837,7 @@ local function S_Spell2(self, startIndex)
             self.Name:SetText(title..' '.. spellID)
         end
     end
-    Set_ValueText(self, startIndex, MaxSpell2ID)
+    Set_ValueText(self, startIndex)
     C_Timer.After(0.1, function() S_Spell2(self, startIndex + 101) end)
 end
 
@@ -943,16 +947,16 @@ local function Cahce_Achievement(achievementID)
 end
 
 local function S_CacheAchievement(self, startIndex)
-    if Is_StopCahceRun(self, startIndex, MaxAchievementID) then
+    if Is_StopCahceRun(self, startIndex) then
         return
     end
     for achievementID = startIndex, startIndex + 100 do
         Cahce_Achievement(achievementID)
-        self.bar2:SetValue(achievementID/MaxAchievementID*100)
+        self.bar2:SetValue(achievementID/self.max*100)
         self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 101) end)
 end
 
 local function Get_Achievement_Tab(achievementID)
@@ -1001,7 +1005,7 @@ end
 
 
 local function S_Achievement(self, startIndex)
-    if Is_StopRun(self, startIndex, MaxAchievementID) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     for achievementID = startIndex, startIndex + 100 do
@@ -1011,7 +1015,7 @@ local function S_Achievement(self, startIndex)
             self.Name:SetText(select(2, GetAchievementInfo(achievementID)) or title)
         end
     end
-    Set_ValueText(self, startIndex, MaxAchievementID)
+    Set_ValueText(self, startIndex)
     C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101) end)
 end
 
@@ -1107,11 +1111,14 @@ StaticPopupDialogs['WoWTools_SC']={
 local y= -40
 local function Create_Button(tab)
     local name= tab.name
+    local text= tab.text..' '..(tab.min and MK(tab.min)..' - ' or '')..MK(tab.max)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
     btn.name= name
-    btn.text= tab.text
+    btn.text= text
     btn.func= tab.func
+    btn.min= tab.min or 1
+    btn.max= tab.max
 
     if tab.texture then
         btn:SetNormalTexture(tab.texture)
@@ -1146,8 +1153,8 @@ local function Create_Button(tab)
             if self.name=='Spell' then
                 C_Spell.RequestLoadSpellData(258483)
             end
-            local min= Save()[self.name] or (self.name=='Spell2' and MinSpell2ID or 1)
-            self.func(self, min)
+            local min= Save()[self.name] or self.min or 1
+            self.func(self, min, self.max)
         end
     end)
 
@@ -1179,7 +1186,7 @@ local function Create_Button(tab)
     btn.Name= btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Name:SetFontObject('GameFontWhite')
     btn.Name:SetPoint('LEFT', btn.bar)
-    btn.Name:SetText(tab.text or name)
+    btn.Name:SetText(text)
 
     btn.Ver=  btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Ver:SetFontObject("GameFontWhite")
@@ -1224,7 +1231,9 @@ local function Create_Button(tab)
         btn.cahce:SetSize(23,23)
         btn.cahce.func= tab.cahce
         btn.cahce.name= name
-        btn.cahce.text= tab.text
+        btn.cahce.text= text
+        btn.cahce.min= tab.min
+        btn.cahce.max= tab.max
         function btn.cahce:set_tooltip()
             local p= self:GetParent()
             if not p then return end
@@ -1255,7 +1264,7 @@ local function Create_Button(tab)
         function btn.cahce:run()
             local p= self:GetParent()
             p.isCahceStop= not p.isCahceStop and true or false
-            self.func(p, Save()[self.name..'Cache'] or 1)
+            self.func(p, Save()[self.name..'Cache'] or self.min or 1, self.max)
             p.cahceTime= not p.isCahceStop and GetTime() or nil
             self:settings()
             self:set_tooltip()
@@ -1483,14 +1492,14 @@ local function Init()
 
 do
     for _, tab in pairs({
-        {name='Spell', func=S_Spell, tooltip='30w0234 09:55', text='法术 <'..MK(MaxSpellID), atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
-        {name='Spell2', func=S_Spell2, text='法术 '..MK(MinSpell2ID)..' - '..MK(MaxSpell2ID)},--, cahce=S_CacheSpell2
-        {name='Item', func=S_Item, tooltip='16w3018 05:50', text='物品 <'..MK(MaxItemID)},--cahce=S_CacheItem, 
-        {name='Unit', func=S_Unit, tooltip='10w7939 15:00', text='怪物名称 <'..MK(MaxUnitID)},
-        {name='Quest', func=S_Quest, tooltip='1w9962 04:08', text='任务 <'..MK(MaxQuestID)},--cahce=S_CacheQuest, 
-        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, text='成就 <'..MK(MaxAchievementID), tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},--
-        {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', text='Boss 综述 <'..MK(MaxEncounterID)},
-        {name='SectionEncounter', func=S_SectionEncounter, text='Boss 技能 <'..MK(MaxSectionEncounterID), tooltip='6w3134 00:50'},
+        {name='Spell', func=S_Spell, tooltip='30w0234 09:55', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
+        {name='Spell2', func=S_Spell2, tooltip='1w0443 01:40', min=MinSpell2ID, max=MaxSpell2ID, text='法术II'},--, cahce=S_CacheSpell2
+        {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品'},--cahce=S_CacheItem, 
+        {name='Unit', func=S_Unit, tooltip='17w7693 15:00', max=MaxUnitID,text='怪物名称'},
+        {name='Quest', func=S_Quest, tooltip='1w9962 04:08', max=MaxQuestID,text='任务'},--cahce=S_CacheQuest, 
+        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},--
+        {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', max=MaxEncounterID, text='Boss 综述'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 00:50'},
         --{name='Holyday', func=S_Holyday, tooltip='119条'},
     }) do
         Create_Button(tab)
@@ -1609,7 +1618,7 @@ end)
 
 local function S_Holyday(self, startIndex)
 
-   if Is_StopRun(self, startIndex, 25) then
+   if Is_StopRun(self, startIndex) then
         return
     end
 
@@ -1648,7 +1657,7 @@ local function S_Holyday(self, startIndex)
         end
     end
 
-    Set_ValueText(self, startIndex, 25)
+    Set_ValueText(self, startIndex)
     Save()[self.name]= startIndex
 
     C_Timer.After(0.3, function() S_Holyday(self, startIndex + 1) end)
