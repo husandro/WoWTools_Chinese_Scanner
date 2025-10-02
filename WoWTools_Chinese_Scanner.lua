@@ -10,7 +10,7 @@ C_TooltipInfo.GetHyperlink('quest:' .. questID)
 
 
 
-local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描'
+local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r|cff28a3ffChinese|r数据扫描'
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
@@ -166,6 +166,23 @@ local function Is_StopCahceRun(self, startIndex, maxID)
         return true
     end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -555,7 +572,7 @@ local function Set_Item_Event(self)
             if success then
                 Save_Item(f, itemID)
             else
-                C_Item.RequestLoadItemDataByID(itemID)
+                C_Timer.After(3, function() Cahce_Item(itemID) end)
             end
         end
     end)
@@ -703,7 +720,7 @@ local function Set_Quest_Event(self)
             if success then
                 Save_Quest(self, questID)
             else
-                C_QuestLog.RequestLoadQuestByID(questID)
+                C_Timer.After(3, function() Cahce_Quest(questID) end)
             end
         end
     end)
@@ -812,7 +829,7 @@ local function Set_Spell_Event(self)
             if success then
                 Save_Spell(self, spellID)
             else
-                C_Spell.RequestLoadSpellData(spellID)
+                C_Timer.After(3, function() Cahce_Spell(spellID) end)
             end
         end
     end)
@@ -915,7 +932,7 @@ local function Set_Spell2_Event(self)
             if success then
                 Save_Spell2(self, spellID)
             else
-                C_Spell.RequestLoadSpellData(spellID)
+                C_Timer.After(3, function() Cahce_Spell2(spellID) end)
             end
         end
     end)
@@ -1348,6 +1365,7 @@ end
 
 local function Init()
     Frame= CreateFrame('Frame', 'WoWTools_SC_Frame', UIParent)
+    Frame:Hide()
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
     Frame:SetSize(520, 400)
@@ -1370,12 +1388,12 @@ local function Init()
     Frame:SetScript('OnShow', function(self)
         Set_Point(self)
     end)
-    Set_Point(Frame)
+    
 
     local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
+    maxButton:Hide()
     maxButton:SetFrameStrata('HIGH')
     maxButton:SetFrameLevel(502)
-    maxButton:Hide()
     maxButton:SetSize(23, 23)
     --maxButton:SetNormalAtlas('RedButton-Expand')
     maxButton:SetNormalTexture('Interface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga')
@@ -1403,6 +1421,9 @@ local function Init()
     maxButton:SetScript("OnDragStop", function(self)
        Save_Point(self)
     end)
+    maxButton:SetScript('OnHide', function()
+        Save().MaxButtonIsShow= nil
+    end)
     maxButton:SetScript('OnShow', function(self)
         Set_Point(self)
         self:SetButtonState('NORMAL')
@@ -1411,6 +1432,7 @@ local function Init()
         C_Timer.After(0.4, function() self:SetScale(2) end)
         C_Timer.After(0.6, function() self:SetScale(1) end)
         MaxButtonLabel:SetText('')
+        Save().MaxButtonIsShow= true
     end)
 
     MaxButtonLabel= maxButton:CreateFontString('WoWToolsSCMaxButtonLabel', "OVERLAY")
@@ -1425,7 +1447,6 @@ local function Init()
     minButton:SetPoint('TOPRIGHT')
     minButton:SetScript('OnShow', function(self)
         self:SetButtonState('NORMAL')
-
     end)
     minButton:SetScript('OnMouseDown', function(self)
         self:GetParent():Hide()
@@ -1535,6 +1556,13 @@ end
     end
 
     Load_Item()
+
+
+    if Save().MaxButtonIsShow then
+        maxButton:Show()
+    else
+        Frame:Show()
+    end
 
     Init=function()end
 end
