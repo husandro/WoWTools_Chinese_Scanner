@@ -1360,6 +1360,7 @@ end
 
 
 local function Set_Point(self)
+    self:ClearAllPoints()
      local point= Save().point
     if point and point[1] then
         self:SetPoint(point[1], UIParent, point[3], point[4], point[5])
@@ -1419,17 +1420,26 @@ local function Init()
     local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
     maxButton:SetFrameStrata('HIGH')
     maxButton:SetFrameLevel(502)
-    --maxButton:Hide()
+    maxButton:Hide()
     maxButton:SetSize(23, 23)
-    maxButton:SetNormalAtlas('RedButton-Expand')
+    --maxButton:SetNormalAtlas('RedButton-Expand')
+    maxButton:SetNormalTexture('Interface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga')
     maxButton:SetPushedAtlas('RedButton-Expand-Pressed')
     maxButton:SetHighlightAtlas('RedButton-Highlight')
     maxButton:SetMovable(true)
     maxButton:SetClampedToScreen(true)
     maxButton:RegisterForDrag("RightButton")
-    maxButton:SetScript("OnMouseDown", function(_, d)
+    maxButton:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    maxButton:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+        GameTooltip:SetText(addName)
+        GameTooltip:AddDoubleLine('|A:plunderstorm-pickup-mouseclick-left:0:0|a显示', '移动|A:plunderstorm-pickup-mouseclick-right:0:0|a')
+        GameTooltip:Show()
+    end)
+    maxButton:SetScript("OnMouseDown", function(self, d)
         if d=='LeftButton' then
             Frame:Show()
+            self:Hide()
         end
         SetCursor('UI_MOVE_CURSOR')
     end)
@@ -1441,6 +1451,7 @@ local function Init()
     end)
     maxButton:SetScript('OnShow', function(self)
         Set_Point(self)
+        self:SetButtonState('NORMAL')
     end)
     
 
@@ -1450,8 +1461,12 @@ local function Init()
     minButton:SetPushedAtlas('RedButton-Condense-Pressed')
     minButton:SetHighlightAtlas('RedButton-Highlight')
     minButton:SetPoint('TOPRIGHT')
+    minButton:SetScript('OnShow', function(self)
+        self:SetButtonState('NORMAL')
+    end)
     minButton:SetScript('OnMouseDown', function(self)
         self:GetParent():Hide()
+        maxButton:Show()
     end)
 
 
