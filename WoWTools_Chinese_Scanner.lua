@@ -16,7 +16,7 @@ local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
 local MaxAchievementID= (GameVer-4)*10000-- 11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer*10000 --11.2.5 版本 93516
-local MaxEncounterID= 25000
+local MaxEncounterID= (GameVer-9)*10000+5000--25000
 
 --local MaxSectionEncounterID= #DifficultyTab
 
@@ -97,7 +97,7 @@ local function Is_StopRun(self, startIndex, maxID)
             MK(startIndex),
             startIndex/maxID*100
         )
-        self.Name:SetText(self.name)
+        self.Name:SetText(self.text or self.name)
         return true
 
     elseif (startIndex > maxID) then
@@ -109,7 +109,7 @@ local function Is_StopRun(self, startIndex, maxID)
             MK(self.num),
             clock
         )
-        self.Name:SetText(self.name)
+        self.Name:SetText(self.text or self.name)
         Save()[self.name] = nil
         Save()[self.name..'Ver']= Ver
 
@@ -129,10 +129,11 @@ local function Is_StopRun(self, startIndex, maxID)
 
         --table.sort(_G['WoWTools_SC_'..self.name])
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
-        print(addName, self.name, '|cnGREEN_FONT_COLOR:完成')
+        print(addName, self.text or self.name, '|cnGREEN_FONT_COLOR:完成')
         return true
     end
 end
+
 local function Set_ValueText(self, startIndex, maxID)
     Save()[self.name] = startIndex
     local va= startIndex/maxID*100
@@ -220,8 +221,8 @@ local function Save_Encounter(self, journalEncounterID)
     end
     if name or desc then
         _G['WoWTools_SC_'..self.name][journalEncounterID] = {
-            ['T']=name,
-            ['D']=desc
+            T=name,
+            D=desc
         }
         self.num= self.num+1
         return link or name
@@ -241,7 +242,7 @@ local function S_Encounter(self, startIndex)
     end
     Set_ValueText(self, startIndex, MaxEncounterID)
     Save()[self.name] = startIndex
-    C_Timer.After(0.1, function() S_Encounter(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101) end)
 end
 
 
@@ -313,7 +314,7 @@ local function S_SectionEncounter(self, startIndex)
     Set_ValueText(self, startIndex, MaxSectionEncounterID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 100+ 1) end)
+    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
 end
 
 
@@ -366,8 +367,8 @@ local function Get_Unit_Tab(unit)
     end
     if title then
         return {
-            ['T']= title,
-            ['D']= desc,
+            T= title,
+            D= desc,
         }
     end
 end
@@ -395,7 +396,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex, MaxUnitID)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.1, function() S_Unit(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
 end
 
 
@@ -441,7 +442,7 @@ local function S_CacheItem(self, startIndex)
     end
 
     Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 101) end)
 end]]
 
 
@@ -506,8 +507,8 @@ local function Get_Item_Tab(itemID)
         Set_ItemSets(itemID)
 
         return {
-            ['T']= C_Item.GetItemInfo(itemID) or data.lines[1].leftText,
-            ['D']= Get_Item_Lines(data.lines),
+            T= C_Item.GetItemInfo(itemID) or data.lines[1].leftText,
+            D= Get_Item_Lines(data.lines),
         }
     end
 end
@@ -527,7 +528,7 @@ end
 local function Cahce_Item(self, itemID)
     if itemID and C_Item.GetItemInfoInstant(itemID) then
         if not C_Item.IsItemDataCachedByID(itemID) then
-            ItemEventListener:AddCancelableCallback(itemID, function()
+            ItemEventListener:AddCallback(itemID, function()
                 Save_Item(self, itemID)
             end)
         else
@@ -570,11 +571,11 @@ local function S_Item(self, startIndex)
         end
     end
     Set_ValueText(self, startIndex, MaxItemID)
-    C_Timer.After(0.1, function() S_Item(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
 end
 --[[
 local function Set_Item_Event(self)
-    self:RegisterEvent('ITEM_DATA_LOAD_RESULT')--ItemEventListener:AddCancelableCallback(self:GetItemID(), callbackFunction)
+    self:RegisterEvent('ITEM_DATA_LOAD_RESULT')--ItemEventListener:AddCallback(self:GetItemID(), callbackFunction)
     self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('ITEM_DATA_LOAD_RESULT')
@@ -622,13 +623,7 @@ end
 
 
 --任务
-local function Cahce_Quest(questID)
-    if not HaveQuestData(questID) then
-        C_QuestLog.RequestLoadQuestByID(questID)
-    else
-        return true
-    end
-end
+
 --[[local function S_CacheQuest(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxQuestID) then
         return
@@ -636,7 +631,7 @@ end
 
 
     for questID = startIndex, startIndex + 100 do
-        Cahce_Quest(questID)
+        Cahce_Quest(self, questID)
         self.bar2:SetValue(questID/MaxQuestID*100)
         self.bar2:SetShown(true)
     end
@@ -690,9 +685,9 @@ local function Get_Quest_Tab(questID)
     end
 
     return {
-        ['T']= title,
-        ['O']= obj,
-        ['S']= Get_Objectives(questID),
+        T= title,
+        O= obj,
+        S= Get_Objectives(questID),
     }
 end
 --任务 [字符questID]={T=, O= S={}}
@@ -701,7 +696,17 @@ local function Save_Quest(self, questID)
     if tab then
         _G['WoWTools_SC_'..self.name][questID] = tab
         self.num= self.num+1
-        return true
+        return tab.T
+    end
+end
+
+local function Cahce_Quest(self, questID)
+    if not HaveQuestData(questID) then
+        QuestEventListener:AddCallback(questID, function()
+            Save_Quest(self, questID)
+        end)
+    else
+        return Save_Quest(self, questID)
     end
 end
 
@@ -711,13 +716,14 @@ local function S_Quest(self, startIndex)
     end
 
     for questID = startIndex, startIndex + 100 do
-        if Cahce_Quest(questID) and Save_Quest(self, questID) then
-            self.Name:SetText(C_QuestLog.GetTitleForQuestID(questID) or ('questID '..questID))
+        local title= Cahce_Quest(self, questID)
+        if title then
+            self.Name:SetText(title..' '..questID)
         end
     end
 
     Set_ValueText(self, startIndex, MaxQuestID)
-    C_Timer.After(0.1, function() S_Quest(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
 end
 
 --[[
@@ -732,7 +738,7 @@ self:SetScript('OnHide', self.UnregisterAllEvents)
             if success then
                 Save_Quest(self, questID)
             else
-                C_Timer.After(3, function() Cahce_Quest(questID) end)
+                C_Timer.After(3, function() Cahce_Quest(self, questID) end)
             end
         end
     end)
@@ -776,8 +782,8 @@ local function Get_Spell_Tab(spellID)
             desc= d
         end
         return {
-            ['T']= title,
-            ['D']= desc,
+            T= title,
+            D= desc,
         }
     end
 end
@@ -787,17 +793,17 @@ local function Save_Spell(self, spellID)
     if tab then
         _G['WoWTools_SC_'..self.name][spellID] = tab
         self.num= self.num+1
-        return tab.T
+        return C_Spell.GetSpellLink(spellID) or tab.T
     end
 end
 
 local function Cahce_Spell(self, spellID)
     if not C_Spell.IsSpellDataCached(spellID) then
-        SpellEventListener:AddCancelableCallback(spellID, function()
+        SpellEventListener:AddCallback(spellID, function()
             Save_Spell(self, spellID)
         end)
     else
-        return true
+        return Save_Spell(self, spellID)
     end
 end
 
@@ -807,9 +813,8 @@ local function S_Spell(self, startIndex)
         return
     end
     for spellID = startIndex, startIndex + 100 do
-        local title= Cahce_Spell(self, spellID) and Save_Spell(self, spellID)
+        local title= Cahce_Spell(self, spellID)
         if title then
-            title= C_Spell.GetSpellLink(spellID) or title
             self.Name:SetText(title..' '.. spellID)
         end
     end
@@ -823,9 +828,8 @@ local function S_Spell2(self, startIndex)
         return
     end
     for spellID = startIndex, startIndex + 100 do
-        local title= Cahce_Spell(self, spellID) and Save_Spell(self, spellID)
+        local title= Cahce_Spell(self, spellID)
         if title then
-            title= C_Spell.GetSpellLink(spellID) or title
             self.Name:SetText(title..' '.. spellID)
         end
     end
@@ -867,8 +871,8 @@ local function Get_Spell2_Tab(spellID)
             desc= d
         end
         return {
-            ['T']= title,
-            ['D']= desc,
+            T= title,
+            D= desc,
         }
     end
 end
@@ -977,10 +981,10 @@ local function Get_Achievement_Tab(achievementID)
             end
         end
         return {
-            ['T']= title,
-            ['D']= d,
-            ['R']= r,
-            ['S']= s,
+            T= title,
+            D= d,
+            R= r,
+            S= s,
         }
     end
 end
@@ -1008,7 +1012,7 @@ local function S_Achievement(self, startIndex)
         end
     end
     Set_ValueText(self, startIndex, MaxAchievementID)
-    C_Timer.After(0.1, function() S_Achievement(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101) end)
 end
 
 
@@ -1105,6 +1109,7 @@ local function Create_Button(name, tab)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
     btn.name= name
+    btn.text= tab.text
     btn.func= tab.func
 
     if tab.texture then
@@ -1119,7 +1124,7 @@ local function Create_Button(name, tab)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停').. '|r '..self.name)
+        GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停').. '|r '..(self.text or self.name))
         --GameTooltip:AddLine('运行前，请关闭所有插件')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
@@ -1128,8 +1133,9 @@ local function Create_Button(name, tab)
             for _, t in pairs (Save()[self.name..'Data']) do
                 GameTooltip:AddLine(t)
             end
-        elseif tab.tooltip then
-            GameTooltip:AddLine(tab.tooltip)
+        end
+        if tab.tooltip then
+            GameTooltip:AddLine('|cff626262'..tab.tooltip)
         end
         GameTooltip:Show()
     end)
@@ -1172,7 +1178,7 @@ local function Create_Button(name, tab)
     btn.Name= btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Name:SetFontObject('GameFontWhite')
     btn.Name:SetPoint('LEFT', btn.bar)
-    btn.Name:SetText(name)
+    btn.Name:SetText(tab.text or name)
 
     btn.Ver=  btn.bar:CreateFontString(nil, "OVERLAY")
     btn.Ver:SetFontObject("GameFontWhite")
@@ -1217,11 +1223,12 @@ local function Create_Button(name, tab)
         btn.cahce:SetSize(23,23)
         btn.cahce.func= tab.cahce
         btn.cahce.name= name
+        btn.cahce.text= tab.text
         function btn.cahce:set_tooltip()
             local p= self:GetParent()
             if not p then return end
             GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..self.name)
+            GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..(self.text or self.name))
             local clock= Save()[self.name..'CacheTime']
             if clock then
                 GameTooltip:AddLine('上次运行：'..clock)
@@ -1475,14 +1482,14 @@ local function Init()
 
 do
     for name, tab in pairs({
-        ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
-        ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:50'},
-        ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
-        ['Quest']= {func=S_Quest, tooltip='1w19962 04:08'},--cahce=S_CacheQuest, 
-        ['Item']= {func=S_Item, tooltip='16w3018 05:50'},--cahce=S_CacheItem, 
-        ['Spell']= {func=S_Spell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
-        ['Spell2']= {func=S_Spell2},--, cahce=S_CacheSpell2
-        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},--
+        ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04', text='Boss 综述 <'..MK(MaxEncounterID)},
+        ['SectionEncounter']= {func=S_SectionEncounter, text='Boss 技能 <'..MK(MaxSectionEncounterID), tooltip='6w3134 00:50'},
+        ['Unit']= {func=S_Unit, tooltip='10w7939 19:48', text='怪物名称 <'..MK(MaxUnitID)},
+        ['Quest']= {func=S_Quest, tooltip='1w9962 04:08', text='任务 <'..MK(MaxQuestID)},--cahce=S_CacheQuest, 
+        ['Item']= {func=S_Item, tooltip='16w3018 05:50', text='物品 <'..MK(MaxItemID)},--cahce=S_CacheItem, 
+        ['Spell']= {func=S_Spell, tooltip='30w0234 09:55', text='法术 <'..MK(MaxSpellID), atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
+        ['Spell2']= {func=S_Spell2, text='法术 '..MK(MinSpell2ID)..' - '..MK(MaxSpell2ID)},--, cahce=S_CacheSpell2
+        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, text='成就 <'..MK(MaxAchievementID), tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},--
         --['Holyday']= {func=S_Holyday, tooltip='119条'},
     }) do
         Create_Button(name, tab)
