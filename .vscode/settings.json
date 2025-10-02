@@ -48,7 +48,8 @@
         "ToggleCalendar",
         "CalendarFrame",
         "QuestMapFrame_OpenToQuestDetails",
-        "SOUNDKIT"
+        "SOUNDKIT",
+        "SpellEventListener"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

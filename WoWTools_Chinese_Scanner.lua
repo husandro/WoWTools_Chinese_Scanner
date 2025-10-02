@@ -49,6 +49,7 @@ local ReceString={
     [RETRIEVING_TRADESKILL_INFO] = 1,--正在获取信息
     ['要求：']=1,
     ['暂无信息']=1,
+    ['传承套装：套装奖励未激活']=1
 }
 local function IsCN(text)
     return
@@ -128,6 +129,7 @@ local function Is_StopRun(self, startIndex, maxID)
 
         --table.sort(_G['WoWTools_SC_'..self.name])
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
+        print(addName, self.name, '|cnGREEN_FONT_COLOR:完成')
         return true
     end
 end
@@ -424,32 +426,23 @@ C_Item.IsItemDataCachedByID(212021)
 C_Item.RequestLoadItemDataByID(212021)
 ]]
 
-local function Cahce_Item(itemID)
-    if itemID and C_Item.GetItemInfoInstant(itemID) then
-        if not C_Item.IsItemDataCachedByID(itemID) then
-            C_TooltipInfo.GetItemByID(itemID)
-            C_Item.RequestLoadItemDataByID(itemID)
-        else
-            return true
-        end
-    end
-end
 
 
 
+--[[
 local function S_CacheItem(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxItemID) then
         return
     end
     for itemID = startIndex, startIndex + 100 do
-        Cahce_Item(itemID)
+        Cahce_Item(self, itemID)
         self.bar2:SetValue(itemID/MaxItemID*100)
         self.bar2:SetShown(true)
     end
 
     Save()[self.name..'Cache']= startIndex
     C_Timer.After(0.1, function() S_CacheItem(self, startIndex + 100 + 1) end)
-end
+end]]
 
 
 local SpecItemTabs={}
@@ -479,23 +472,28 @@ local function Get_Item_Lines(lines)
     return desc
 end
 
-local function Get_ItemSets(itemID)
-    local specTab= SpecItemTabs[itemID]
-    if not specTab then
+local function Set_ItemSets(itemID)
+    local  _, itemLink, _, _, _, _, _, _, _, _, _, _, _, _, _, setID= C_Item.GetItemInfo(itemID)
+    if not setID then
         return
     end
-    local itemLink= select(2, C_Item.GetItemInfo(itemID)) or ('item:'..itemID..':0:0:0:0:0:0:0')
-    for specID, tab in pairs(specTab) do
-        local data= C_TooltipInfo.GetHyperlink(itemLink, tab.classID, specID)
-        local desc= data and Get_Item_Lines(data.lines)
-        if desc then
-            local setID= tab.setID
-            WoWTools_SC_SetsItem[setID]= WoWTools_SC_SetsItem[setID] or {}
-            WoWTools_SC_SetsItem[setID][specID]= desc
+    local specs= C_Item.GetItemSpecInfo(itemID)
+    if not specs then
+        return
+    end
+    for _, specID in pairs(specs) do
+        local classID= C_SpecializationInfo.GetClassIDFromSpecID(specID)
+        local data= C_TooltipInfo.GetHyperlink(itemLink, classID, specID)
+        if data then
+            local desc= Get_Item_Lines(data.lines)
+            if desc then
+                WoWTools_SC_SetsItem[setID]= WoWTools_SC_SetsItem[setID] or {}
+                WoWTools_SC_SetsItem[setID][specID]= desc
+            end
         end
     end
-
 end
+
 
 local function Get_Item_Tab(itemID)
     local data= C_TooltipInfo.GetItemByID(itemID)
@@ -505,7 +503,7 @@ local function Get_Item_Tab(itemID)
         and IsCN(data.lines[1].leftText)
     then
 
-        Get_ItemSets(itemID)
+        Set_ItemSets(itemID)
 
         return {
             ['T']= C_Item.GetItemInfo(itemID) or data.lines[1].leftText,
@@ -526,7 +524,20 @@ local function Save_Item(self, itemID)--字符
 end
 
 
-local function Load_Item()
+local function Cahce_Item(self, itemID)
+    if itemID and C_Item.GetItemInfoInstant(itemID) then
+        if not C_Item.IsItemDataCachedByID(itemID) then
+            ItemEventListener:AddCancelableCallback(itemID, function()
+                Save_Item(self, itemID)
+            end)
+        else
+            return Save_Item(self, itemID)--字符
+        end
+    end
+end
+
+
+local function Load_Item(self)
     for classID= 1, GetNumClasses() do
 		classID = select(3, GetClassInfo(classID)) or classID
         for specIndex = 1, C_SpecializationInfo.GetNumSpecializationsForClassID(classID) or 0 do
@@ -538,7 +549,7 @@ local function Load_Item()
                         if itemID then
                             SpecItemTabs[itemID]= SpecItemTabs[itemID] or {}
                             SpecItemTabs[itemID][specID]= {classID= classID, setID=data.setID}
-                            C_Item.RequestLoadItemDataByID(itemID)
+                            Cahce_Item(self, itemID)
                         end
                     end
                 end
@@ -547,12 +558,13 @@ local function Load_Item()
     end
 end
 
+
 local function S_Item(self, startIndex)
     if Is_StopRun(self, startIndex, MaxItemID) then
         return
     end
     for itemID = startIndex, startIndex + 100 do
-        local title= Cahce_Item(itemID) and Save_Item(self, itemID)
+        local title= Cahce_Item(self, itemID)
         if title then
             self.Name:SetText(title..' '..itemID)
         end
@@ -560,24 +572,24 @@ local function S_Item(self, startIndex)
     Set_ValueText(self, startIndex, MaxItemID)
     C_Timer.After(0.1, function() S_Item(self, startIndex + 100 + 1) end)
 end
-
+--[[
 local function Set_Item_Event(self)
     self:RegisterEvent('ITEM_DATA_LOAD_RESULT')--ItemEventListener:AddCancelableCallback(self:GetItemID(), callbackFunction)
-    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
+    self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('ITEM_DATA_LOAD_RESULT')
-    end)]]
+    end)
     self:SetScript('OnEvent', function(f, _, itemID, success)
         if itemID then
             if success then
                 Save_Item(f, itemID)
             else
-                C_Timer.After(3, function() Cahce_Item(itemID) end)
+                C_Timer.After(3, function() Cahce_Item(self, itemID) end)
             end
         end
     end)
 end
-
+]]
 
 
 
@@ -617,7 +629,7 @@ local function Cahce_Quest(questID)
         return true
     end
 end
-local function S_CacheQuest(self, startIndex)
+--[[local function S_CacheQuest(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxQuestID) then
         return
     end
@@ -631,7 +643,7 @@ local function S_CacheQuest(self, startIndex)
 
     Save()[self.name..'Cache']= startIndex
     C_Timer.After(0.1, function() S_CacheQuest(self, startIndex + 100 + 1) end)
-end
+end]]
 
 local function Get_Objectives(questID)
     local obj= C_QuestLog.GetQuestObjectives(questID)
@@ -708,13 +720,13 @@ local function S_Quest(self, startIndex)
     C_Timer.After(0.1, function() S_Quest(self, startIndex + 100 + 1) end)
 end
 
-
+--[[
 local function Set_Quest_Event(self)
     self:RegisterEvent('QUEST_DATA_LOAD_RESULT')
-    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
+self:SetScript('OnHide', self.UnregisterAllEvents)
     self:SetScript('OnShow', function(f)
         f:RegisterEvent('QUEST_DATA_LOAD_RESULT')
-    end)]]
+    end)
     self:SetScript('OnEvent', function(_, _, questID, success)
         if questID then
             if success then
@@ -725,6 +737,7 @@ local function Set_Quest_Event(self)
         end
     end)
 end
+]]
 
 
 
@@ -748,34 +761,11 @@ end
 
 
 
-
-
-
-local function Cahce_Spell(spellID)
-    if not C_Spell.IsSpellDataCached(spellID) then
-        C_Spell.RequestLoadSpellData(spellID)
-    else
-        return true
-    end
-end
-
-local function S_CacheSpell(self, startIndex)
-    if Is_StopCahceRun(self, startIndex, MaxSpellID) then
-        return
-    end
-
-    for spellID = startIndex, startIndex + 100 do
-        Cahce_Spell(spellID)
-        self.bar2:SetValue(spellID/MaxSpellID*100)
-        self.bar2:SetShown(true)
-    end
-
-    Save()[self.name..'Cache']= startIndex
-    C_Timer.After(0.1, function() S_CacheSpell(self, startIndex + 100 + 1) end)
-end
 
 --[[
---local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
+local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
+local spell = Spell:CreateFromSpellID(spellID)
+print(spell:GetSpellSubtext(), '|cnGREEN_FONT_COLOR:'..spellID..'|r', spell:GetSpellDescription())
 ]]
 local function Get_Spell_Tab(spellID)
     local title= C_Spell.GetSpellName(spellID)
@@ -792,7 +782,6 @@ local function Get_Spell_Tab(spellID)
     end
 end
 
-
 local function Save_Spell(self, spellID)
     local tab = Get_Spell_Tab(spellID)
     if tab then
@@ -802,59 +791,50 @@ local function Save_Spell(self, spellID)
     end
 end
 
+local function Cahce_Spell(self, spellID)
+    if not C_Spell.IsSpellDataCached(spellID) then
+        SpellEventListener:AddCancelableCallback(spellID, function()
+            Save_Spell(self, spellID)
+        end)
+    else
+        return true
+    end
+end
+
 
 local function S_Spell(self, startIndex)
     if Is_StopRun(self, startIndex, MaxSpellID) then
         return
     end
     for spellID = startIndex, startIndex + 100 do
-        local title= Cahce_Spell(spellID) and Save_Spell(self, spellID)
+        local title= Cahce_Spell(self, spellID) and Save_Spell(self, spellID)
         if title then
             title= C_Spell.GetSpellLink(spellID) or title
             self.Name:SetText(title..' '.. spellID)
         end
     end
     Set_ValueText(self, startIndex, MaxSpellID)
-    C_Timer.After(0.1, function() S_Spell(self, startIndex + 100 + 1) end)
+    C_Timer.After(0.1, function() S_Spell(self, startIndex + 101) end)
 end
 
-local function Set_Spell_Event(self)
-    self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
-    self:SetScript('OnShow', function(f)
-        f:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    end)]]
-    self:SetScript('OnEvent', function(_, _, spellID, success)
-        if spellID and spellID< MinSpell2ID then
-            if success then
-                Save_Spell(self, spellID)
-            else
-                C_Timer.After(3, function() Cahce_Spell(spellID) end)
-            end
+
+local function S_Spell2(self, startIndex)
+    if Is_StopRun(self, startIndex, MaxSpell2ID) then
+        return
+    end
+    for spellID = startIndex, startIndex + 100 do
+        local title= Cahce_Spell(self, spellID) and Save_Spell(self, spellID)
+        if title then
+            title= C_Spell.GetSpellLink(spellID) or title
+            self.Name:SetText(title..' '.. spellID)
         end
-    end)
+    end
+    Set_ValueText(self, startIndex, MaxSpell2ID)
+    C_Timer.After(0.1, function() S_Spell2(self, startIndex + 101) end)
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+--[[
 local function Cahce_Spell2(spellID)
     if not C_Spell.IsSpellDataCached(spellID) then
         C_Spell.RequestLoadSpellData(spellID)
@@ -923,10 +903,6 @@ end
 
 local function Set_Spell2_Event(self)
     self:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    --[[self:SetScript('OnHide', self.UnregisterAllEvents)
-    self:SetScript('OnShow', function(f)
-        f:RegisterEvent('SPELL_DATA_LOAD_RESULT')
-    end)]]
     self:SetScript('OnEvent', function(_, _, spellID, success)
         if spellID and spellID>=MinSpell2ID then
             if success then
@@ -937,7 +913,7 @@ local function Set_Spell2_Event(self)
         end
     end)
 end
-
+]]
 
 
 
@@ -966,9 +942,9 @@ local function S_CacheAchievement(self, startIndex)
     if Is_StopCahceRun(self, startIndex, MaxAchievementID) then
         return
     end
-    for AchievementID = startIndex, startIndex + 100 do
-        Cahce_Achievement(AchievementID)
-        self.bar2:SetValue(AchievementID/MaxAchievementID*100)
+    for achievementID = startIndex, startIndex + 100 do
+        Cahce_Achievement(achievementID)
+        self.bar2:SetValue(achievementID/MaxAchievementID*100)
         self.bar2:SetShown(true)
     end
     Save()[self.name..'Cache']= startIndex
@@ -1025,7 +1001,7 @@ local function S_Achievement(self, startIndex)
         return
     end
     for achievementID = startIndex, startIndex + 100 do
-        Cahce_Achievement(achievementID)
+        --Cahce_Achievement(achievementID)
         local title= Save_Achievement(self, achievementID)
         if title then
             self.Name:SetText(select(2, GetAchievementInfo(achievementID)) or title)
@@ -1233,7 +1209,7 @@ local function Create_Button(name, tab)
         StaticPopup_Show('WoWTools_SC', n, '', n)
     end)
 
-    --[[if tab.cahce then
+    if tab.cahce then
         btn.cahce= CreateFrame('Button', nil, btn)
         btn.cahce:SetPushedAtlas('PetList-ButtonSelect')
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
@@ -1282,7 +1258,7 @@ local function Create_Button(name, tab)
         if Save()[name..'Cache'] then
             btn.cahce:run()
         end
-    end]]
+    end
 
     function btn:settings()
         self.isStop= not self.isStop and true or nil
@@ -1300,17 +1276,8 @@ local function Create_Button(name, tab)
     end
     btn:settings()
 
-    if name=='Quest' then
-        Set_Quest_Event(btn)
-
-    elseif name=='Item' then
-        Set_Item_Event(btn)
-
-    elseif name=='Spell' then
-        Set_Spell_Event(btn)
-
-    elseif name=='Spell2' then
-        Set_Spell2_Event(btn)
+    if name=='Item' then
+        Load_Item(btn)
     end
 
     y= y- 23- 8
@@ -1388,7 +1355,7 @@ local function Init()
     Frame:SetScript('OnShow', function(self)
         Set_Point(self)
     end)
-    
+
 
     local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
     maxButton:Hide()
@@ -1511,11 +1478,11 @@ do
         ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04'},
         ['SectionEncounter']= {func=S_SectionEncounter, tooltip='6w3134 00:50'},
         ['Unit']= {func=S_Unit, tooltip='10w7939 19:48'},
-        ['Quest']= {func=S_Quest, cahce=S_CacheQuest, tooltip='1w19962 04:08'},
-        ['Item']= {func=S_Item, cahce=S_CacheItem, tooltip='16w3018 05:50'},
-        ['Spell']= {func=S_Spell, cahce=S_CacheSpell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
-        ['Spell2']= {func=S_Spell2, cahce=S_CacheSpell2},
-        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},
+        ['Quest']= {func=S_Quest, tooltip='1w19962 04:08'},--cahce=S_CacheQuest, 
+        ['Item']= {func=S_Item, tooltip='16w3018 05:50'},--cahce=S_CacheItem, 
+        ['Spell']= {func=S_Spell, tooltip='30w0234 01:22:19', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
+        ['Spell2']= {func=S_Spell2},--, cahce=S_CacheSpell2
+        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},--
         --['Holyday']= {func=S_Holyday, tooltip='119条'},
     }) do
         Create_Button(name, tab)
@@ -1555,7 +1522,7 @@ end
         end
     end
 
-    Load_Item()
+
 
 
     if Save().MaxButtonIsShow then
