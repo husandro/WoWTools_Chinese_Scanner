@@ -1105,7 +1105,8 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 local y= -40
-local function Create_Button(name, tab)
+local function Create_Button(tab)
+    local name= tab.name
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
     btn.name= name
@@ -1481,20 +1482,20 @@ local function Init()
 
 
 do
-    for name, tab in pairs({
-        ['Encounter']= {func=S_Encounter, tooltip='1k103 02:04', text='Boss 综述 <'..MK(MaxEncounterID)},
-        ['SectionEncounter']= {func=S_SectionEncounter, text='Boss 技能 <'..MK(MaxSectionEncounterID), tooltip='6w3134 00:50'},
-        ['Unit']= {func=S_Unit, tooltip='10w7939 19:48', text='怪物名称 <'..MK(MaxUnitID)},
-        ['Quest']= {func=S_Quest, tooltip='1w9962 04:08', text='任务 <'..MK(MaxQuestID)},--cahce=S_CacheQuest, 
-        ['Item']= {func=S_Item, tooltip='16w3018 05:50', text='物品 <'..MK(MaxItemID)},--cahce=S_CacheItem, 
-        ['Spell']= {func=S_Spell, tooltip='30w0234 09:55', text='法术 <'..MK(MaxSpellID), atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
-        ['Spell2']= {func=S_Spell2, text='法术 '..MK(MinSpell2ID)..' - '..MK(MaxSpell2ID)},--, cahce=S_CacheSpell2
-        ['Achievement']= {func=S_Achievement, cahce=S_CacheAchievement, text='成就 <'..MK(MaxAchievementID), tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},--
-        --['Holyday']= {func=S_Holyday, tooltip='119条'},
+    for _, tab in pairs({
+        {name='Spell', func=S_Spell, tooltip='30w0234 09:55', text='法术 <'..MK(MaxSpellID), atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
+        {name='Spell2', func=S_Spell2, text='法术 '..MK(MinSpell2ID)..' - '..MK(MaxSpell2ID)},--, cahce=S_CacheSpell2
+        {name='Item', func=S_Item, tooltip='16w3018 05:50', text='物品 <'..MK(MaxItemID)},--cahce=S_CacheItem, 
+        {name='Unit', func=S_Unit, tooltip='10w7939 19:48', text='怪物名称 <'..MK(MaxUnitID)},
+        {name='Quest', func=S_Quest, tooltip='1w9962 04:08', text='任务 <'..MK(MaxQuestID)},--cahce=S_CacheQuest, 
+        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, text='成就 <'..MK(MaxAchievementID), tooltip='1w2058 04:29', atlas='UI-Achievement-Shield-NoPoints'},--
+        {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', text='Boss 综述 <'..MK(MaxEncounterID)},
+        {name='SectionEncounter', func=S_SectionEncounter, text='Boss 技能 <'..MK(MaxSectionEncounterID), tooltip='6w3134 00:50'},
+        --{name='Holyday', func=S_Holyday, tooltip='119条'},
     }) do
-        Create_Button(name, tab)
+        Create_Button(tab)
 
-        table.insert(Buttons, name)
+        table.insert(Buttons, tab.name)
     end
 end
 
