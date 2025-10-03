@@ -1113,7 +1113,7 @@ local function Create_Button(tab)
     local name= tab.name
     local min= tab.min or 1
     local max= tab.max
-    local text= tab.text..' '..MK(min)..' - '..MK(max)
+    local text= (tab.atlas and '|A:'..tab.atlas..':0:0|a' or '')..tab.text..' '..MK(min)..'-'..MK(max)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
     btn.name= name
@@ -1130,7 +1130,8 @@ local function Create_Button(tab)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停').. '|r '..(self.text or self.name))
+        GameTooltip:SetText(self.text)
+        GameTooltip:AddLine(self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
         end
@@ -1150,8 +1151,7 @@ local function Create_Button(tab)
             if self.name=='Spell' then
                 C_Spell.RequestLoadSpellData(258483)
             end
-            local min= Save()[self.name] or self.min or 1
-            self.func(self, min, self.max)
+            self.func(self, Save()[self.name] or self.min or 1, self.max)
         end
     end)
 
@@ -1192,7 +1192,8 @@ local function Create_Button(tab)
     btn.Ver:SetScript('OnLeave', function(self) GameTooltip:Hide() self:SetAlpha(1) end)
     btn.Ver:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText(self:GetParent():GetParent().name..': 数据版本 '..self:GetText())
+        GameTooltip:SetText(self:GetParent():GetParent().text)
+        GameTooltip:AddLine('数据版本 '..self:GetText())
         GameTooltip:Show()
         self:SetAlpha(0.5)
     end)
@@ -1206,7 +1207,8 @@ local function Create_Button(tab)
     btn.clear:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn.clear:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText('清除 '..self:GetParent().name)
+        GameTooltip:SetText(self:GetParent().text)
+        GameTooltip:AddLine('清除')
         GameTooltip:Show()
     end)
     btn.clear:SetScript('OnMouseDown', function(self)
@@ -1235,7 +1237,8 @@ local function Create_Button(tab)
             local p= self:GetParent()
             if not p then return end
             GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            GameTooltip:SetText((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据 '..(self.text or self.name))
+            GameTooltip:SetText(self.text)
+            GameTooltip:AddLine((p.isCahceStop and '|cff626262' or '|cnGREEN_FONT_COLOR:')..'加载数据')
             local clock= Save()[self.name..'CacheTime']
             if clock then
                 GameTooltip:AddLine('上次运行：'..clock)
