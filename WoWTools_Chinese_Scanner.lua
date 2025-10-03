@@ -1111,16 +1111,17 @@ StaticPopupDialogs['WoWTools_SC']={
 local y= -40
 local function Create_Button(tab)
     local name= tab.name
-    local text= tab.text..' '..(tab.min and MK(tab.min)..' - ' or '')..MK(tab.max)
+    local min= tab.min or 1
+    local max= tab.max
+    local text= tab.text..' '..MK(min)..' - '..MK(max)
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
     btn.name= name
     btn.text= text
+    btn.min= min
+    btn.max= max
     btn.func= tab.func
-    btn.min= tab.min or 1
-    btn.max= tab.max
 
-    
     btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
@@ -1130,7 +1131,6 @@ local function Create_Button(tab)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText((self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停').. '|r '..(self.text or self.name))
-        --GameTooltip:AddLine('运行前，请关闭所有插件')
         if not LOCALE_zhCN then
             GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
         end
@@ -1229,8 +1229,8 @@ local function Create_Button(tab)
         btn.cahce.func= tab.cahce
         btn.cahce.name= name
         btn.cahce.text= text
-        btn.cahce.min= tab.min
-        btn.cahce.max= tab.max
+        btn.cahce.min= min
+        btn.cahce.max= max
         function btn.cahce:set_tooltip()
             local p= self:GetParent()
             if not p then return end
@@ -1492,7 +1492,7 @@ do
         {name='Spell', func=S_Spell, tooltip='30w0234 09:55', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
         {name='Spell2', func=S_Spell2, tooltip='1w0443 01:40', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--, cahce=S_CacheSpell2
         {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品', atlas='bag-main'},--cahce=S_CacheItem, 
-        {name='Unit', func=S_Unit, tooltip='17w7693 15:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
+        {name='Unit', func=S_Unit, tooltip='17w7693 5:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         {name='Quest', func=S_Quest, tooltip='1w9962 04:08', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},--cahce=S_CacheQuest, 
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},--
         {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
