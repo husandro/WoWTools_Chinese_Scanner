@@ -401,7 +401,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex)
     Save()[self.name] = startIndex
 
-    C_Timer.After(0.3, function() S_Unit(self, startIndex + 101) end)
+    C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
 end
 
 
@@ -1120,11 +1120,8 @@ local function Create_Button(tab)
     btn.min= tab.min or 1
     btn.max= tab.max
 
-    if tab.texture then
-        btn:SetNormalTexture(tab.texture)
-    else
-        btn:SetNormalAtlas(tab.atlas or 'common-dropdown-icon-next')
-    end
+    
+    btn:SetNormalAtlas('common-dropdown-icon-next')
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
@@ -1201,7 +1198,7 @@ local function Create_Button(tab)
     end)
 
     btn.clear= CreateFrame('Button', nil, btn)
-    btn.clear:SetNormalAtlas('bags-button-autosort-up')
+    btn.clear:SetNormalAtlas(tab.atlas or 'bags-button-autosort-up')
     btn.clear:SetPushedAtlas('PetList-ButtonSelect')
     btn.clear:SetHighlightAtlas('PetList-ButtonHighlight')
     btn.clear:SetPoint('RIGHT', btn.bar, 'LEFT', -2, 0)
@@ -1493,13 +1490,13 @@ local function Init()
 do
     for _, tab in pairs({
         {name='Spell', func=S_Spell, tooltip='30w0234 09:55', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--cahce=S_CacheSpell, 
-        {name='Spell2', func=S_Spell2, tooltip='1w0443 01:40', min=MinSpell2ID, max=MaxSpell2ID, text='法术II'},--, cahce=S_CacheSpell2
-        {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品'},--cahce=S_CacheItem, 
-        {name='Unit', func=S_Unit, tooltip='17w7693 15:00', max=MaxUnitID,text='怪物名称'},
-        {name='Quest', func=S_Quest, tooltip='1w9962 04:08', max=MaxQuestID,text='任务'},--cahce=S_CacheQuest, 
+        {name='Spell2', func=S_Spell2, tooltip='1w0443 01:40', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},--, cahce=S_CacheSpell2
+        {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品', atlas='bag-main'},--cahce=S_CacheItem, 
+        {name='Unit', func=S_Unit, tooltip='17w7693 15:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
+        {name='Quest', func=S_Quest, tooltip='1w9962 04:08', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},--cahce=S_CacheQuest, 
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},--
-        {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', max=MaxEncounterID, text='Boss 综述'},
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 00:50'},
+        {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 00:50', atlas='KyrianAssaults-64x64'},
         --{name='Holyday', func=S_Holyday, tooltip='119条'},
     }) do
         Create_Button(tab)
