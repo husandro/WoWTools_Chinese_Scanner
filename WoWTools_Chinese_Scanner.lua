@@ -37,11 +37,13 @@ end
 
 
 
-local function Save_Value(self, ID, tab)
+local function Save_Value(self, ID, count, tab)
     if tab and ID then
         _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
-        self.num= self.num+1
-        self.Name:SetText(tab.T..' '..ID)
+        if count==3 or not count then
+            self.num= self.num+1
+            self.Name:SetText(ID..' '..tab.T)
+        end
     end
 end
 
@@ -220,7 +222,7 @@ end
 
 
 --Encounter [字符journalEncounterID]= {T=, D=}
-local function Get_Encounter_Tab(self, ID)
+local function Get_Encounter_Tab(self, ID, count)
     local name, desc
     local n, d = EJ_GetEncounterInfo(ID)
     if IsCN(n) then
@@ -230,22 +232,26 @@ local function Get_Encounter_Tab(self, ID)
         desc= d
     end
     if name or desc then
-        Save_Value(self, ID, {
+        Save_Value(self, count, ID, {
             T=name,
             D=desc
         })
     end
 end
 
-local function S_Encounter(self, startIndex)
+local function S_Encounter(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for ID = startIndex, startIndex + 100 do
-        Get_Encounter_Tab(self, ID)
+        Get_Encounter_Tab(self, ID, count)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101) end)
+    if count==3 then
+        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Encounter(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -273,52 +279,56 @@ end
 
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
-local function S_SectionEncounter(self, startIndex)
+local function S_SectionEncounter(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
 
-    do
-        for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
-            EJ_SetDifficulty(difficultyID)
 
-            for sectionID =startIndex, startIndex + 100 do
 
-                local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-                if sectionInfo and not sectionInfo.filteredByDifficulty then
-                    local title, desc
-                    if IsCN(sectionInfo.title) then
-                        title= sectionInfo.title
+    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+        EJ_SetDifficulty(difficultyID)
+
+        for sectionID= startIndex, startIndex + 100 do
+
+            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+            local id= EJ_GetDifficulty() or difficultyID
+            if sectionInfo and not sectionInfo.filteredByDifficulty then
+                local title, desc
+                if IsCN(sectionInfo.title) then
+                    title= sectionInfo.title
+                end
+                if IsCN(sectionInfo.description) then
+                    desc= sectionInfo.description
+                end
+                if title or desc then
+                     _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
+                    if title then
+                        _G['WoWTools_SC_'..self.name][sectionID].T=title
+                        self.Name:SetText(sectionID..' '..title)
                     end
-                    if IsCN(sectionInfo.description) then
-                        desc= sectionInfo.description
+                    if desc then
+                        desc= desc:gsub('|cffffffff', '[')
+                        desc= desc:gsub('|r', ']')
+                        _G['WoWTools_SC_'..self.name][sectionID][id]= desc
                     end
-                    if title or desc then
-                       --[[ _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
-                        if title then
-                            _G['WoWTools_SC_'..self.name][sectionID].T=title
-                        end
-                        if desc then
-                            _G['WoWTools_SC_'..self.name][sectionID][difficultyID]= desc
-                        end]]
-                        
-                        local ID= difficultyID..'x'..sectionID
-
-                        _G['WoWTools_SC_'..self.name][ID]={
-                            T= title,
-                            D= desc,
-                        }
+                    if count==2 then
                         self.num= self.num + 1
-                        self.Name:SetText(title..' '..ID)
                     end
                 end
             end
         end
-        Set_ValueText(self, startIndex)
+    end
+
+    Set_ValueText(self, startIndex)
+ 
+    if count>=2 then
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count+1) end)
+    end
 end
 
-    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
-end
 
 
 
@@ -348,8 +358,7 @@ end
 
 
 
-
-local function Save_Unit(self, ID)
+local function Save_Unit(self, ID, count)
     local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..ID..'-0000000000')
     if not data
         or not data.lines
@@ -369,21 +378,26 @@ local function Save_Unit(self, ID)
         end
     end
     if title then
-        Save_Value(self, ID, {
+        Save_Value(self, ID, count, {
             T= title,
             D= desc,
         })
     end
 end
-local function S_Unit(self, startIndex)
+local function S_Unit(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for ID = startIndex, startIndex + 100 do
-        Save_Unit(self, ID)
+        Save_Unit(self, ID, count)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
+
+    if count==3 then
+        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -462,7 +476,7 @@ local function Set_ItemSets(itemID)
 end
 
 
-local function Save_Item(self, ID)
+local function Save_Item(self, ID, count)
     local data= C_TooltipInfo.GetItemByID(ID)
     if data
         and data.lines
@@ -472,7 +486,7 @@ local function Save_Item(self, ID)
 
         Set_ItemSets(ID)
 
-        Save_Value(self, ID, {
+        Save_Value(self, ID, count, {
             T= C_Item.GetItemInfo(ID) or data.lines[1].leftText,
             D= Get_Item_Lines(data.lines),
         })
@@ -483,13 +497,13 @@ end
 
 
 
-local function Cahce_Item(self, ID)
+local function Cahce_Item(self, ID, count)
     if not C_Item.IsItemDataCachedByID(ID) then
         ItemEventListener:AddCancelableCallback(ID, function()
-            Save_Item(self, ID)
+            Save_Item(self, ID, count)
         end)
     else
-        Save_Item(self, ID)
+        Save_Item(self, ID, count)
     end
 end
 
@@ -514,15 +528,19 @@ local function Load_Item(self)
 end
 
 
-local function S_Item(self, startIndex)
+local function S_Item(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for itemID = startIndex, startIndex + 100 do
-        Cahce_Item(self, itemID)
+        Cahce_Item(self, itemID, count)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
+    if count==2 then
+        C_Timer.After(0.1, function() S_Item(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Item(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -581,7 +599,7 @@ local function Get_Objectives(questID)
         return tab
     end
 end
-local function Save_Quest(self, ID)
+local function Save_Quest(self, ID, count)
     local data= C_TooltipInfo.GetHyperlink('quest:' .. ID)
     if not data or
         not data.lines
@@ -596,30 +614,34 @@ local function Save_Quest(self, ID)
         obj= data.lines[3].leftText
     end
     local obs= Get_Objectives(ID)
-    Save_Value(self, ID, {
+    Save_Value(self, ID, count, {
         T= title,
         O= obj,
         S= obs,
     })
 end
-local function Cahce_Quest(self, ID)
+local function Cahce_Quest(self, ID, count)
     if not HaveQuestData(ID) then
         QuestEventListener:AddCancelableCallback(ID, function()
-            Save_Quest(self, ID)
+            Save_Quest(self, ID, count)
         end)
     else
-        Save_Quest(self, ID)
+        Save_Quest(self, ID, count)
     end
 end
-local function S_Quest(self, startIndex)
+local function S_Quest(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for questID = startIndex, startIndex + 100 do
-        Cahce_Quest(self, questID)
+        Cahce_Quest(self, questID, count)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
+    if count==2 then
+        C_Timer.After(0.1, function() S_Quest(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -651,7 +673,7 @@ local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
 local spell = Spell:CreateFromSpellID(spellID)
 print(spell:GetSpellSubtext(), '|cnGREEN_FONT_COLOR:'..spellID..'|r', spell:GetSpellDescription())
 ]]
-local function Save_Spell(self, ID)
+local function Save_Spell(self, ID, count)
     local title= C_Spell.GetSpellName(ID)
     if IsCN(title) then
         local desc, sub
@@ -663,7 +685,7 @@ local function Save_Spell(self, ID)
         if IsCN(s) then
             sub= s
         end
-        Save_Value(self, ID, {
+        Save_Value(self, ID, count, {
             T= title,
             D= desc,
             S= sub,
@@ -671,25 +693,29 @@ local function Save_Spell(self, ID)
     end
 end
 
-local function Cahce_Spell(self, ID)
+local function Cahce_Spell(self, ID, count)
     if not C_Spell.IsSpellDataCached(ID) then
         SpellEventListener:AddCancelableCallback(ID, function()
-            Save_Spell(self, ID)
+            Save_Spell(self, ID, count)
         end)
     else
-        Save_Spell(self, ID)
+        Save_Spell(self, ID, count)
     end
 end
 
-local function S_Spell(self, startIndex)
+local function S_Spell(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for spellID = startIndex, startIndex + 100 do
-        Cahce_Spell(self, spellID)
+        Cahce_Spell(self, spellID, count)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Spell(self, startIndex + 101) end)
+    if count==2 then
+        C_Timer.After(0.1, function() S_Spell(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Spell(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -727,7 +753,7 @@ local function S_CacheAchievement(self, startIndex)
     C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 101) end)
 end
 
-local function Save_Achievement(self, ID)
+local function Save_Achievement(self, ID, count)
     local _, title, _, _, _, _, _, desc, _, _, reward = GetAchievementInfo(ID)
     if IsCN(title) then
         local d,r
@@ -752,7 +778,7 @@ local function Save_Achievement(self, ID)
                 s= t
             end
         end
-        Save_Value(self, ID, {
+        Save_Value(self, ID, count, {
             T= title,
             D= d,
             R= r,
@@ -761,15 +787,19 @@ local function Save_Achievement(self, ID)
     end
 end
 
-local function S_Achievement(self, startIndex)
+local function S_Achievement(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for ID = startIndex, startIndex + 100 do
-        Save_Achievement(self, ID)
+        Save_Achievement(self, ID, count)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101) end)
+    if count==5 then
+        C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Achievement(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -790,7 +820,7 @@ end
 
 
 
-local function Save_Holyday(self, day, index)
+local function Save_Holyday(self, day, index, count)
     local data= C_Calendar.GetDayEvent(0, day, index)
     if data and data.eventID and data.calendarType~='PLAYER' then
         local holiday= C_Calendar.GetHolidayInfo(0, day, index)
@@ -802,7 +832,7 @@ local function Save_Holyday(self, day, index)
             desc= holiday.description
         end
         if title or desc then
-            Save_Value(self, data.eventID, {
+            Save_Value(self, data.eventID, count, {
                 T=title,
                 D=desc
             })
@@ -810,28 +840,29 @@ local function Save_Holyday(self, day, index)
     end
 end
 
-local function S_Holyday(self, startIndex)
+local function S_Holyday(self, startIndex, count)
    if Is_StopRun(self, startIndex) then
         return
     end
     if startIndex==1 then
-        WoWTools_SC_Holyday={}
-        self.num= 0
         C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
         C_Calendar.SetMonth(-13)
     end
     do
         C_Calendar.SetMonth(1)
     end
-
     for day=1, 31 do
         for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
-            Save_Holyday(self, day, index)
+            Save_Holyday(self, day, index, count)
         end
     end
-
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Holyday(self, startIndex + 1) end)
+
+    if count==5 then
+        C_Timer.After(0.1, function() S_Holyday(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Holyday(self, startIndex, count+1) end)
+    end
 end
 
 
@@ -964,7 +995,7 @@ local function Create_Button(tab)
                 C_Spell.RequestLoadSpellData(258483)
             end
             _G['WoWTools_SC_'..name]= {}
-            self.func(self, self.min, self.max)
+            self.func(self, self.min, 1)
         end
     end)
 
@@ -1155,7 +1186,7 @@ local function Init()
     Frame:SetFrameStrata('HIGH')
     Frame:SetFrameLevel(501)
     Frame:SetSize(520, 400)
-    
+
     function Frame:set_event()
         if Save().MaxButtonIsShow then
             self:UnregisterAllEvents()
@@ -1301,16 +1332,17 @@ do
     for _, tab in pairs({
         {name='Spell', func=S_Spell, tooltip='30w0234 09:55', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品', atlas='bag-main'},
-        
+
         {name='Unit', func=S_Unit, tooltip='17w7693 5:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         '-',
-        
+
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 3:00', atlas='KyrianAssaults-64x64'},
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
-        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},        
+        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
         '-',
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 00:50', atlas='KyrianAssaults-64x64'},
+        
         {name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
     }) do
         if tab=='-' then
