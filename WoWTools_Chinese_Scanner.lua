@@ -18,13 +18,15 @@ local MaxAchievementID= (GameVer-4)*1e4--11.2.5 版本，最高61406 https://wag
 local MaxQuestID= GameVer*1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)*1e4--25000
 
-local MaxSectionEncounterID= (GameVer-7)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+
 local MaxUnitID= (GameVer-8)*1e5--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 local MaxItemID= (GameVer-8)*1e5--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSpellID=(GameVer-6)*1e5-- 50w0000 229270
 
 local MaxSpell2ID= (GameVer+2)*1e5--120w- 150w
 local MinSpell2ID= 12*1e5
+
+local MaxSectionEncounterID= (GameVer-7)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 
 local Frame, MaxButtonLabel
 local Buttons={}
@@ -271,47 +273,49 @@ end
 
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
-local function Save_SectionEncounter(self, sectionID, difficultyID)
-    do
-        if EJ_GetDifficulty()~=difficultyID then
-            EJ_SetDifficulty(difficultyID)
-        end
-    end
-
-    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-    if sectionInfo and not sectionInfo.filteredByDifficulty then
-        local title, desc
-        if IsCN(sectionInfo.title) then
-            title= sectionInfo.title
-        end
-        if IsCN(sectionInfo.description) then
-            desc= sectionInfo.description
-        end
-        if title or desc then
-            local ID= EJ_GetDifficulty()..'x'..sectionID
-
-            _G['WoWTools_SC_'..self.name][ID]={
-                T= title,
-                D= desc,
-            }
-
-            self.num= self.num + 1
-            self.Name:SetText(title..' '..difficultyID..' x '..sectionID)
-        end
-    end
-end
-
-
 local function S_SectionEncounter(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
-    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
-        for sectionID =startIndex, startIndex + 100 do
-            Save_SectionEncounter(self, sectionID, difficultyID)
+
+    do
+        for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+            EJ_SetDifficulty(difficultyID)
+
+            for sectionID =startIndex, startIndex + 100 do
+
+                local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+                if sectionInfo and not sectionInfo.filteredByDifficulty then
+                    local title, desc
+                    if IsCN(sectionInfo.title) then
+                        title= sectionInfo.title
+                    end
+                    if IsCN(sectionInfo.description) then
+                        desc= sectionInfo.description
+                    end
+                    if title or desc then
+                       --[[ _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
+                        if title then
+                            _G['WoWTools_SC_'..self.name][sectionID].T=title
+                        end
+                        if desc then
+                            _G['WoWTools_SC_'..self.name][sectionID][difficultyID]= desc
+                        end]]
+                        
+                        local ID= difficultyID..'x'..sectionID
+
+                        _G['WoWTools_SC_'..self.name][ID]={
+                            T= title,
+                            D= desc,
+                        }
+                        self.num= self.num + 1
+                        self.Name:SetText(title..' '..ID)
+                    end
+                end
+            end
         end
-    end
-    Set_ValueText(self, startIndex)
+        Set_ValueText(self, startIndex)
+end
 
     C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
 end
