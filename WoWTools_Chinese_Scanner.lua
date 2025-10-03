@@ -1544,6 +1544,8 @@ end
 
     if Save().MaxButtonIsShow then
         maxButton:Show()
+        C_Timer.After(2, function() maxButton:SetScale(2) end)
+        C_Timer.After(2.5, function() maxButton:SetScale(1) end)
     else
         Frame:Show()
     end
