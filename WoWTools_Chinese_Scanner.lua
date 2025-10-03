@@ -882,11 +882,11 @@ local function clear_data(name)
     self.Value:SetText('')
     self.Ver:SetText('')
 
-    print('清除数据', name or '全部', '|cnGREEN_FONT_COLOR:完成')
+    print('清除数据|cnWARNING_FONT_COLOR:', self.text, '|r|cnGREEN_FONT_COLOR:完成')
 end
 
 StaticPopupDialogs['WoWTools_SC']={
-    text = '你确定要|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗？%s',
+    text = '你确定要|n|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗？|n|n',
     button1 = '确定', button2 = '取消',
     whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true,--, acceptDelay=1,
     OnAccept=function(_, data)
@@ -898,7 +898,7 @@ StaticPopupDialogs['WoWTools_SC']={
                     clear_data(name)
                 end
             end
-            C_UI.Reload()
+            --C_UI.Reload()
         end
     end
 }
@@ -1027,7 +1027,7 @@ local function Create_Button(tab)
         else
             p.time=nil
         end
-        StaticPopup_Show('WoWTools_SC', n, '', n)
+        StaticPopup_Show('WoWTools_SC', n, nil, n)
     end)
 
     if tab.cahce then
@@ -1080,15 +1080,13 @@ local function Create_Button(tab)
     function btn:settings()
         self.isStop= not self.isStop and true or nil
         if self.isStop then
-            self.num= 0
             self:SetNormalAtlas(self.atlas or 'common-dropdown-icon-next')
             self.time=nil
         else
             self:SetNormalAtlas('common-dropdown-icon-stop')
-            self.num= 0
             self.time= GetTime()
         end
-
+        self.num= 0
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
     btn:settings()
@@ -1277,7 +1275,7 @@ local function Init()
                 btn.time=nil
             end
         end
-        StaticPopup_Show('WoWTools_SC', '全部', '|n|n|cnGREEN_FONT_COLOR:重新加载UI', nil)
+        StaticPopup_Show('WoWTools_SC', '全部', nil, nil)
     end)
 
 
@@ -1299,14 +1297,17 @@ do
     for _, tab in pairs({
         {name='Spell', func=S_Spell, tooltip='30w0234 09:55', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品', atlas='bag-main'},
-        {name='Quest', func=S_Quest, tooltip='1w9962 04:08', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
+        
         {name='Unit', func=S_Unit, tooltip='17w7693 5:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         '-',
-        {name='Spell2', func=S_Spell, tooltip='1w0454 01:40', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
-        {name='Encounter', func=S_Encounter, tooltip='1k103 02:04', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},
+        
+        {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
+        {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
+        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},        
+        {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
+        '-',
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 00:50', atlas='KyrianAssaults-64x64'},
-        {name='Holyday', func=S_Holyday, max=24, tooltip='119条'},
+        {name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
     }) do
         if tab=='-' then
             y=y-12
