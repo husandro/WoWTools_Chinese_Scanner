@@ -811,7 +811,7 @@ end
 
 
 
-local function Save_Holyday(self, day, index, count)
+--[[local function Save_Holyday(self, day, index, count)
     local data= C_Calendar.GetDayEvent(0, day, index)
     if data and data.eventID and data.calendarType~='PLAYER' then
         local holiday= C_Calendar.GetHolidayInfo(0, day, index)
@@ -839,48 +839,25 @@ local function S_Holyday(self, startIndex)
         C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
         C_Calendar.SetMonth(-12)
     end
-   --[[ do
-        C_Calendar.SetMonth(1)
-    end
-do]]
+
+    C_Calendar.SetMonth(1)
+
     for day=1, 31 do
    
         for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
-            --Save_Holyday(self, day, index, count)
-            --C_Calendar.GetMonthInfo
-            local data= C_Calendar.GetDayEvent(0, day, index)
-            if data and data.eventID and data.calendarType~='PLAYER' then
-                local holiday= C_Calendar.GetHolidayInfo(0, day, index)
-                local desc, title
-                if IsCN(data.title) then
-                    title= data.title
-                end
-                if holiday and IsCN(holiday.description) then
-                    desc= holiday.description
-                end
-                if title or desc then
-                    Save_Value(self, data.eventID, nil, {
-                        T=title,
-                        D=desc
-                    })
-                    print(index, title)
-                end
-                if data.eventID==613 then
-                    print(title, desc)
-                end
-            end
+            Save_Holyday(self, day, index)           
         end
     end
    
     Set_ValueText(self, startIndex)
-return
+
     --if count==3 then
-        C_Timer.After(5, function() S_Holyday(self, startIndex+1) end)
+        C_Timer.After(0.3, function() S_Holyday(self, startIndex+1) end)
     --else
       --  C_Timer.After(0.1, function() S_Holyday(self, startIndex, count+1) end)
     --end
 end
-
+]]
 
 
 
@@ -1357,9 +1334,9 @@ do
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        '-',
+        
 
-        {name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
+        --{name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
     }) do
         if tab=='-' then
             y=y-12
