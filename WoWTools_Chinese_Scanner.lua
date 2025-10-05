@@ -4,6 +4,15 @@ C_TooltipInfo.GetHyperlink('spell:'.. spellID)
 C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
 C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
 C_TooltipInfo.GetHyperlink('quest:' .. questID)
+
+<SimpleHTML parentKey="Text" setAllPoints="true" inherits="InlineHyperlinkFrameTemplate">
+    <FontString inherits="GameFontBlack" justifyH="LEFT" justifyV="TOP">
+        <Color r="0.25" g="0.1484375" b=".02" a="1"/>
+    </FontString>
+    <Scripts>
+        <OnHyperlinkEnter function="EncounterJournal_OnHyperlinkEnter"/>
+    </Scripts>
+</SimpleHTML>
 ]]
 
 
@@ -26,7 +35,7 @@ local MaxSpellID=(GameVer-6)*1e5-- 50w0000 229270
 local MaxSpell2ID= (GameVer+2)*1e5--120w- 150w
 local MinSpell2ID= 12*1e5
 
-local MaxSectionEncounterID= (GameVer-7)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+local MaxSectionEncounterID= (GameVer-6)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 
 local Frame, MaxButtonLabel
 local Buttons={}
@@ -37,15 +46,7 @@ end
 
 
 
-local function Save_Value(self, ID, count, tab)
-    if tab and ID then
-        _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
-        if count==3 or not count then
-            self.num= self.num+1
-            self.Name:SetText(ID..' '..tab.T)
-        end
-    end
-end
+
 
 
 
@@ -66,6 +67,7 @@ local function IsCN(text)
         and not ReceString[text]
 end
 local function MK(number)
+    number= number and tonumber(number)
     if number then
         local b=3
         local t=''
@@ -181,152 +183,18 @@ local function Is_StopCahceRun(self, startIndex)
     end
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---Encounter [字符journalEncounterID]= {T=, D=}
-local function Get_Encounter_Tab(self, ID, count)
-    local name, desc
-    local n, d = EJ_GetEncounterInfo(ID)
-    if IsCN(n) then
-        name= n
-    end
-    if IsCN(d) then
-        desc= d
-    end
-    if name or desc then
-        Save_Value(self, count, ID, {
-            T=name,
-            D=desc
-        })
-    end
-end
-
-local function S_Encounter(self, startIndex, count)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
-    for ID = startIndex, startIndex + 100 do
-        Get_Encounter_Tab(self, ID, count)
-    end
-    Set_ValueText(self, startIndex)
-    if count==3 then
-        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Encounter(self, startIndex, count+1) end)
-    end
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
-local function S_SectionEncounter(self, startIndex, count)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
-
-
-
-    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
-        EJ_SetDifficulty(difficultyID)
-
-        for sectionID= startIndex, startIndex + 100 do
-
-            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-            local id= EJ_GetDifficulty() or difficultyID
-            if sectionInfo and not sectionInfo.filteredByDifficulty then
-                local title, desc
-                if IsCN(sectionInfo.title) then
-                    title= sectionInfo.title
-                end
-                if IsCN(sectionInfo.description) then
-                    desc= sectionInfo.description
-                end
-                if title or desc then
-                     _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
-                    if title then
-                        _G['WoWTools_SC_'..self.name][sectionID].T=title
-                        self.Name:SetText(sectionID..' '..title)
-                    end
-                    if desc then
-                        desc= desc:gsub('|cffffffff', '[')
-                        desc= desc:gsub('|r', ']')
-                        _G['WoWTools_SC_'..self.name][sectionID][id]= desc
-                    end
-                    if count==2 then
-                        self.num= self.num + 1
-                    end
-                end
+local function Save_Value(self, ID, count, tab)
+    if tab and ID then
+        _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
+        if count==3 or not count then
+            self.num= self.num+1
+
+            local id= tab.T and MK(ID)
+            if id then
+                self.Name:SetText(id..' '..tab.T)
             end
         end
     end
-
-    Set_ValueText(self, startIndex)
- 
-    if count>=2 then
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count+1) end)
-    end
 end
 
 
@@ -357,48 +225,6 @@ end
 
 
 
-
-local function Save_Unit(self, ID, count)
-    local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..ID..'-0000000000')
-    if not data
-        or not data.lines
-        or not data.lines[1]
-        or not IsCN(data.lines[1].leftText)
-    then
-        return
-    end
-    local desc
-    local title
-    for index, line in pairs(data.lines) do
-        if index==1 then
-            title= line.leftText
-
-        elseif IsCN(line.leftText) and not line.leftText:find('等级 ') then
-            desc= (desc and desc..'●' or '')..line.leftText--ActionButton.lua 中文中的●跟英文不一样
-        end
-    end
-    if title then
-        Save_Value(self, ID, count, {
-            T= title,
-            D= desc,
-        })
-    end
-end
-local function S_Unit(self, startIndex, count)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
-    for ID = startIndex, startIndex + 100 do
-        Save_Unit(self, ID, count)
-    end
-    Set_ValueText(self, startIndex)
-
-    if count==3 then
-        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
-    end
-end
 
 
 
@@ -536,7 +362,7 @@ local function S_Item(self, startIndex, count)
         Cahce_Item(self, itemID, count)
     end
     Set_ValueText(self, startIndex)
-    if count==2 then
+    if count==3 then
         C_Timer.After(0.1, function() S_Item(self, startIndex + 101, 0) end)
     else
         C_Timer.After(0.1, function() S_Item(self, startIndex, count+1) end)
@@ -556,6 +382,254 @@ end
 
 
 
+
+
+
+--[[
+local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
+local spell = Spell:CreateFromSpellID(spellID)
+print(spell:GetSpellSubtext(), '|cnGREEN_FONT_COLOR:'..spellID..'|r', spell:GetSpellDescription())
+]]
+local function Save_Spell(self, ID, count)
+    local title= C_Spell.GetSpellName(ID)
+    if IsCN(title) then
+        local desc, sub
+        local d= C_Spell.GetSpellDescription(ID)
+        local s= C_Spell.GetSpellSubtext(ID)
+        if IsCN(d) then
+            desc= d
+        end
+        if IsCN(s) then
+            sub= s
+        end
+        Save_Value(self, ID, count, {
+            T= title,
+            D= desc,
+            S= sub,
+        })
+    end
+end
+
+local function Cahce_Spell(self, ID, count)
+    if not C_Spell.IsSpellDataCached(ID) then
+        SpellEventListener:AddCancelableCallback(ID, function()
+            Save_Spell(self, ID, count)
+        end)
+    else
+        Save_Spell(self, ID, count)
+    end
+end
+
+local function S_Spell(self, startIndex, count)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for spellID = startIndex, startIndex + 100 do
+        Cahce_Spell(self, spellID, count)
+    end
+    Set_ValueText(self, startIndex)
+    if count==3 then
+        C_Timer.After(0.1, function() S_Spell(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Spell(self, startIndex, count+1) end)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function Save_Unit(self, ID, count)
+    local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..ID..'-0000000000')
+    if not data
+        or not data.lines
+        or not data.lines[1]
+        or not IsCN(data.lines[1].leftText)
+    then
+        return
+    end
+    local desc
+    local title
+    for index, line in pairs(data.lines) do
+        if index==1 then
+            title= line.leftText
+
+        elseif IsCN(line.leftText) and not line.leftText:find('等级 ') then
+            desc= (desc and desc..'●' or '')..line.leftText--ActionButton.lua 中文中的●跟英文不一样
+        end
+    end
+    if title then
+        Save_Value(self, ID, count, {
+            T= title,
+            D= desc,
+        })
+    end
+end
+local function S_Unit(self, startIndex, count)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for ID = startIndex, startIndex + 100 do
+        Save_Unit(self, ID, count)
+    end
+    Set_ValueText(self, startIndex)
+
+    if count==3 then
+        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--Encounter [字符journalEncounterID]= {T=, D=}
+local function Get_Encounter_Tab(self, ID, count)
+    local name, desc
+    local n, d = EJ_GetEncounterInfo(ID)
+    if IsCN(n) then
+        name= n
+    end
+    if IsCN(d) then
+        desc= d
+    end
+    if name or desc then
+        Save_Value(self, ID, count, {
+            T=name,
+            D=desc
+        })
+    end
+end
+
+local function S_Encounter(self, startIndex, count)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for ID = startIndex, startIndex + 100 do
+        Get_Encounter_Tab(self, ID, count)
+    end
+    Set_ValueText(self, startIndex)
+    if count==3 then
+        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Encounter(self, startIndex, count+1) end)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
+local function S_SectionEncounter(self, startIndex, count)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+
+
+
+    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+        EJ_SetDifficulty(difficultyID)
+
+        for sectionID= startIndex, startIndex + 100 do
+
+            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+            local id= EJ_GetDifficulty() or difficultyID
+            if sectionInfo and not sectionInfo.filteredByDifficulty then
+                local title, desc
+                if IsCN(sectionInfo.title) then
+                    title= sectionInfo.title
+                end
+                if IsCN(sectionInfo.description) then
+                    desc= sectionInfo.description
+                end
+                if title or desc then
+                     _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
+                    if title then
+                        _G['WoWTools_SC_'..self.name][sectionID].T=title
+                    end
+                    if desc then
+                        desc= desc:gsub('|cffffffff', '|cff000000')
+                        _G['WoWTools_SC_'..self.name][sectionID][id]= desc
+                    end
+                    if count==3 then
+                        self.num= self.num + 1
+                        if title then
+                            self.Name:SetText(sectionID..' '..title)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    Set_ValueText(self, startIndex)
+
+    if count==3 then
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count+1) end)
+    end
+end
 
 
 
@@ -637,95 +711,12 @@ local function S_Quest(self, startIndex, count)
         Cahce_Quest(self, questID, count)
     end
     Set_ValueText(self, startIndex)
-    if count==2 then
+    if count==3 then
         C_Timer.After(0.1, function() S_Quest(self, startIndex + 101, 0) end)
     else
         C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---[[
-local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
-local spell = Spell:CreateFromSpellID(spellID)
-print(spell:GetSpellSubtext(), '|cnGREEN_FONT_COLOR:'..spellID..'|r', spell:GetSpellDescription())
-]]
-local function Save_Spell(self, ID, count)
-    local title= C_Spell.GetSpellName(ID)
-    if IsCN(title) then
-        local desc, sub
-        local d= C_Spell.GetSpellDescription(ID)
-        local s= C_Spell.GetSpellSubtext(ID)
-        if IsCN(d) then
-            desc= d
-        end
-        if IsCN(s) then
-            sub= s
-        end
-        Save_Value(self, ID, count, {
-            T= title,
-            D= desc,
-            S= sub,
-        })
-    end
-end
-
-local function Cahce_Spell(self, ID, count)
-    if not C_Spell.IsSpellDataCached(ID) then
-        SpellEventListener:AddCancelableCallback(ID, function()
-            Save_Spell(self, ID, count)
-        end)
-    else
-        Save_Spell(self, ID, count)
-    end
-end
-
-local function S_Spell(self, startIndex, count)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
-    for spellID = startIndex, startIndex + 100 do
-        Cahce_Spell(self, spellID, count)
-    end
-    Set_ValueText(self, startIndex)
-    if count==2 then
-        C_Timer.After(0.1, function() S_Spell(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Spell(self, startIndex, count+1) end)
-    end
-end
-
-
-
-
-
-
-
-
-
 
 
 
@@ -795,7 +786,7 @@ local function S_Achievement(self, startIndex, count)
         Save_Achievement(self, ID, count)
     end
     Set_ValueText(self, startIndex)
-    if count==5 then
+    if count==3 then
         C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101, 0) end)
     else
         C_Timer.After(0.1, function() S_Achievement(self, startIndex, count+1) end)
@@ -846,23 +837,43 @@ local function S_Holyday(self, startIndex, count)
     end
     if startIndex==1 then
         C_Calendar.SetAbsMonth(tonumber(date('%M')), tonumber(date('%Y')))
-        C_Calendar.SetMonth(-13)
+        C_Calendar.SetMonth(-12)
     end
     do
         C_Calendar.SetMonth(1)
     end
     for day=1, 31 do
         for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
-            Save_Holyday(self, day, index, count)
+            --Save_Holyday(self, day, index, count)
+            --C_Calendar.GetMonthInfo
+            local data= C_Calendar.GetDayEvent(0, day, index)
+            if data and data.eventID and data.calendarType~='PLAYER' then
+                local holiday= C_Calendar.GetHolidayInfo(0, day, index)
+                local desc, title
+                if IsCN(data.title) then
+                    title= data.title
+                end
+                if holiday and IsCN(holiday.description) then
+                    desc= holiday.description
+                end
+                if title or desc then
+                    
+                    Save_Value(self, data.eventID, count, {
+                        T=title,
+                        D=desc
+                    })
+                end
+            end
         end
     end
+
     Set_ValueText(self, startIndex)
 
-    if count==5 then
-        C_Timer.After(0.1, function() S_Holyday(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Holyday(self, startIndex, count+1) end)
-    end
+    --if count==3 then
+        C_Timer.After(0.5, function() S_Holyday(self, startIndex+1, 0) end)
+    --else
+      --  C_Timer.After(0.1, function() S_Holyday(self, startIndex, count+1) end)
+    --end
 end
 
 
@@ -1330,19 +1341,19 @@ local function Init()
 
 do
     for _, tab in pairs({
-        {name='Spell', func=S_Spell, tooltip='30w0234 09:55', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
+        {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品', atlas='bag-main'},
 
         {name='Unit', func=S_Unit, tooltip='17w7693 5:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         '-',
 
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3134 3:00', atlas='KyrianAssaults-64x64'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3137', atlas='KyrianAssaults-64x64'},
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
         '-',
-        
+
         {name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
     }) do
         if tab=='-' then
