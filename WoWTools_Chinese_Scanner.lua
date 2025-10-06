@@ -190,7 +190,6 @@ local function Save_Value(self, ID, count, tab)
         _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
         if count==2 or not count then
             self.num= self.num+1
-
             local id= tab.T and MK(ID)
             if id then
                 self.Name:SetText(id..' '..tab.T)
@@ -510,21 +509,26 @@ local function Save_Quest(self, ID, count)
     })
 end
 
-local function S_Quest(self, startIndex)
+local function S_Quest(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
     for questID = startIndex, startIndex + 100 do
         if not HaveQuestData(questID) then
         QuestEventListener:AddCancelableCallback(questID, function()
-            Save_Quest(self, questID)
+            Save_Quest(self, questID, count)
         end)
         else
-            Save_Quest(self, questID)
+            Save_Quest(self, questID, count)
         end
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
+
+    if count==3 then
+        C_Timer.After(0.1, function() S_Quest(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
+    end
 end
 
 
