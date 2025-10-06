@@ -872,8 +872,11 @@ local function Init_Gossip()
 --自定义，对话，文本
     local function Set_Gossip_Text(self, info)
         if info and info.gossipOptionID then
-            local text= IsCN(self:GetText())
-            if text then
+            local text= self:GetText()
+            if IsCN(text) then
+                if not WoWTools_SC_Gossip[info.gossipOptionID] then
+                    print(addName, '|cnGREEN_FONT_COLOR:添加|r',info.gossipOptionID, text)
+                end
                 WoWTools_SC_Gossip[info.gossipOptionID]= text
             end
         end
