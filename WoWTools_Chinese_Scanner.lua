@@ -188,7 +188,7 @@ end
 local function Save_Value(self, ID, count, tab)
     if tab and ID then
         _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
-        if count==3 or not count then
+        if count==2 or not count then
             self.num= self.num+1
 
             local id= tab.T and MK(ID)
@@ -653,6 +653,28 @@ local quest = QuestCache:Get(questID);
 if quest.isAutoComplete and quest:IsComplete() then
 C_QuestLog.RequestLoadQuestByID(77794)
 ]]
+local QuestTooltip = CreateFrame("GameTooltip", "WoWToolsQuestSCTooltip", UIParent, "GameTooltipTemplate")
+QuestTooltip:SetFrameStrata("TOOLTIP")
+local function Quest_Desc_Regions(...)
+  local texts = ''
+    for i = 1, select("#", ...) do
+        local region = select(i, ...)
+        if region and region:GetObjectType() == "FontString" then
+            local text = region:GetText()
+			if IsCN(text) then
+                print(i, text)
+            end
+        end
+	end
+	return texts
+end
+local function Get_Quest_Desc(questID)
+    QuestTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    QuestTooltip:ClearLines()
+    QuestTooltip:SetHyperlink('quest:' .. questID)
+    QuestTooltip:Show()
+    Quest_Desc_Regions(QuestTooltip:GetRegions())
+end
 
 local function Get_Objectives(questID)
     local obj= C_QuestLog.GetQuestObjectives(questID)
@@ -689,8 +711,9 @@ local function Save_Quest(self, ID, count)
     if data.lines[3] and IsCN(data.lines[3].leftText) then
         obj= data.lines[3].leftText
     end
-    info= data.lines
-    for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
+
+    local desc= Get_Quest_Desc(ID)
+
     local obs= Get_Objectives(ID)
     Save_Value(self, ID, count, {
         T= title,
@@ -715,7 +738,7 @@ local function S_Quest(self, startIndex, count)
         Cahce_Quest(self, questID, count)
     end
     Set_ValueText(self, startIndex)
-    if count==3 then
+    if count==2 then
         C_Timer.After(0.1, function() S_Quest(self, startIndex + 101, 0) end)
     else
         C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
