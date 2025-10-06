@@ -502,6 +502,7 @@ local function Save_Quest(self, ID, count)
     end
 
     local obs= Get_Objectives(ID)
+
     Save_Value(self, ID, count, {
         T= title,
         O= obj,
