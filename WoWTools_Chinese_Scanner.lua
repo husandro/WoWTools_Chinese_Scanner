@@ -17,9 +17,11 @@ C_TooltipInfo.GetHyperlink('quest:' .. questID)
 
 
 
-
-
 local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r|cff28a3ffChinese|r数据扫描'
+if not LOCALE_zhCN then
+    print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文')
+    return
+end
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
@@ -866,9 +868,29 @@ end
 
 
 
+local function Init_Gossip()
+--自定义，对话，文本
+    local function Set_Gossip_Text(self, info)
+        if info and info.gossipOptionID then
+            local text= IsCN(self:GetText())
+            if text then
+                WoWTools_SC_Gossip[info.gossipOptionID]= text
+            end
+        end
+    end
 
+    hooksecurefunc(GossipOptionButtonMixin, 'Setup', function(...)--GossipFrameShared.lua
+        Set_Gossip_Text(...)
+    end)
+    hooksecurefunc(GossipSharedAvailableQuestButtonMixin, 'Setup', function(...)
+        Set_Gossip_Text(...)
+    end)
+    hooksecurefunc(GossipSharedActiveQuestButtonMixin, 'Setup', function(...)
+        Set_Gossip_Text(...)
+    end)
 
-
+    Init_Gossip=function()end
+end
 
 
 
@@ -968,9 +990,6 @@ local function Create_Button(tab)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText(self.text)
         GameTooltip:AddLine(self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停')
-        if not LOCALE_zhCN then
-            GameTooltip:AddLine('|cnGREEN_FONT_COLOR:需求 简体中文')
-        end
         if Save()[self.name..'Data']  then
             for _, t in pairs (Save()[self.name..'Data']) do
                 GameTooltip:AddLine(t)
@@ -1282,7 +1301,6 @@ local function Init()
     note:SetPoint('BOTTOM', 0, 12)
     note:SetText(
         '当前游戏版本 '..Ver
-        ..(LOCALE_zhCN and '' or '|n|cnWARNING_FONT_COLOR:需求 简体中文|r')
         ..'|n不要一起扫描，数据会出错'
         ..'|n|cffffffff数据：|rWTF\\Account\\...\\SavedVariables\\WoWTools_Chinese_Scanner.lua'
     )
@@ -1422,6 +1440,10 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     WoWTools_SC_Unit= WoWTools_SC_Unit or {}
 
     WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
+
+
+    WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
+    Init_Gossip()
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)

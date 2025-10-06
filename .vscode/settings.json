@@ -50,7 +50,10 @@
         "QuestMapFrame_OpenToQuestDetails",
         "SOUNDKIT",
         "SpellEventListener",
-        "QuestEventListener"
+        "QuestEventListener",
+        "GossipOptionButtonMixin",
+        "GossipSharedAvailableQuestButtonMixin",
+        "GossipSharedActiveQuestButtonMixin"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
