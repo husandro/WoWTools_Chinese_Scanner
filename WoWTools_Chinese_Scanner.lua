@@ -303,7 +303,6 @@ local function Set_ItemSets(itemID)
     end
 end
 
-
 local function Save_Item(self, ID, count)
     local data= C_TooltipInfo.GetItemByID(ID)
     if data
@@ -311,19 +310,13 @@ local function Save_Item(self, ID, count)
         and data.lines[1]
         and IsCN(data.lines[1].leftText)
     then
-
         Set_ItemSets(ID)
-
         Save_Value(self, ID, count, {
             T= C_Item.GetItemInfo(ID) or data.lines[1].leftText,
             D= Get_Item_Lines(data.lines),
         })
     end
 end
-
-
-
-
 
 local function Cahce_Item(self, ID, count)
     if not C_Item.IsItemDataCachedByID(ID) then
@@ -334,7 +327,6 @@ local function Cahce_Item(self, ID, count)
         Save_Item(self, ID, count)
     end
 end
-
 
 local function Load_Item(self)
     for classID= 1, GetNumClasses() do
@@ -355,20 +347,15 @@ local function Load_Item(self)
     end
 end
 
-
-local function S_Item(self, startIndex, count)
+local function S_Item(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
     for itemID = startIndex, startIndex + 100 do
-        Cahce_Item(self, itemID, count)
+        Cahce_Item(self, itemID)
     end
     Set_ValueText(self, startIndex)
-    if count==3 then
-        C_Timer.After(0.1, function() S_Item(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Item(self, startIndex, count+1) end)
-    end
+    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
 end
 
 
@@ -412,30 +399,140 @@ local function Save_Spell(self, ID, count)
     end
 end
 
-local function Cahce_Spell(self, ID, count)
-    if not C_Spell.IsSpellDataCached(ID) then
-        SpellEventListener:AddCancelableCallback(ID, function()
-            Save_Spell(self, ID, count)
-        end)
-    else
-        Save_Spell(self, ID, count)
-    end
-end
-
-local function S_Spell(self, startIndex, count)
+local function S_Spell(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
     for spellID = startIndex, startIndex + 100 do
-        Cahce_Spell(self, spellID, count)
+        if not C_Spell.IsSpellDataCached(spellID) then
+            SpellEventListener:AddCancelableCallback(spellID, function()
+                Save_Spell(self, spellID)
+            end)
+        else
+            Save_Spell(self, spellID)
+        end
     end
     Set_ValueText(self, startIndex)
-    if count==3 then
-        C_Timer.After(0.1, function() S_Spell(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Spell(self, startIndex, count+1) end)
+    C_Timer.After(0.1, function() S_Spell(self, startIndex + 101) end)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--[[
+任务
+local quest = QuestCache:Get(questID);
+if quest.isAutoComplete and quest:IsComplete() then
+C_QuestLog.RequestLoadQuestByID(77794)
+
+local QuestTooltip = CreateFrame("GameTooltip", "WoWToolsQuestSCTooltip", UIParent, "GameTooltipTemplate")
+QuestTooltip:SetFrameStrata("TOOLTIP")
+local function Quest_Desc_Regions(...)
+  local texts = ''
+    for i = 1, select("#", ...) do
+        local region = select(i, ...)
+        if region and region:GetObjectType() == "FontString" then
+            local text = region:GetText()
+			if IsCN(text) then
+                --print(i, text)
+            end
+        end
+	end
+	return texts
+end
+local function Get_Quest_Desc(questID)
+    QuestTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    QuestTooltip:ClearLines()
+    QuestTooltip:SetHyperlink('quest:' .. questID)
+    QuestTooltip:Show()
+end
+]]
+local function Get_Objectives(questID)
+    local obj= C_QuestLog.GetQuestObjectives(questID)
+    if not obj then
+        return
+    end
+    local tab= {}
+    local find
+    for index, info in pairs(obj) do
+        if info.text then
+            local t= info.text:match('%d+/%d+ (.+)') or info.text
+            t= t:match('(.+) %(%d+%%%)') or t
+            if IsCN(t) then
+                tab[index]= t
+                find=true
+            end
+        end
+    end
+    if find then
+        return tab
     end
 end
+
+local function Save_Quest(self, ID, count)
+    local data= C_TooltipInfo.GetHyperlink('quest:' .. ID)
+    if not data or
+        not data.lines
+        or not data.lines[1]
+        or not IsCN(data.lines[1].leftText)
+    then
+        return
+    end
+    local title= QuestUtils_GetQuestName(ID) or data.lines[1].leftText
+    local obj
+    if data.lines[3] and IsCN(data.lines[3].leftText) then
+        obj= data.lines[3].leftText
+    end
+
+    local obs= Get_Objectives(ID)
+    Save_Value(self, ID, count, {
+        T= title,
+        O= obj,
+        S= obs,
+    })
+end
+
+local function S_Quest(self, startIndex)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for questID = startIndex, startIndex + 100 do
+        if not HaveQuestData(questID) then
+        QuestEventListener:AddCancelableCallback(questID, function()
+            Save_Quest(self, questID)
+        end)
+        else
+            Save_Quest(self, questID)
+        end
+    end
+    Set_ValueText(self, startIndex)
+    C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
+end
+
+
+
+
+
+
+
+
 
 
 
@@ -498,6 +595,27 @@ local function S_Unit(self, startIndex, count)
         C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
     end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -644,106 +762,6 @@ end
 
 
 
-
-
-
---[[
-任务
-local quest = QuestCache:Get(questID);
-if quest.isAutoComplete and quest:IsComplete() then
-C_QuestLog.RequestLoadQuestByID(77794)
-]]
-local QuestTooltip = CreateFrame("GameTooltip", "WoWToolsQuestSCTooltip", UIParent, "GameTooltipTemplate")
-QuestTooltip:SetFrameStrata("TOOLTIP")
-local function Quest_Desc_Regions(...)
-  local texts = ''
-    for i = 1, select("#", ...) do
-        local region = select(i, ...)
-        if region and region:GetObjectType() == "FontString" then
-            local text = region:GetText()
-			if IsCN(text) then
-                print(i, text)
-            end
-        end
-	end
-	return texts
-end
-local function Get_Quest_Desc(questID)
-    QuestTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-    QuestTooltip:ClearLines()
-    QuestTooltip:SetHyperlink('quest:' .. questID)
-    QuestTooltip:Show()
-    Quest_Desc_Regions(QuestTooltip:GetRegions())
-end
-
-local function Get_Objectives(questID)
-    local obj= C_QuestLog.GetQuestObjectives(questID)
-    if not obj then
-        return
-    end
-    local tab= {}
-    local find
-    for index, info in pairs(obj) do
-        if info.text then
-            local t= info.text:match('%d+/%d+ (.+)') or info.text
-            t= t:match('(.+) %(%d+%%%)') or t
-            if IsCN(t) then
-                tab[index]= t
-                find=true
-            end
-        end
-    end
-    if find then
-        return tab
-    end
-end
-local function Save_Quest(self, ID, count)
-    local data= C_TooltipInfo.GetHyperlink('quest:' .. ID)
-    if not data or
-        not data.lines
-        or not data.lines[1]
-        or not IsCN(data.lines[1].leftText)
-    then
-        return
-    end
-    local title= C_QuestLog.GetTitleForQuestID(ID) or data.lines[1].leftText
-    local obj
-    if data.lines[3] and IsCN(data.lines[3].leftText) then
-        obj= data.lines[3].leftText
-    end
-
-    local desc= Get_Quest_Desc(ID)
-
-    local obs= Get_Objectives(ID)
-    Save_Value(self, ID, count, {
-        T= title,
-        O= obj,
-        S= obs,
-    })
-end
-local function Cahce_Quest(self, ID, count)
-    if not HaveQuestData(ID) then
-        QuestEventListener:AddCancelableCallback(ID, function()
-            Save_Quest(self, ID, count)
-        end)
-    else
-        Save_Quest(self, ID, count)
-    end
-end
-local function S_Quest(self, startIndex, count)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
-    for questID = startIndex, startIndex + 100 do
-        Cahce_Quest(self, questID, count)
-    end
-    Set_ValueText(self, startIndex)
-    if count==2 then
-        C_Timer.After(0.1, function() S_Quest(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
-    end
-end
 
 
 
@@ -1374,7 +1392,7 @@ do
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        
+
 
         --{name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
     }) do

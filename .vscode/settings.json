@@ -53,7 +53,10 @@
         "QuestEventListener",
         "GossipOptionButtonMixin",
         "GossipSharedAvailableQuestButtonMixin",
-        "GossipSharedActiveQuestButtonMixin"
+        "GossipSharedActiveQuestButtonMixin",
+        "LFGListUtil_GetQuestDescription",
+        "QuestUtil",
+        "QuestUtils_GetQuestName"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
