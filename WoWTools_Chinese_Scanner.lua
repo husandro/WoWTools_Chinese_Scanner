@@ -192,7 +192,7 @@ local function Save_Value(self, ID, count, tab)
             self.num= self.num+1
             local id= tab.T and MK(ID)
             if id then
-                self.Name:SetText(id..' '..tab.T)
+                self.Name:SetText(id..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..tab.T)
             end
         end
     end
@@ -509,26 +509,26 @@ local function Save_Quest(self, ID, count)
     })
 end
 
-local function S_Quest(self, startIndex, count)
+local function S_Quest(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
     for questID = startIndex, startIndex + 100 do
         if not HaveQuestData(questID) then
-        QuestEventListener:AddCancelableCallback(questID, function()
-            Save_Quest(self, questID, count)
-        end)
+            QuestEventListener:AddCancelableCallback(questID, function()
+                Save_Quest(self, questID)
+            end)
         else
-            Save_Quest(self, questID, count)
+            Save_Quest(self, questID)
         end
     end
     Set_ValueText(self, startIndex)
 
-    if count==3 then
-        C_Timer.After(0.1, function() S_Quest(self, startIndex + 101, 0) end)
-    else
-        C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
-    end
+    --if count==3 then
+    C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
+    
+        --C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
+    
 end
 
 
@@ -1048,10 +1048,7 @@ local function Create_Button(tab)
     btn:SetScript('OnMouseDown', function(self)
         self:settings()
         if not self.isStop then
-            if self.name=='Spell' then
-                C_Spell.RequestLoadSpellData(258483)
-            end
-            _G['WoWTools_SC_'..name]= {}
+            --_G['WoWTools_SC_'..name]= {}
             self.func(self, self.min, 1)
         end
     end)
