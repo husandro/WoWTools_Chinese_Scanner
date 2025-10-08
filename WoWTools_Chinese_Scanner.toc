@@ -2,6 +2,9 @@
 ## Title: |cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描
 ## Author: husandro
 ## Version: @project-version@
+## X-Curse-Project-ID: 1057668
+## X-Wago-ID: j6jzWx6R
+## X-Category: Plugins
 ## Notes: |A:Icon-WoW:0:0|aWoW |cff28a3ff中文化|r|n|cffffd100|A:communities-icon-invitemail:0:0|ahusandro@qq.com|r|n|A:WoWShare-TwitterLogo:0:0|a|cff00ccffhttps://www.curseforge.com/wow/addons/wowtools_chinese|r
 ## DefaultState: disabled
 ## IconTexture: Interface\AddOns\WoWTools_Chinese_Scanner\Source\WoWtools.tga
