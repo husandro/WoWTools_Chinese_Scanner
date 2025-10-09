@@ -862,7 +862,7 @@ end
 
 
 
---[[local function Save_Holyday(self, day, index, count)
+local function Save_Holyday(self, day, index, count)
     local data= C_Calendar.GetDayEvent(0, day, index)
     if data and data.eventID and data.calendarType~='PLAYER' then
         local holiday= C_Calendar.GetHolidayInfo(0, day, index)
@@ -902,13 +902,10 @@ local function S_Holyday(self, startIndex)
    
     Set_ValueText(self, startIndex)
 
-    --if count==3 then
-        C_Timer.After(0.3, function() S_Holyday(self, startIndex+1) end)
-    --else
-      --  C_Timer.After(0.1, function() S_Holyday(self, startIndex, count+1) end)
-    --end
+  
+    C_Timer.After(0.3, function() S_Holyday(self, startIndex+1) end)
 end
-]]
+
 
 
 
@@ -1396,8 +1393,8 @@ do
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058 01:10', atlas='UI-Achievement-Shield-NoPoints'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
 
-
-        --{name='Holyday', func=S_Holyday, max=24, text='节日', tooltip='119条'},
+'-',
+        {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
         if tab=='-' then
             y=y-12
