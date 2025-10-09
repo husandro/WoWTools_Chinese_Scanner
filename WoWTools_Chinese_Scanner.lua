@@ -13,6 +13,19 @@ C_TooltipInfo.GetHyperlink('quest:' .. questID)
         <OnHyperlinkEnter function="EncounterJournal_OnHyperlinkEnter"/>
     </Scripts>
 </SimpleHTML>
+
+C_LoreText.RequestLoreTextForCampaignID(campaignID)
+C_CampaignInfo.GetAvailableCampaigns() : campaignIDs
+C_CampaignInfo.GetCampaignChapterInfo(campaignChapterID) : campaignChapterInfo
+C_CampaignInfo.GetCampaignID(questID) : campaignID
+C_CampaignInfo.GetCampaignInfo(campaignID) : campaignInfo
+C_CampaignInfo.GetChapterIDs(campaignID) : chapterIDs
+C_CampaignInfo.GetCurrentChapterID(campaignID) : currentChapterID
+C_CampaignInfo.GetFailureReason(campaignID) : failureReason
+C_CampaignInfo.GetState(campaignID) : state
+C_CampaignInfo.IsCampaignQuest(questID) : isCampaignQuest
+C_CampaignInfo.SortAsNormalQuest(campaignID) : sortAsNormalQuest
+
 ]]
 
 
