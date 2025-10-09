@@ -491,7 +491,7 @@ function Cahce_Campagn(campaignID)
     end
 
 end
-EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", function(owner, campaignID, textEntries)
+EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", function(_, campaignID, textEntries)
     if campaignID then
         local info= C_CampaignInfo.GetCampaignInfo(campaignID)
         if info then
@@ -505,17 +505,8 @@ EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", functi
                 if desc then
                     WoWTools_SC_Campaign[campaignID].D= info.description
                 end
-
-                            
-                print(campaignID, info.name, info.description)
-                info= textEntries
-                 for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
-
             end
-            
-            
         end
-        
     end
 end)
 
