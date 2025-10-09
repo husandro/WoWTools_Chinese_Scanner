@@ -336,6 +336,7 @@ local function Load_Item(self)
                 for _, data in pairs(C_LootJournal.GetItemSets(classID, specID) or {}) do
                     for _, sets in pairs(C_LootJournal.GetItemSetItems(data.setID) or {}) do
                         local itemID= sets.itemID
+                        print(itemID)
                         if itemID then
                             Cahce_Item(self, itemID)
                         end
