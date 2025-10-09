@@ -26,6 +26,11 @@ C_CampaignInfo.GetState(campaignID) : state
 C_CampaignInfo.IsCampaignQuest(questID) : isCampaignQuest
 C_CampaignInfo.SortAsNormalQuest(campaignID) : sortAsNormalQuest
 
+C_LoreText.RequestLoreTextForCampaignID(213)
+inof= C_CampaignInfo.GetCampaignInfo(213)
+--LORE_TEXT_UPDATED_CAMPAIGN 
+for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
+
 ]]
 
 
@@ -476,6 +481,47 @@ local function Get_Quest_Desc(questID)
     QuestTooltip:Show()
 end
 ]]
+
+
+
+
+function Cahce_Campagn(campaignID)
+    if campaignID then
+        C_LoreText.RequestLoreTextForCampaignID(campaignID)
+    end
+
+end
+EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", function(owner, campaignID, textEntries)
+    if campaignID then
+        local info= C_CampaignInfo.GetCampaignInfo(campaignID)
+        if info then
+            local title= IsCN(info.name)
+            local desc= IsCN(info.description)
+            if title or desc then
+                WoWTools_SC_Campaign[campaignID]= WoWTools_SC_Campaign[campaignID] or {}
+                if title then
+                    WoWTools_SC_Campaign[campaignID].T= info.name
+                end
+                if desc then
+                    WoWTools_SC_Campaign[campaignID].D= info.description
+                end
+
+                            
+                print(campaignID, info.name, info.description)
+                info= textEntries
+                 for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
+
+            end
+            
+            
+        end
+        
+    end
+end)
+
+
+
+
 local function Get_Objectives(questID)
     local obj= C_QuestLog.GetQuestObjectives(questID)
     if not obj then
@@ -514,6 +560,13 @@ local function Save_Quest(self, ID, count)
     end
 
     local obs= Get_Objectives(ID)
+
+    local campaignID= C_CampaignInfo.GetCampaignID(ID)
+    if campaignID then
+        C_LoreText.RequestLoreTextForCampaignID(campaignID)
+    end
+
+    Cahce_Campagn(C_CampaignInfo.GetCampaignID(ID))
 
     Save_Value(self, ID, count, {
         T= title,
@@ -1449,7 +1502,10 @@ end
         end
     end
 
-
+    --https://wago.tools/db2/Campaign
+    for campaignID= 1, 350 do
+        Cahce_Campagn(campaignID)
+    end
 
 
     if Save().MaxButtonIsShow then
@@ -1495,6 +1551,8 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
 
     WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
+    WoWTools_SC_Campaign= WoWTools_SC_Campaign or {}
+
     Init_Gossip()
 
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
