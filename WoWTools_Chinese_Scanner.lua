@@ -485,7 +485,7 @@ end
 
 
 
-function Cahce_Campagn(campaignID)
+--[[function Cahce_Campagn(campaignID)
     if campaignID then
         C_LoreText.RequestLoreTextForCampaignID(campaignID)
     end
@@ -508,7 +508,7 @@ EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", functi
             end
         end
     end
-end)
+end)]]
 
 
 
@@ -552,12 +552,10 @@ local function Save_Quest(self, ID, count)
 
     local obs= Get_Objectives(ID)
 
-    local campaignID= C_CampaignInfo.GetCampaignID(ID)
+    --[[local campaignID= C_CampaignInfo.GetCampaignID(ID)
     if campaignID then
         C_LoreText.RequestLoreTextForCampaignID(campaignID)
-    end
-
-    Cahce_Campagn(C_CampaignInfo.GetCampaignID(ID))
+    end]]
 
     Save_Value(self, ID, count, {
         T= title,
@@ -1493,10 +1491,10 @@ end
         end
     end
 
-    --https://wago.tools/db2/Campaign
+    --[[https://wago.tools/db2/Campaign
     for campaignID= 1, 350 do
         Cahce_Campagn(campaignID)
-    end
+    end]]
 
 
     if Save().MaxButtonIsShow then
