@@ -57,7 +57,8 @@
         "LFGListUtil_GetQuestDescription",
         "QuestUtil",
         "QuestUtils_GetQuestName",
-        "TaskPOI_OnEnter"
+        "TaskPOI_OnEnter",
+        "WoWTools_TextureMixin"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

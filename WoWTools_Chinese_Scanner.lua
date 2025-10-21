@@ -1428,7 +1428,14 @@ local function Init()
 
 
 
-
+    if WoWTools_TextureMixin then
+        WoWTools_TextureMixin:SetButton(maxButton)
+        WoWTools_TextureMixin:SetButton(minButton)
+        WoWTools_TextureMixin:SetFrame(Frame.Border, {alpha=1})
+        WoWTools_TextureMixin:SetFrame(Frame.Header, {alpha=1})
+        WoWTools_TextureMixin:SetUIButton(clear)
+        WoWTools_TextureMixin:SetUIButton(reload)
+    end
 
 
 
