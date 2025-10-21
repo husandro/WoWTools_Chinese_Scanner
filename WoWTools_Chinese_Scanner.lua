@@ -1109,6 +1109,9 @@ local function Create_Button(tab)
     btn.bar:SetPoint('RIGHT', btn, 'LEFT', -2, 0)
     btn.bar:SetSize(Frame:GetWidth()-55-23*3, 18)
     btn.bar:SetStatusBarTexture('UI-HUD-UnitFrame-Player-PortraitOff-Bar-Focus')
+    if WoWTools_TextureMixin then
+        WoWTools_TextureMixin:SetStatusBar(btn.bar)
+    end
     btn.bar:SetAlpha(0.8)
     btn.bar:SetMinMaxValues(0, 100)
     btn.bar:SetValue(0)
@@ -1320,6 +1323,9 @@ local function Init()
     end)
 
     local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
+    maxButton.texture= maxButton:CreateTexture(nil, "BACKGROUND")
+    maxButton.texture:SetAllPoints()
+    maxButton.texture:SetColorTexture(0,0,0)
     maxButton:Hide()
     maxButton:SetFrameStrata('HIGH')
     maxButton:SetFrameLevel(502)
@@ -1355,10 +1361,10 @@ local function Init()
     maxButton:SetScript('OnShow', function(self)
         Set_Point(self)
         self:SetButtonState('NORMAL')
-        self:SetScale(2)
+        --[[self:SetScale(2)
         C_Timer.After(0.2, function() self:SetScale(1) end)
         C_Timer.After(0.4, function() self:SetScale(2) end)
-        C_Timer.After(0.6, function() self:SetScale(1) end)
+        C_Timer.After(0.6, function() self:SetScale(1) end)]]
         MaxButtonLabel:SetText('')
         Save().MaxButtonIsShow= true
         Frame:set_event()
@@ -1429,7 +1435,6 @@ local function Init()
 
 
     if WoWTools_TextureMixin then
-        WoWTools_TextureMixin:SetButton(maxButton)
         WoWTools_TextureMixin:SetButton(minButton)
         WoWTools_TextureMixin:SetFrame(Frame.Border, {alpha=1})
         WoWTools_TextureMixin:SetFrame(Frame.Header, {alpha=1})
