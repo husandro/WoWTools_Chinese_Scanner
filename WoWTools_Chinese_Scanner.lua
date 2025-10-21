@@ -1541,8 +1541,8 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
         WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
         WoWTools_SC_Campaign= {}
-    else
 
+    else
         WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
         WoWTools_SC_Quest = WoWTools_SC_Quest or {}
         WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
