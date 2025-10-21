@@ -1524,23 +1524,43 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
     WoWTools_SC= WoWTools_SC or {}
 
-    WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
-    WoWTools_SC_Quest = WoWTools_SC_Quest or {}
-    WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
-    WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
+    if C_AddOns.IsAddOnLoaded('WoWTools_Chinese') then
+        WoWTools_SC_Achievement = {}
+        WoWTools_SC_Quest = {}
+        WoWTools_SC_Encounter= {}
+        WoWTools_SC_SectionEncounter= {}
 
-    WoWTools_SC_Item= WoWTools_SC_Item or {}
-    WoWTools_SC_SetsItem= WoWTools_SC_SetsItem or {}
+        WoWTools_SC_Item= {}
+        WoWTools_SC_SetsItem= {}
 
-    WoWTools_SC_Spell= WoWTools_SC_Spell or {}
-    WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
-    WoWTools_SC_Unit= WoWTools_SC_Unit or {}
+        WoWTools_SC_Spell= {}
+        WoWTools_SC_Spell2= {}
+        WoWTools_SC_Unit= {}
 
-    WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
+        WoWTools_SC_Holyday= {}
+
+        WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
+        WoWTools_SC_Campaign= {}
+    else
+
+        WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
+        WoWTools_SC_Quest = WoWTools_SC_Quest or {}
+        WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
+        WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
+
+        WoWTools_SC_Item= WoWTools_SC_Item or {}
+        WoWTools_SC_SetsItem= WoWTools_SC_SetsItem or {}
+
+        WoWTools_SC_Spell= WoWTools_SC_Spell or {}
+        WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
+        WoWTools_SC_Unit= WoWTools_SC_Unit or {}
+
+        WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
 
 
-    WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
-    WoWTools_SC_Campaign= WoWTools_SC_Campaign or {}
+        WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
+        WoWTools_SC_Campaign= WoWTools_SC_Campaign or {}
+    end
 
     Init_Gossip()
 
