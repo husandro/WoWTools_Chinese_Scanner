@@ -13,3 +13,4 @@
 
 
 WoWTools_Chinese_Scanner.lua
+MapIDAchievement.lua
