@@ -12,9 +12,9 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     if tab then
        WoWTools_MapIDAchievements={}
        for _, data in pairs(tab) do
-            local mapID= data[1] or 1
-            local achievementID= data[2] or 1
-            if mapID>1 and achievementID>1 then
+            local mapID= data[1] or 0
+            local achievementID= data[2] or 0
+            if mapID>0 and achievementID>0 then
                 WoWTools_MapIDAchievements[mapID]= WoWTools_MapIDAchievements[mapID] or {}
 
                 table.insert(WoWTools_MapIDAchievements[mapID], achievementID)
