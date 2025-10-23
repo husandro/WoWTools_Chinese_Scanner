@@ -4,7 +4,6 @@ https://wago.tools/db2/Achievement?locale=zhCN
 ]]
 local tab
 
-
 EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1)
      if arg1~='WoWTools_Chinese_Scanner' then
         return
@@ -17,10 +16,11 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
             local achievementID= data[2] or 1
             if mapID>1 and achievementID>1 then
                 WoWTools_MapIDAchievements[mapID]= WoWTools_MapIDAchievements[mapID] or {}
-                WoWTools_MapIDAchievements[mapID][achievementID]=1
+
+                table.insert(WoWTools_MapIDAchievements[mapID], achievementID)
             end
        end
-    else
+    elseif not C_AddOns.IsAddOnLoaded('WoWTools') then
         WoWTools_MapIDAchievements=nil
     end
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
