@@ -8,7 +8,7 @@
 ## X-Category: Plugins
 ## DefaultState: disabled
 ## IconTexture: Interface\AddOns\WoWTools_Chinese_Scanner\Source\WoWtools.tga
-## SavedVariables: WoWTools_SC_Holyday, WoWTools_SC_Spell, WoWTools_SC_Spell2, WoWTools_SC_SetsItem, WoWTools_SC_Item, WoWTools_SC_Unit, WoWTools_SC_Quest, WoWTools_SC_Campaign, WoWTools_SC_Encounter, WoWTools_SC_SectionEncounter, WoWTools_SC_Achievement, WoWTools_SC_MapIDAchievements, WoWTools_SC_Gossip
+## SavedVariables: WoWTools_SC_Holyday, WoWTools_SC_Spell, WoWTools_SC_Spell2, WoWTools_SC_SetsItem, WoWTools_SC_Item, WoWTools_SC_Unit, WoWTools_SC_Quest, WoWTools_SC_Campaign, WoWTools_SC_Encounter, WoWTools_SC_SectionEncounter, WoWTools_SC_Achievement, WoWTools_SC_Gossip, WoWTools_MapIDAchievements
 ## SavedVariablesPerCharacter: WoWTools_SC
 
 
