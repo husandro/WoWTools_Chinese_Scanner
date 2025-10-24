@@ -10,18 +10,18 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     end
 
     if tab then
-       WoWTools_MapIDAchievements={}
+       WoWTools_SC_MapIDAchievements={}
        for _, data in pairs(tab) do
             local mapID= data[1] or 0
             local achievementID= data[2] or 0
             if mapID>0 and achievementID>0 then
-                WoWTools_MapIDAchievements[mapID]= WoWTools_MapIDAchievements[mapID] or {}
+                WoWTools_SC_MapIDAchievements[mapID]= WoWTools_SC_MapIDAchievements[mapID] or {}
 
-                table.insert(WoWTools_MapIDAchievements[mapID], achievementID)
+                table.insert(WoWTools_SC_MapIDAchievements[mapID], achievementID)
             end
        end
-    elseif not C_AddOns.IsAddOnLoaded('WoWTools') then
-        WoWTools_MapIDAchievements=nil
+    else
+        WoWTools_SC_MapIDAchievements=nil
     end
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
