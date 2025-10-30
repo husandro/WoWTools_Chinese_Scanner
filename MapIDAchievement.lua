@@ -15,9 +15,12 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
             local mapID= data[1] or 0
             local achievementID= data[2] or 0
             if mapID>0 and achievementID>0 then
-                WoWTools_SC_MapIDAchievements[mapID]= WoWTools_SC_MapIDAchievements[mapID] or {}
 
-                table.insert(WoWTools_SC_MapIDAchievements[mapID], achievementID)
+                if not select(10, GetAchievementInfo(achievementID))~= 136243 then
+                    table.insert(WoWTools_SC_MapIDAchievements[mapID], achievementID)
+                    WoWTools_SC_MapIDAchievements[mapID]= WoWTools_SC_MapIDAchievements[mapID] or {}
+                end
+
             end
        end
     else
