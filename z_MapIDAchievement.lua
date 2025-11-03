@@ -1,3 +1,6 @@
+if not LOCALE_zhCN then
+    return
+end
 --[[
 https://wago.tools/db2/Achievement?locale=zhCN
 
