@@ -1,6 +1,10 @@
 --[[
-{Instance_ID,ID}
 https://wago.tools/db2/Achievement?locale=zhCN
+
+local tab={
+    {Instance_ID,ID},
+    ...
+}
 ]]
 local tab
 
