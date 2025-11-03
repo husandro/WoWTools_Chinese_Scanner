@@ -888,7 +888,9 @@ local function S_Achievement(self, startIndex, count)
         return
     end
     for ID = startIndex, startIndex + 100 do
-        Save_Achievement(self, ID, count)
+        if C_AchievementInfo.IsValidAchievement(ID) then
+            Save_Achievement(self, ID, count)
+        end
     end
     Set_ValueText(self, startIndex)
     if count==3 then
