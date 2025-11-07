@@ -1402,14 +1402,14 @@ local function Init()
 
 
     local reload= CreateFrame('Button', 'WoWToolsSCReloadButton', Frame, 'UIPanelButtonTemplate')
-    reload:SetSize(150, 24)
+    reload:SetSize(150, 23)
     reload:SetText('重新加载UI')
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 24)
 
 
     local out= CreateFrame('Button', 'WoWToolsSCLogoutButton', Frame, 'SecureActionButtonTemplate UIPanelButtonTemplate')
-    out:SetSize(60, 24)
+    out:SetSize(80, 23)
     out:SetPoint("TOPLEFT", 40, 0)
     out:SetText('登出')
     out:SetAttribute('type1', 'macro')
