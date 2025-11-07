@@ -270,7 +270,7 @@ local function Set_ItemSets(itemID)
     if not setID then
         return
     end
-    
+    print(itemLink, setID)
     local specs= C_Item.GetItemSpecInfo(itemID)
     if not specs then
         return
