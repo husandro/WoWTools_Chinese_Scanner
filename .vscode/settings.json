@@ -59,7 +59,9 @@
         "QuestUtils_GetQuestName",
         "TaskPOI_OnEnter",
         "WoWTools_TextureMixin",
-        "Add"
+        "Add",
+        "PlayerFrame",
+        "TargetFrame"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

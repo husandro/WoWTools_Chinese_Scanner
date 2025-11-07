@@ -270,7 +270,6 @@ local function Set_ItemSets(itemID)
     if not setID then
         return
     end
-    print(itemLink, setID)
     local specs= C_Item.GetItemSpecInfo(itemID)
     if not specs then
         return
@@ -1409,6 +1408,13 @@ local function Init()
     reload:SetPoint('BOTTOMRIGHT', -12, 24)
 
 
+    local out= CreateFrame('Button', 'WoWToolsSCLogoutButton', Frame, 'SecureActionButtonTemplate UIPanelButtonTemplate')
+    out:SetSize(60, 24)
+    out:SetPoint("TOPLEFT", 40, 0)
+    out:SetText('登出')
+    out:SetAttribute('type1', 'macro')
+    out:SetAttribute("macrotext1", '/logout')
+    out:RegisterForClicks('AnyDown')
 
 
     if WoWTools_TextureMixin then
@@ -1418,9 +1424,6 @@ local function Init()
         WoWTools_TextureMixin:SetUIButton(clear)
         WoWTools_TextureMixin:SetUIButton(reload)
     end
-
-
-
 
 do
     for _, tab in pairs({
