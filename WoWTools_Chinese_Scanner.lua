@@ -4,41 +4,6 @@ if not LOCALE_zhCN then
     return
 end
 
---[[
-( ) . % + - * ? [ ^ $
-C_TooltipInfo.GetHyperlink('spell:'.. spellID)
-C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
-C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
-C_TooltipInfo.GetHyperlink('quest:' .. questID)
-
-<SimpleHTML parentKey="Text" setAllPoints="true" inherits="InlineHyperlinkFrameTemplate">
-    <FontString inherits="GameFontBlack" justifyH="LEFT" justifyV="TOP">
-        <Color r="0.25" g="0.1484375" b=".02" a="1"/>
-    </FontString>
-    <Scripts>
-        <OnHyperlinkEnter function="EncounterJournal_OnHyperlinkEnter"/>
-    </Scripts>
-</SimpleHTML>
-
-C_LoreText.RequestLoreTextForCampaignID(campaignID)
-C_CampaignInfo.GetAvailableCampaigns() : campaignIDs
-C_CampaignInfo.GetCampaignChapterInfo(campaignChapterID) : campaignChapterInfo
-C_CampaignInfo.GetCampaignID(questID) : campaignID
-C_CampaignInfo.GetCampaignInfo(campaignID) : campaignInfo
-C_CampaignInfo.GetChapterIDs(campaignID) : chapterIDs
-C_CampaignInfo.GetCurrentChapterID(campaignID) : currentChapterID
-C_CampaignInfo.GetFailureReason(campaignID) : failureReason
-C_CampaignInfo.GetState(campaignID) : state
-C_CampaignInfo.IsCampaignQuest(questID) : isCampaignQuest
-C_CampaignInfo.SortAsNormalQuest(campaignID) : sortAsNormalQuest
-
-C_LoreText.RequestLoreTextForCampaignID(213)
-inof= C_CampaignInfo.GetCampaignInfo(213)
---LORE_TEXT_UPDATED_CAMPAIGN 
-for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
-
-]]
-
 
 
 
@@ -583,9 +548,9 @@ local function S_Quest(self, startIndex)
 
     --if count==3 then
     C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
-    
+
         --C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
-    
+
 end
 
 
@@ -768,41 +733,46 @@ local function S_SectionEncounter(self, startIndex, count)
     end
 
 
-
+do
     for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
-        EJ_SetDifficulty(difficultyID)
-
-        for sectionID= startIndex, startIndex + 100 do
-
-            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-            local id= EJ_GetDifficulty() or difficultyID
-            if sectionInfo and not sectionInfo.filteredByDifficulty then
-                local title, desc
-                if IsCN(sectionInfo.title) then
-                    title= sectionInfo.title
-                end
-                if IsCN(sectionInfo.description) then
-                    desc= sectionInfo.description
-                end
-                if title or desc then
-                     _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
-                    if title then
-                        _G['WoWTools_SC_'..self.name][sectionID].T=title
+        do
+            if EJ_GetDifficulty()~= difficultyID then
+                EJ_SetDifficulty(difficultyID)
+            end
+        end
+        do
+            for sectionID= startIndex, startIndex + 100 do
+                local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+                local id= EJ_GetDifficulty() or difficultyID
+                if sectionInfo and not sectionInfo.filteredByDifficulty then
+                    local title, desc
+                    if IsCN(sectionInfo.title) then
+                        title= sectionInfo.title
                     end
-                    if desc then
-                        desc= desc:gsub('|cffffffff', '|cff000000')
-                        _G['WoWTools_SC_'..self.name][sectionID][id]= desc
+                    if IsCN(sectionInfo.description) then
+                        desc= sectionInfo.description
                     end
-                    if count==3 then
-                        self.num= self.num + 1
+                    if title or desc then
+                        _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
                         if title then
-                            self.Name:SetText(sectionID..' '..title)
+                            _G['WoWTools_SC_'..self.name][sectionID].T=title
+                        end
+                        if desc then
+                            desc= desc:gsub('|cffffffff', '|cff000000')
+                            _G['WoWTools_SC_'..self.name][sectionID][id]= desc
+                        end
+                        if count==3 then
+                            self.num= self.num + 1
+                            if title then
+                                self.Name:SetText(sectionID..' '..title)
+                            end
                         end
                     end
                 end
             end
         end
     end
+end
 
     Set_ValueText(self, startIndex)
 
@@ -952,15 +922,15 @@ local function S_Holyday(self, startIndex)
     C_Calendar.SetMonth(1)
 
     for day=1, 31 do
-   
+
         for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
-            Save_Holyday(self, day, index)           
+            Save_Holyday(self, day, index)
         end
     end
-   
+
     Set_ValueText(self, startIndex)
 
-  
+
     C_Timer.After(0.3, function() S_Holyday(self, startIndex+1) end)
 end
 
@@ -1589,23 +1559,37 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
 end)
 
 
+--[[
+( ) . % + - * ? [ ^ $
+C_TooltipInfo.GetHyperlink('spell:'.. spellID)
+C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
+C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
+C_TooltipInfo.GetHyperlink('quest:' .. questID)
 
+<SimpleHTML parentKey="Text" setAllPoints="true" inherits="InlineHyperlinkFrameTemplate">
+    <FontString inherits="GameFontBlack" justifyH="LEFT" justifyV="TOP">
+        <Color r="0.25" g="0.1484375" b=".02" a="1"/>
+    </FontString>
+    <Scripts>
+        <OnHyperlinkEnter function="EncounterJournal_OnHyperlinkEnter"/>
+    </Scripts>
+</SimpleHTML>
 
+C_LoreText.RequestLoreTextForCampaignID(campaignID)
+C_CampaignInfo.GetAvailableCampaigns() : campaignIDs
+C_CampaignInfo.GetCampaignChapterInfo(campaignChapterID) : campaignChapterInfo
+C_CampaignInfo.GetCampaignID(questID) : campaignID
+C_CampaignInfo.GetCampaignInfo(campaignID) : campaignInfo
+C_CampaignInfo.GetChapterIDs(campaignID) : chapterIDs
+C_CampaignInfo.GetCurrentChapterID(campaignID) : currentChapterID
+C_CampaignInfo.GetFailureReason(campaignID) : failureReason
+C_CampaignInfo.GetState(campaignID) : state
+C_CampaignInfo.IsCampaignQuest(questID) : isCampaignQuest
+C_CampaignInfo.SortAsNormalQuest(campaignID) : sortAsNormalQuest
 
+C_LoreText.RequestLoreTextForCampaignID(213)
+inof= C_CampaignInfo.GetCampaignInfo(213)
+--LORE_TEXT_UPDATED_CAMPAIGN 
+for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+]]
