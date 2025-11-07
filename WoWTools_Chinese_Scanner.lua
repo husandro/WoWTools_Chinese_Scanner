@@ -1211,7 +1211,9 @@ local function Create_Button(tab)
     btn:settings()
 
     if name=='Item' then
-        Load_Item(btn)
+        C_Timer.After(2, function()
+            Load_Item(btn)
+        end)
     end
 
     y= y- 23- 8
