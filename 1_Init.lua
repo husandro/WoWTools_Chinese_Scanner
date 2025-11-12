@@ -974,6 +974,7 @@ end
 
 
 
+local ShowTextFrame
 
 
 
@@ -1033,9 +1034,6 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 
-
-
-
 local y= -40
 local function Create_Button(tab)
     local name= tab.name
@@ -1055,8 +1053,8 @@ local function Create_Button(tab)
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
-    btn:SetPoint('TOPRIGHT', -50, y)
-    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    btn:SetPoint('TOPRIGHT', -23*2-13, y)
+    btn:SetScript('OnLeave', GameTooltip_Hide)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText(self.text)
@@ -1071,12 +1069,15 @@ local function Create_Button(tab)
         end
         GameTooltip:Show()
     end)
-    btn:SetScript('OnMouseDown', function(self)
+    function btn:run()
         self:settings()
         if not self.isStop then
-            --_G['WoWTools_SC_'..name]= {}
             self.func(self, self.min, 1)
         end
+    end
+    btn:SetScript('OnMouseDown', function(self)
+        Save().keepRun= self.isStop and self.name or nil
+        self:run()
     end)
 
     btn.bar= CreateFrame('StatusBar', nil, btn)
@@ -1130,7 +1131,7 @@ local function Create_Button(tab)
     btn.clear:SetHighlightAtlas('PetList-ButtonHighlight')
     btn.clear:SetPoint('RIGHT', btn.bar, 'LEFT', -2, 0)
     btn.clear:SetSize(23,23)
-    btn.clear:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    btn.clear:SetScript('OnLeave', GameTooltip_Hide)
     btn.clear:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:SetText(self:GetParent().text)
@@ -1152,7 +1153,7 @@ local function Create_Button(tab)
         btn.cahce= CreateFrame('Button', nil, btn)
         btn.cahce:SetPushedAtlas('PetList-ButtonSelect')
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
-        btn.cahce:SetPoint('LEFT', btn, 'RIGHT', 8, 0)
+        btn.cahce:SetPoint('LEFT', btn, 'RIGHT')
         btn.cahce:SetSize(23,23)
         btn.cahce.func= tab.cahce
         btn.cahce.name= name
@@ -1169,15 +1170,15 @@ local function Create_Button(tab)
             end
             GameTooltip:Show()
         end
-        btn.cahce:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        btn.cahce:SetScript('OnLeave', GameTooltip_Hide)
         btn.cahce:SetScript('OnEnter', function(self)
            self:set_tooltip()
         end)
         function btn.cahce:settings()
             if not self:GetParent().isCahceStop then
-                self:SetNormalAtlas('Perks-PreviewOn')
+                self:SetNormalAtlas('perks-warning-small')
             else
-                self:SetNormalAtlas('Perks-PreviewOff-Hover')
+                self:SetNormalAtlas('Islands-QuestTurnin')
             end
         end
         btn.isCahceStop= true
@@ -1195,6 +1196,33 @@ local function Create_Button(tab)
         end)
     end
 
+
+    btn.view= CreateFrame('Button', nil, btn)
+    btn.view.name= name
+    btn.view.text= text
+    btn.view:SetNormalAtlas('Perks-PreviewOn')
+    btn.view:SetPushedAtlas('PetList-ButtonSelect')
+    btn.view:SetHighlightAtlas('PetList-ButtonHighlight')
+    btn.view:SetPoint('LEFT', btn, 'RIGHT', 23, 0)
+    btn.view:SetSize(23,23)
+    btn.view:SetScript('OnLeave', GameTooltip_Hide)
+    btn.view:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+        GameTooltip:SetText('查看结果, '..self.text)
+        GameTooltip:AddLine(' ')
+        GameTooltip_AddErrorLine(GameTooltip, '如果数据太大会出错')
+        local va= (Save()[self.name..'Data'] or {})[1]
+        if va then
+            GameTooltip:AddLine(va:match(' .- .- (.-条)') or va)
+        end
+        GameTooltip:Show()
+    end)
+    btn.view:SetScript('OnMouseDown', function(self)
+        WoWToolsSCViewFrame:SetText(self.name, self.text)
+    end)
+    btn.view:SetAlpha(0.3)
+
+
     function btn:settings()
         self.isStop= not self.isStop and true or nil
         if self.isStop then
@@ -1208,6 +1236,10 @@ local function Create_Button(tab)
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
     btn:settings()
+
+    if Save().keepRun==name and Save().isKeepRun then
+        btn:run()
+    end
 
     if name=='Item' then
         C_Timer.After(2, function()
@@ -1364,7 +1396,6 @@ local function Init()
         maxButton:Show()
     end)
 
-
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     --[[Frame.CloseButton=CreateFrame('Button', 'WoWTools_SC_FrameCloseButton', Frame, 'UIPanelCloseButton')--SharedUIPanelTemplates.xml
     Frame.CloseButton:SetPoint('TOPRIGHT')]]
@@ -1385,7 +1416,6 @@ local function Init()
 
     local clear= CreateFrame('Button', 'WoWToolsSCClearDataButton', Frame, 'UIPanelButtonTemplate')
     clear:SetSize(150, 23)
-    --clear:SetPoint('TOP', Frame.Header, 'BOTTOM', 0, -10)
     clear:SetPoint('BOTTOMLEFT', 12, 25)
     clear:SetText('|A:bags-button-autosort-up:0:0|a清除所有数据')
     clear:SetScript('OnMouseDown', function()
@@ -1407,6 +1437,19 @@ local function Init()
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 24)
 
+    local keepRun= CreateFrame('CheckButton', 'WoWToolsSCContion', Frame, 'UICheckButtonArtTemplate')
+    keepRun:SetPoint('BOTTOM', reload, 'TOP')
+    keepRun:SetSize(23,23)
+    keepRun:SetScript('OnLeave', GameTooltip_Hide)
+    keepRun:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+        GameTooltip:SetText('重新加载UI时，继续上次运行')
+        GameTooltip:Show()
+    end)
+    keepRun:SetChecked(Save().isKeepRun)
+    keepRun:SetScript('OnMouseDown', function()
+        Save().isKeepRun= not Save().isKeepRun and true or nil
+    end)
 
     local out= CreateFrame('Button', 'WoWToolsSCLogoutButton', Frame, 'SecureActionButtonTemplate UIPanelButtonTemplate')
     out:SetSize(80, 23)
@@ -1416,13 +1459,14 @@ local function Init()
     out:SetAttribute("macrotext1", '/logout')
     out:RegisterForClicks('AnyDown')
 
-
     if WoWTools_TextureMixin then
         WoWTools_TextureMixin:SetButton(minButton)
         WoWTools_TextureMixin:SetFrame(Frame.Border, {alpha=1})
         WoWTools_TextureMixin:SetFrame(Frame.Header, {alpha=1})
         WoWTools_TextureMixin:SetUIButton(clear)
         WoWTools_TextureMixin:SetUIButton(reload)
+        WoWTools_TextureMixin:SetUIButton(out)
+        WoWTools_TextureMixin:SetCheckBox(keepRun)
     end
 
 do
@@ -1553,49 +1597,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     end
 
     Init_Gossip()
-
+    Init()
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
 
-
-
-EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
-    Init()
-    EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
-end)
-
-
---[[
-( ) . % + - * ? [ ^ $
-C_TooltipInfo.GetHyperlink('spell:'.. spellID)
-C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..unit..'-0000000000')
-C_TooltipInfo.GetHyperlink('item:207786:0:0:0:0:0:0:0')
-C_TooltipInfo.GetHyperlink('quest:' .. questID)
-
-<SimpleHTML parentKey="Text" setAllPoints="true" inherits="InlineHyperlinkFrameTemplate">
-    <FontString inherits="GameFontBlack" justifyH="LEFT" justifyV="TOP">
-        <Color r="0.25" g="0.1484375" b=".02" a="1"/>
-    </FontString>
-    <Scripts>
-        <OnHyperlinkEnter function="EncounterJournal_OnHyperlinkEnter"/>
-    </Scripts>
-</SimpleHTML>
-
-C_LoreText.RequestLoreTextForCampaignID(campaignID)
-C_CampaignInfo.GetAvailableCampaigns() : campaignIDs
-C_CampaignInfo.GetCampaignChapterInfo(campaignChapterID) : campaignChapterInfo
-C_CampaignInfo.GetCampaignID(questID) : campaignID
-C_CampaignInfo.GetCampaignInfo(campaignID) : campaignInfo
-C_CampaignInfo.GetChapterIDs(campaignID) : chapterIDs
-C_CampaignInfo.GetCurrentChapterID(campaignID) : currentChapterID
-C_CampaignInfo.GetFailureReason(campaignID) : failureReason
-C_CampaignInfo.GetState(campaignID) : state
-C_CampaignInfo.IsCampaignQuest(questID) : isCampaignQuest
-C_CampaignInfo.SortAsNormalQuest(campaignID) : sortAsNormalQuest
-
-C_LoreText.RequestLoreTextForCampaignID(213)
-inof= C_CampaignInfo.GetCampaignInfo(213)
---LORE_TEXT_UPDATED_CAMPAIGN 
-for k, v in pairs(info or {}) do if v and type(v)=='table' then print('|cff00ff00---',k, '---STAR|r') for k2,v2 in pairs(v) do print('|cffffff00',k2,v2, '|r') end print('|cffff0000---',k, '---END|r') else print(k,v) end end print('|cffff00ff——————————|r')
-
-]]

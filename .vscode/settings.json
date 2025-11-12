@@ -61,7 +61,14 @@
         "WoWTools_TextureMixin",
         "Add",
         "PlayerFrame",
-        "TargetFrame"
+        "TargetFrame",
+        "WoWToolsSCViewFrame",
+        "WoWTools_SC_Frame",
+        "EditBox_ClearFocus",
+        "ScrollingEdit_OnCursorChanged",
+        "ScrollingEdit_OnUpdate",
+        "SetItemRef",
+        "GameTooltip_AddErrorLine"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

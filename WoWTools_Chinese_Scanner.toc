@@ -12,6 +12,7 @@
 ## SavedVariablesPerCharacter: WoWTools_SC
 
 
-WoWTools_Chinese_Scanner.lua
+1_Init.lua
+2_ViewFrame.lua
 z_MapIDAchievement.lua
 z_GlobalStrings.lua
