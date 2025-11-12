@@ -1556,7 +1556,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
 
-    WoWTools_SC= WoWTools_SC or {}
+    WoWTools_SC= WoWTools_SC or {isKeepRun=true}
 
     if C_AddOns.IsAddOnLoaded('WoWTools_Chinese') then
         WoWTools_SC_Achievement = {}
