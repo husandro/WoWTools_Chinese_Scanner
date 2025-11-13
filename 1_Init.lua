@@ -1077,6 +1077,7 @@ local function Create_Button(tab)
     end
     btn:SetScript('OnMouseDown', function(self)
         Save().keepRun= self.isStop and self.name or nil
+        _G['WoWToolsSCContion']:set_atlas()
         self:run()
     end)
 
@@ -1444,8 +1445,13 @@ local function Init()
     keepRun:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText('重新加载UI时，继续上次运行')
+        GameTooltip:AddLine('当前：'..(Save().keepRun or '无'))
         GameTooltip:Show()
     end)
+    function keepRun:set_atlas()
+        self:SetCheckedTexture(Save().keepRun and 'checkmark-minimal' or 'checkmark-minimal-disabled')
+    end
+    keepRun:set_atlas()
     keepRun:SetChecked(Save().isKeepRun)
     keepRun:SetScript('OnMouseDown', function()
         Save().isKeepRun= not Save().isKeepRun and true or nil
