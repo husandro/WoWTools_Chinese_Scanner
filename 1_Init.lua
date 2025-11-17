@@ -1503,33 +1503,7 @@ end
 
     Frame:SetHeight(-y+75)
 
-    if not InCombatLockdown() then
-        if not CollectionsJournal then
-            CollectionsJournal_LoadUI()
-        end
 
-        if not PlayerSpellsFrame then
-            PlayerSpellsFrame_LoadUI()
-        end
-
-        if not AchievementFrame then
-            AchievementFrame_LoadUI()
-        end
-
-        if not EncounterJournal then
-            EncounterJournal_LoadUI()
-        end
-
-        EventRegistry:RegisterFrameEventAndCallback("CALENDAR_UPDATE_EVENT_LIST", function(owner)
-            if CalendarFrame:IsShown() then
-                ToggleCalendar()
-            end
-            EventRegistry:UnregisterCallback('CALENDAR_UPDATE_EVENT_LIST', owner)
-        end)
-        if not CalendarFrame then
-            ToggleCalendar()
-        end
-    end
 
     --[[https://wago.tools/db2/Campaign
     for campaignID= 1, 350 do
@@ -1543,8 +1517,12 @@ end
         Frame:Show()
     end
 
+
+
+
     Init=function()end
 end
+
 
 
 
@@ -1607,3 +1585,38 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     EventRegistry:UnregisterCallback('ADDON_LOADED', owner)
 end)
 
+
+
+
+
+
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
+    if not InCombatLockdown() then
+        if not CollectionsJournal then
+            CollectionsJournal_LoadUI()
+        end
+
+        if not PlayerSpellsFrame then
+            PlayerSpellsFrame_LoadUI()
+        end
+
+        if not AchievementFrame then
+            AchievementFrame_LoadUI()
+        end
+
+        if not EncounterJournal then
+            EncounterJournal_LoadUI()
+        end
+
+        EventRegistry:RegisterFrameEventAndCallback("CALENDAR_UPDATE_EVENT_LIST", function(owner)
+            if CalendarFrame:IsShown() then
+                ToggleCalendar()
+            end
+            EventRegistry:UnregisterCallback('CALENDAR_UPDATE_EVENT_LIST', owner)
+        end)
+        if not CalendarFrame then
+            ToggleCalendar()
+        end
+    end
+    EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
+end)
