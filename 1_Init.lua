@@ -124,8 +124,7 @@ local function Is_StopRun(self, startIndex)
             ..' 运行'..clock
         table.insert(Save()[self.name..'Data'], 1, t)
 
-        self:settings()
-        self.num= 0
+        
 
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
         print(
@@ -133,6 +132,14 @@ local function Is_StopRun(self, startIndex)
             '|cnGREEN_FONT_COLOR:完成|r'..num..'条|cnWARNING_FONT_COLOR:',
             clock
         )
+
+        self:settings()
+
+        self.num= 0
+
+        if Save().isLoopRun then
+            self:run()
+        end
         return true
     end
 end
@@ -1434,19 +1441,39 @@ local function Init()
     keepRun:SetPoint('BOTTOM', reload, 'TOP')
     keepRun:SetSize(23,23)
     keepRun:SetScript('OnLeave', GameTooltip_Hide)
-    keepRun:SetScript('OnEnter', function(self)
+    function keepRun:set_tooltip()
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText('重新加载UI时，继续上次运行')
-        GameTooltip:AddLine('当前：'..(Save().keepRun or '无'))
+        GameTooltip:AddDoubleLine('当前 '..(Save().keepRun or '|cff626262无'), Save().isKeepRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
         GameTooltip:Show()
-    end)
+    end
+    keepRun:SetScript('OnEnter', keepRun.set_tooltip)
     function keepRun:set_atlas()
         self:SetCheckedTexture(Save().keepRun and 'checkmark-minimal' or 'checkmark-minimal-disabled')
     end
     keepRun:set_atlas()
     keepRun:SetChecked(Save().isKeepRun)
-    keepRun:SetScript('OnMouseDown', function()
+    keepRun:SetScript('OnMouseDown', function(self)
         Save().isKeepRun= not Save().isKeepRun and true or nil
+        self:set_tooltip()
+    end)
+
+    local loopRun= CreateFrame('CheckButton', 'WoWToolsSCContion', Frame, 'UICheckButtonArtTemplate')
+    loopRun:SetPoint('RIGHT', keepRun, 'LEFT', -4, 0)
+    loopRun:SetSize(23,23)
+    loopRun:SetScript('OnLeave', GameTooltip_Hide)
+    function loopRun:set_tooltip()
+        GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+        GameTooltip:SetText('循环运行')
+        GameTooltip:AddDoubleLine('完成运行后，再次运行', Save().isLoopRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
+        GameTooltip:Show()
+    end
+    loopRun:SetScript('OnEnter', loopRun.set_tooltip)
+    loopRun:SetCheckedTexture('FlightMasterArgus')
+    loopRun:SetChecked(Save().isLoopRun)
+    loopRun:SetScript('OnMouseDown', function(self)
+        Save().isLoopRun= not Save().isLoopRun and true or nil
+        self:set_tooltip()
     end)
 
     local out= CreateFrame('Button', 'WoWToolsSCLogoutButton', Frame, 'SecureActionButtonTemplate UIPanelButtonTemplate')
@@ -1532,7 +1559,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
 
-    WoWTools_SC= WoWTools_SC or {isKeepRun=true}
+    WoWTools_SC= WoWTools_SC or {isKeepRun=true, isLoopRun=true}
 
     if C_AddOns.IsAddOnLoaded('WoWTools_Chinese') then
         WoWTools_SC_Achievement = {}
