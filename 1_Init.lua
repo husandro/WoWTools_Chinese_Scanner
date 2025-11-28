@@ -339,7 +339,7 @@ local function S_Item(self, startIndex)
         Cahce_Item(self, itemID)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(1, function() S_Item(self, startIndex + 101) end)
+    C_Timer.After(0.3, function() S_Item(self, startIndex + 101) end)
 end
 
 
@@ -397,7 +397,7 @@ local function S_Spell(self, startIndex)
         end
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(1, function() S_Spell(self, startIndex + 101) end)
+    C_Timer.After(0.3, function() S_Spell(self, startIndex + 101) end)
 end
 
 
@@ -547,9 +547,9 @@ local function S_Quest(self, startIndex)
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-    C_Timer.After(1, function() S_Quest(self, startIndex + 101) end)
+    C_Timer.After(0.3, function() S_Quest(self, startIndex + 101) end)
 
-        --C_Timer.After(1, function() S_Quest(self, startIndex, count+1) end)
+        --C_Timer.After(0.3, function() S_Quest(self, startIndex, count+1) end)
 
 end
 
@@ -617,9 +617,9 @@ local function S_Unit(self, startIndex, count)
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-        C_Timer.After(1, function() S_Unit(self, startIndex + 101, 1) end)
+        C_Timer.After(0.3, function() S_Unit(self, startIndex + 101, 1) end)
     --else
-      --  C_Timer.After(1, function() S_Unit(self, startIndex, count+1) end)
+      --  C_Timer.After(0.3, function() S_Unit(self, startIndex, count+1) end)
     --end
 end
 
@@ -706,9 +706,9 @@ local function S_Encounter(self, startIndex, count)
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
-        C_Timer.After(1, function() S_Encounter(self, startIndex + 101, 1) end)
+        C_Timer.After(0.3, function() S_Encounter(self, startIndex + 101, 1) end)
     --else
-        --C_Timer.After(1, function() S_Encounter(self, startIndex, count+1) end)
+        --C_Timer.After(0.3, function() S_Encounter(self, startIndex, count+1) end)
    -- end
 end
 
@@ -777,9 +777,9 @@ end
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-        C_Timer.After(1, function() S_SectionEncounter(self, startIndex + 101, 1) end)
+        C_Timer.After(0.3, function() S_SectionEncounter(self, startIndex + 101, 1) end)
     --else
-        --C_Timer.After(1, function() S_SectionEncounter(self, startIndex, count+1) end)
+        --C_Timer.After(0.3, function() S_SectionEncounter(self, startIndex, count+1) end)
    -- end
 end
 
@@ -818,7 +818,7 @@ local function S_CacheAchievement(self, startIndex)
         self.bar2:SetValue(achievementID/self.max*100)
         self.bar2:SetShown(true)
     end
-    C_Timer.After(1, function() S_CacheAchievement(self, startIndex + 101) end)
+    C_Timer.After(0.3, function() S_CacheAchievement(self, startIndex + 101) end)
 end
 
 local function Save_Achievement(self, ID, count)
@@ -866,9 +866,9 @@ local function S_Achievement(self, startIndex, count)
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
-        C_Timer.After(1, function() S_Achievement(self, startIndex + 101, 1) end)
+        C_Timer.After(0.3, function() S_Achievement(self, startIndex + 101, 1) end)
     --else
-    --    C_Timer.After(1, function() S_Achievement(self, startIndex, count+1) end)
+    --    C_Timer.After(0.3, function() S_Achievement(self, startIndex, count+1) end)
     --end
 end
 
