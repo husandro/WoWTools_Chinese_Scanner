@@ -124,8 +124,6 @@ local function Is_StopRun(self, startIndex)
             ..' 运行'..clock
         table.insert(Save()[self.name..'Data'], 1, t)
 
-        
-
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
         print(
             self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
@@ -139,6 +137,10 @@ local function Is_StopRun(self, startIndex)
 
         if Save().isLoopRun then
             self:run()
+            print(
+                self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
+                '循环运行'
+            )
         end
         return true
     end
