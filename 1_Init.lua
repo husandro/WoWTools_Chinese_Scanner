@@ -761,11 +761,9 @@ do
                             desc= desc:gsub('|cffffffff', '|cff000000')
                             _G['WoWTools_SC_'..self.name][sectionID][id]= desc
                         end
-                        if count==1 then
-                            self.num= self.num + 1
-                            if title then
-                                self.Name:SetText(sectionID..' '..title)
-                            end
+                        self.num= self.num + 1
+                        if title then
+                            self.Name:SetText(sectionID..' '..title)
                         end
                     end
                 end
