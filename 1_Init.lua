@@ -173,7 +173,7 @@ end
 local function Save_Value(self, ID, count, tab)
     if tab and ID then
         _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
-        if count==0 or not count then
+        if count==1 or not count then
             self.num= self.num+1
             local id= tab.T and MK(ID)
             if id then
@@ -617,7 +617,7 @@ local function S_Unit(self, startIndex, count)
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101, 1) end)
+        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
     --else
       --  C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
     --end
@@ -706,7 +706,7 @@ local function S_Encounter(self, startIndex, count)
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
-        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101, 1) end)
+        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101) end)
     --else
         --C_Timer.After(0.1, function() S_Encounter(self, startIndex, count+1) end)
    -- end
@@ -777,7 +777,7 @@ end
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101, 1) end)
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
     --else
         --C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count+1) end)
    -- end
@@ -866,7 +866,7 @@ local function S_Achievement(self, startIndex, count)
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
-        C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101, 1) end)
+        C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101) end)
     --else
     --    C_Timer.After(0.1, function() S_Achievement(self, startIndex, count+1) end)
     --end
