@@ -173,13 +173,13 @@ end
 local function Save_Value(self, ID, count, tab)
     if tab and ID then
         _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
-        if count==1 or not count then
+        --if count==1 or not count then
             self.num= self.num+1
             local id= tab.T and MK(ID)
             if id then
                 self.Name:SetText(id..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..tab.T)
             end
-        end
+        --end
     end
 end
 
