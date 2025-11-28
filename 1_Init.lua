@@ -617,7 +617,7 @@ local function S_Unit(self, startIndex, count)
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
+        C_Timer.After(0.2, function() S_Unit(self, startIndex + 101) end)
     --else
       --  C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
     --end
