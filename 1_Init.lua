@@ -1494,6 +1494,7 @@ local function Init()
         WoWTools_TextureMixin:SetUIButton(reload)
         WoWTools_TextureMixin:SetUIButton(out)
         WoWTools_TextureMixin:SetCheckBox(keepRun)
+        WoWTools_TextureMixin:SetCheckBox(loopRun)
     end
 
 do
