@@ -19,10 +19,12 @@ end
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     if tab then
        WoWTools_SC_GlobalStrings={}
-       for en, cn in pairs(tab) do
-            if _G[en] and IsCN(cn) then
+       for _, en in pairs(tab) do
+            local cn= _G[en]
+            if cn and IsCN(cn) then
                 WoWTools_SC_GlobalStrings[en]= cn
             end
+            print(en, cn)
        end
     else
         WoWTools_SC_GlobalStrings=nil
