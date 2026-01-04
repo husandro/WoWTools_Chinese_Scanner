@@ -3,7 +3,7 @@ if not LOCALE_zhCN then
 end
 --[[
 https://wago.tools/db2/Achievement?locale=zhCN
-
+这个数据为 WoWTools 插件 WoWTools_MapIDAchievementData 用 
 local tab={
     {ID, Instance_ID},
     ...
