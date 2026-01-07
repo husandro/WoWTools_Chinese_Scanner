@@ -68,7 +68,9 @@
         "ScrollingEdit_OnCursorChanged",
         "ScrollingEdit_OnUpdate",
         "SetItemRef",
-        "GameTooltip_AddErrorLine"
+        "GameTooltip_AddErrorLine",
+        "ArchaeologyFrame_ShowArtifact",
+        "MenuResponse"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

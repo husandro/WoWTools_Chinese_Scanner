@@ -1,7 +1,7 @@
 local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r|cff28a3ffChinese|r数据扫描'
 if not LOCALE_zhCN then
     print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文')
-   -- return
+    return
 end
 
 

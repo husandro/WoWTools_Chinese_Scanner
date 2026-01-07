@@ -18,14 +18,12 @@ local function IsCN(text)
 end
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     if tab then
-       WoWTools_SC_GlobalStrings={}
-       for _, en in pairs(tab) do
-            local cn= _G[en]
-            if cn and IsCN(cn) then
-                WoWTools_SC_GlobalStrings[en]= cn
-            end
-            print(en, cn)
-       end
+       WoWTools_SC_ArchaeologyUI={}
+
+       for i= 1, GetNumArchaeologyRaces() do
+                local name, _, _,  cur, need, max =  GetArchaeologyRaceInfo(i)
+                
+        end
     end
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)
