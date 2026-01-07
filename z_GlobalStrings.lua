@@ -1,12 +1,11 @@
 --[[
-https://wago.tools/db2/Achievement?locale=zhCN
+https://wago.tools/db2/GlobalStrings?locale=zhCN
 tab={
     [BaseTag]= TagText_lang,
     ...
 }
 ]]
 local tab
-
 
 
 local function IsCN(text)
@@ -24,8 +23,9 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
             if cn and IsCN(cn) then
                 WoWTools_SC_GlobalStrings[en]= cn
             end
-            print(en, cn)
        end
+    else
+        WoWTools_SC_GlobalStrings=nil
     end
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)

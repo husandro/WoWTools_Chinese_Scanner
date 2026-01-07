@@ -40,6 +40,8 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
 
             end
        end
+    else
+        WoWTools_SC_MapIDAchievements= nil
     end
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)

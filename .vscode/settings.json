@@ -70,7 +70,8 @@
         "SetItemRef",
         "GameTooltip_AddErrorLine",
         "ArchaeologyFrame_ShowArtifact",
-        "MenuResponse"
+        "MenuResponse",
+        "ZOOM_OUT"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
