@@ -4,8 +4,9 @@ if not LOCALE_zhCN then
     return
 end
 
-
-
+local function Save()
+    return WoWTools_SC
+end
 
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
@@ -26,11 +27,6 @@ local MaxSectionEncounterID= (GameVer-6)*1e4--11.2.5版本，最高33986 https:/
 
 local Frame, MaxButtonLabel
 local Buttons={}
-
-local function Save()
-    return WoWTools_SC
-end
-
 
 
 
@@ -1641,4 +1637,8 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
         end
     end
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
+end)
+
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_LOGOUT", function(owner, arg1)
+    Save().keepRun= nil
 end)
