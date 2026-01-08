@@ -1640,5 +1640,5 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
 end)
 
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_LOGOUT", function(owner, arg1)
-    Save().keepRun= nil
+    --Save().keepRun= nil
 end)
