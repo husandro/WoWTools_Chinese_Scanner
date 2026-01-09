@@ -177,7 +177,10 @@ end
 
 local function Save_Value(self, ID, tab)
     if tab and ID then
-        _G['WoWTools_SC_'..self.name][ID..''] = tab
+        if not _G['WoWTools_SC_'..self.name] then
+            _G['WoWTools_SC_'..self.name]={}
+        end
+        _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
         --if count==1 or not count then
             self.num= self.num+1
             local id= tab.T and MK(ID)
@@ -270,7 +273,7 @@ local function Get_Item_Lines(lines)
     return desc
 end
 
-local function Set_ItemSets(itemID)
+local function Set_ItemSets(self, itemID)
     local  _, itemLink, _, _, _, _, _, _, _, _, _, _, _, _, _, setID= C_Item.GetItemInfo(itemID)
     if not setID then
         return
@@ -285,25 +288,34 @@ local function Set_ItemSets(itemID)
         if data then
             local desc= Get_Item_Lines(data.lines)
             if desc then
-                WoWTools_SC_SetsItem[setID]= WoWTools_SC_SetsItem[setID] or {}
-                WoWTools_SC_SetsItem[setID][specID]= desc
+                local tab={}
+                if WoWTools_SC_Sets and WoWTools_SC_Sets[setID] then
+                    tab=WoWTools_SC_Sets[setID][specID] or {}
+                end
+
+                tab[specID]= desc
+
+                Save_Value(self, ID, tab)
             end
         end
     end
 end
 
-local function Save_Item(self, ID)
+local function Save_Item(self, ID, isSet)
     local data= C_TooltipInfo.GetItemByID(ID)
     if data
         and data.lines
         and data.lines[1]
         and IsCN(data.lines[1].leftText)
     then
-        Set_ItemSets(ID)
-        Save_Value(self, ID, {
-            T= C_Item.GetItemInfo(ID) or data.lines[1].leftText,
-            D= Get_Item_Lines(data.lines),
-        })
+        if isSet then
+            Set_ItemSets(self, ID)
+        else
+            Save_Value(self, ID, {
+                T= C_Item.GetItemInfo(ID) or data.lines[1].leftText,
+                D= Get_Item_Lines(data.lines),
+            })
+        end
     end
 end
 
@@ -340,14 +352,43 @@ local function S_Item(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
+    if startIndex==1 then
+        Load_Item(self)
+    end
+
     for itemID = startIndex, startIndex + 100 do
-        Cahce_Item(self, itemID)
+        if C_Item.GetItemInfoInstant(ID) then
+            Cahce_Item(self, itemID)
+        end
     end
     Set_ValueText(self, startIndex)
     C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
 end
 
 
+
+
+
+
+
+
+
+
+
+
+
+local function S_Sets(self, startIndex)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for itemID = startIndex, startIndex + 100 do
+        if C_Item.GetItemInfoInstant(ID) then
+            Cahce_Item(self, itemID)
+        end
+    end
+    Set_ValueText(self, startIndex)
+    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
+end
 
 
 
@@ -990,7 +1031,7 @@ local ShowTextFrame
 local function clear_data(name)
     Save()[name..'Ver']= nil
 
-    _G['WoWTools_SC_'..name]= {}
+    _G['WoWTools_SC_'..name]= nil
 
     local self= _G['WoWToolsSC'..name..'Button']
     if not self.isStop then
@@ -1243,11 +1284,7 @@ local function Create_Button(tab)
         btn:run()
     end
 
-    if name=='Item' then
-        C_Timer.After(2, function()
-            Load_Item(btn)
-        end)
-    end
+
 
     y= y- 23- 8
 end
@@ -1505,6 +1542,7 @@ do
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
 
+        {name='Sets', func=S_Sets, tooltip='1k103', max=MaxItemID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
 '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
@@ -1560,7 +1598,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
     WoWTools_SC= WoWTools_SC or {isKeepRun=true, isLoopRun=true}
 
-    if C_AddOns.IsAddOnLoaded('WoWTools_Chinese') then
+    --[[if C_AddOns.IsAddOnLoaded('WoWTools_Chinese') then
         WoWTools_SC_Achievement = {}
         WoWTools_SC_Quest = {}
         WoWTools_SC_Encounter= {}
@@ -1596,7 +1634,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
 
         WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
         WoWTools_SC_Campaign= WoWTools_SC_Campaign or {}
-    end
+    end]]
 
     Init_Gossip()
     Init()
@@ -1637,8 +1675,4 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
         end
     end
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
-end)
-
-EventRegistry:RegisterFrameEventAndCallback("PLAYER_LOGOUT", function(owner, arg1)
-    --Save().keepRun= nil
 end)

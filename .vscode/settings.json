@@ -71,7 +71,8 @@
         "GameTooltip_AddErrorLine",
         "ArchaeologyFrame_ShowArtifact",
         "MenuResponse",
-        "ZOOM_OUT"
+        "ZOOM_OUT",
+        "WoWTools_SC_Sets"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
