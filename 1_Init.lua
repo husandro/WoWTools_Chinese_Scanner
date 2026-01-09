@@ -175,9 +175,9 @@ local function Is_StopCahceRun(self, startIndex)
     end
 end
 
-local function Save_Value(self, ID, count, tab)
+local function Save_Value(self, ID, tab)
     if tab and ID then
-        _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
+        _G['WoWTools_SC_'..self.name][ID..''] = tab
         --if count==1 or not count then
             self.num= self.num+1
             local id= tab.T and MK(ID)
@@ -292,7 +292,7 @@ local function Set_ItemSets(itemID)
     end
 end
 
-local function Save_Item(self, ID, count)
+local function Save_Item(self, ID)
     local data= C_TooltipInfo.GetItemByID(ID)
     if data
         and data.lines
@@ -300,20 +300,20 @@ local function Save_Item(self, ID, count)
         and IsCN(data.lines[1].leftText)
     then
         Set_ItemSets(ID)
-        Save_Value(self, ID, count, {
+        Save_Value(self, ID, {
             T= C_Item.GetItemInfo(ID) or data.lines[1].leftText,
             D= Get_Item_Lines(data.lines),
         })
     end
 end
 
-local function Cahce_Item(self, ID, count)
+local function Cahce_Item(self, ID)
     if not C_Item.IsItemDataCachedByID(ID) then
         ItemEventListener:AddCancelableCallback(ID, function()
-            Save_Item(self, ID, count)
+            Save_Item(self, ID)
         end)
     else
-        Save_Item(self, ID, count)
+        Save_Item(self, ID)
     end
 end
 
@@ -368,7 +368,7 @@ local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
 local spell = Spell:CreateFromSpellID(spellID)
 print(spell:GetSpellSubtext(), '|cnGREEN_FONT_COLOR:'..spellID..'|r', spell:GetSpellDescription())
 ]]
-local function Save_Spell(self, ID, count)
+local function Save_Spell(self, ID)
     local title= C_Spell.GetSpellName(ID)
     if IsCN(title) then
         local desc, sub
@@ -380,7 +380,7 @@ local function Save_Spell(self, ID, count)
         if IsCN(s) then
             sub= s
         end
-        Save_Value(self, ID, count, {
+        Save_Value(self, ID, {
             T= title,
             D= desc,
             S= sub,
@@ -507,7 +507,7 @@ local function Get_Objectives(questID)
     end
 end
 
-local function Save_Quest(self, ID, count)
+local function Save_Quest(self, ID)
     local data= C_TooltipInfo.GetHyperlink('quest:' .. ID)
     if not data or
         not data.lines
@@ -529,7 +529,7 @@ local function Save_Quest(self, ID, count)
         C_LoreText.RequestLoreTextForCampaignID(campaignID)
     end]]
 
-    Save_Value(self, ID, count, {
+    Save_Value(self, ID, {
         T= title,
         O= obj,
         S= obs,
@@ -554,7 +554,7 @@ local function S_Quest(self, startIndex)
     --if count==3 then
     C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
 
-        --C_Timer.After(0.1, function() S_Quest(self, startIndex, count+1) end)
+        --C_Timer.After(0.1, function() S_Quest(self, startIndex+1) end)
 
 end
 
@@ -586,7 +586,7 @@ end
 
 
 
-local function Save_Unit(self, ID, count)
+local function Save_Unit(self, ID)
     local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..ID..'-0000000000')
     if not data
         or not data.lines
@@ -606,25 +606,25 @@ local function Save_Unit(self, ID, count)
         end
     end
     if title then
-        Save_Value(self, ID, count, {
+        Save_Value(self, ID, {
             T= title,
             D= desc,
         })
     end
 end
-local function S_Unit(self, startIndex, count)
+local function S_Unit(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
     for ID = startIndex, startIndex + 100 do
-        Save_Unit(self, ID, count)
+        Save_Unit(self, ID)
     end
     Set_ValueText(self, startIndex)
 
     --if count==3 then
         C_Timer.After(0.2, function() S_Unit(self, startIndex + 101) end)
     --else
-      --  C_Timer.After(0.1, function() S_Unit(self, startIndex, count+1) end)
+      --  C_Timer.After(0.1, function() S_Unit(self, startIndex+1) end)
     --end
 end
 
@@ -685,7 +685,7 @@ end
 
 
 --Encounter [字符journalEncounterID]= {T=, D=}
-local function Get_Encounter_Tab(self, ID, count)
+local function Get_Encounter_Tab(self, ID)
     local name, desc
     local n, d = EJ_GetEncounterInfo(ID)
     if IsCN(n) then
@@ -695,19 +695,19 @@ local function Get_Encounter_Tab(self, ID, count)
         desc= d
     end
     if name or desc then
-        Save_Value(self, ID, count, {
+        Save_Value(self, ID, {
             T=name,
             D=desc
         })
     end
 end
 
-local function S_Encounter(self, startIndex, count)
+local function S_Encounter(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
     for ID = startIndex, startIndex + 100 do
-        Get_Encounter_Tab(self, ID, count)
+        Get_Encounter_Tab(self, ID)
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
@@ -849,7 +849,7 @@ local function Save_Achievement(self, ID, count)
                 s= t
             end
         end
-        Save_Value(self, ID, count, {
+        Save_Value(self, ID, {
             T= title,
             D= d,
             R= r,
@@ -901,7 +901,7 @@ local function Save_Holyday(self, day, index, count)
             desc= holiday.description
         end
         if title or desc then
-            Save_Value(self, data.eventID, count, {
+            Save_Value(self, data.eventID, {
                 T=title,
                 D=desc
             })
