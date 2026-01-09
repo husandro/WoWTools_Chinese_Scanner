@@ -11,17 +11,26 @@ end
 local Ver= GetBuildInfo()
 local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
 
-local MaxAchievementID= (GameVer-4)*1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
-local MaxQuestID= GameVer*1e4--11.2.5 版本 93516
-local MaxEncounterID= (GameVer-8)*1e4--25000
+local MaxAchievementID= (GameVer-4)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
+local MaxEncounterID= (GameVer-8)* 1e4--25000
 
 
-local MaxUnitID= (GameVer-8)*1e5--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
-local MaxItemID= (GameVer-8)*1e5--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSpellID=(GameVer-6)*1e5-- 50w0000 229270
+local MaxUnitID= (GameVer-8)* 10e4--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
 
-local MaxSpell2ID= (GameVer+2)*1e5--120w- 150w
-local MinSpell2ID= 12*1e5
+
+
+
+
+local MaxItemID= 15e4
+local MaxItemID2= (GameVer-8)* 10e4--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+
+local MaxSetsID= (GameVer-9)*1e3 + 100-- 12.0 2000 https://wago.tools/db2/ItemSet
+
+local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
+local MinSpell2ID= 12* 1e5
+local MaxSpell2ID= (GameVer+2)* 10e4--120w- 150w
+
 
 local MaxSectionEncounterID= (GameVer-6)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
 
@@ -31,10 +40,6 @@ local Buttons={}
 
 
 
-
-local function GetNameForID(self, id)
-    return 'WoWTools_SC_'..self.name..(id>10e4 and 1 or '')
-end
 
 
 local ReceString={
@@ -185,17 +190,51 @@ end
 
 local function Save_Value(self, id, tab)
     if tab and id then
-        local name= GetNameForID(self, id)
-        _G[name]= _G[name] or {}
+        _G['WoWTools_SC_'..self.name][tonumber(id)] = tab
 
-        _G[name][tonumber(id)] = tab
-
-        --if count==1 or not count then
-            self.num= self.num+1
-            self.Name:SetText(MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
-        --end
+        self.num= self.num+1
+        self.Name:SetText(MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
     end
 end
+
+local function clear_data(name)
+    Save()[name..'Ver']= nil
+
+    if _G['WoWTools_SC_'..name] then
+        _G['WoWTools_SC_'..name]= nil
+    end
+
+    local self= _G['WoWToolsSC'..name..'Button']
+    if not self.isStop then
+        self:settings()
+    else
+        self.time=nil
+    end
+
+    self.bar:SetValue(0)
+    self.Value:SetText('')
+    self.Ver:SetText('')
+
+    print('清除数据|cnWARNING_FONT_COLOR:', self.text, '|r|cnGREEN_FONT_COLOR:完成')
+end
+
+StaticPopupDialogs['WoWTools_SC']={
+    text = '你确定要|n|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗？|n|n',
+    button1 = '确定', button2 = '取消',
+    whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true,--, acceptDelay=1,
+    OnAccept=function(_, data)
+        if data then
+            clear_data(data)
+        else
+            do
+                for _, name in pairs(Buttons) do
+                    clear_data(name)
+                end
+            end
+            --C_UI.Reload()
+        end
+    end
+}
 
 
 
@@ -314,14 +353,10 @@ local function Save_Item(self, itemID, isSet)
         if isSet then
             Set_ItemSets(self, itemID)
         else
-            local tab={
-                T=C_Item.GetItemInfo(itemID) or data.lines[1].leftText
-            }
-            --local setID, _, itemDescription = select(16, C_Item.GetItemInfo(itemID))
-
-            tab.D= Get_Item_Lines(data.lines)
-
-            Save_Value(self, itemID, tab)
+            Save_Value(self, itemID, {
+                T=C_Item.GetItemInfo(itemID) or data.lines[1].leftText,
+                D= Get_Item_Lines(data.lines)
+            })
         end
     end
 end
@@ -358,8 +393,19 @@ end
 
 
 
-
-
+--C_LootJournal.GetItemSetItems
+local function S_SetsItem(self, setID)
+    local data= C_Transmog.GetAllSetAppearancesByID(setID)
+    if not data then
+        return
+    end
+    for _, sets in pairs(data) do
+        local itemID= sets.itemID
+        if itemID then
+            Cahce_Item(self, itemID, true)
+        end
+    end
+end
 
 local function Load_Sets(self)
     for classID= 1, GetNumClasses() do
@@ -368,12 +414,15 @@ local function Load_Sets(self)
             local specID= GetSpecializationInfoForClassID(classID, specIndex)
             if specID then
                 for _, data in pairs(C_LootJournal.GetItemSets(classID, specID) or {}) do
-                    for _, sets in pairs(C_LootJournal.GetItemSetItems(data.setID) or {}) do
+                    if data.setID then
+                        S_SetsItem(self, data.setID)
+                    end
+                    --[[for _, sets in pairs(C_LootJournal.GetItemSetItems(data.setID) or {}) do
                         local itemID= sets.itemID
                         if itemID then
                             Cahce_Item(self, itemID, true)
                         end
-                    end
+                    end]]
                 end
             end
         end
@@ -381,22 +430,29 @@ local function Load_Sets(self)
 end
 
 
+
+
+
 local function S_Sets(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
 
-    if startIndex==1 then
+    if startIndex==self.min then
         Load_Sets(self)
     end
-
-    for itemID = startIndex, startIndex + 100 do
-        if C_Item.GetItemInfoInstant(itemID) then
-            Cahce_Item(self, itemID, true)
-        end
+do
+    for itemID = startIndex, startIndex + 10 do
+        S_SetsItem(self, itemID)
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Sets(self, startIndex + 101) end)
+end
+
+    C_Timer.After(0.1, function() S_Sets(self, startIndex + 10) end)
+
+    if startIndex==self.max then
+        Load_Sets(self)
+    end
 end
 
 
@@ -813,7 +869,7 @@ do
 
                         local tab={}
 
-                        local name= GetNameForID(self, sectionID)
+                        local name= 'WoWTools_SC_'..self.name
                         if _G[name] and _G[name][sectionID] then
                             tab= _G[name][sectionID]
                         end
@@ -1023,60 +1079,6 @@ end
 
 
 
-local ShowTextFrame
-
-
-
-
-
-
-
-
-
-
-
-
-
-local function clear_data(name)
-    Save()[name..'Ver']= nil
-
-    _G['WoWTools_SC_'..name]= nil
-    if _G['WoWTools_SC_'..name..'1'] then
-        _G['WoWTools_SC_'..name..'1']= nil
-    end
-
-    local self= _G['WoWToolsSC'..name..'Button']
-    if not self.isStop then
-        self:settings()
-    else
-        self.time=nil
-    end
-
-    self.bar:SetValue(0)
-    self.Value:SetText('')
-    self.Ver:SetText('')
-
-    print('清除数据|cnWARNING_FONT_COLOR:', self.text, '|r|cnGREEN_FONT_COLOR:完成')
-end
-
-StaticPopupDialogs['WoWTools_SC']={
-    text = '你确定要|n|n清除 |cnGREEN_FONT_COLOR:%s|r 数据 吗？|n|n',
-    button1 = '确定', button2 = '取消',
-    whileDead=true, hideOnEscape=true, exclusive=true, showAlert=true,--, acceptDelay=1,
-    OnAccept=function(_, data)
-        if data then
-            clear_data(data)
-        else
-            do
-                for _, name in pairs(Buttons) do
-                    clear_data(name)
-                end
-            end
-            --C_UI.Reload()
-        end
-    end
-}
-
 
 
 
@@ -1109,7 +1111,8 @@ local function Create_Button(tab)
     btn:SetScript('OnLeave', GameTooltip_Hide)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-        GameTooltip:SetText(self.text)
+        GameTooltip:ClearLines()
+        GameTooltip:AddDoubleLine(self.text, self.name)
         GameTooltip:AddLine(self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停')
         if Save()[self.name..'Data']  then
             for _, t in pairs (Save()[self.name..'Data']) do
@@ -1546,17 +1549,19 @@ local function Init()
 
 do
     for _, tab in pairs({
-        {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
-        {name='Item', func=S_Item, tooltip='16w3018 05:50', max=MaxItemID, text='物品', atlas='bag-main'},
+        {name='Item', func=S_Item, tooltip='10w0365 02:42', max=MaxItemID, text='物品', atlas='bag-main'},
+        {name='Item2', func=S_Item, tooltip='6w9934 04:14', min=MaxItemID+1, max=MaxItemID2, text='物品 II', atlas='bag-main'},
+        {name='Sets', func=S_Sets, tooltip='5k511 00:50', max=MaxSetsID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
+'-',
+        {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},        
+        {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
+'-',
         {name='Unit', func=S_Unit, tooltip='17w8822 20:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058', atlas='UI-Achievement-Shield-NoPoints'},
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3137', atlas='KyrianAssaults-64x64'},
-'-',
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
-        {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-
-        {name='Sets', func=S_Sets, tooltip='1k103', max=MaxItemID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
+        
 '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
@@ -1610,45 +1615,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
 
-    WoWTools_SC= WoWTools_SC or {isKeepRun=true, isLoopRun=true}
-
-    --[[if C_AddOns.IsAddOnLoaded('WoWTools_Chinese') then
-        WoWTools_SC_Achievement = {}
-        WoWTools_SC_Quest = {}
-        WoWTools_SC_Encounter= {}
-        WoWTools_SC_SectionEncounter= {}
-
-        WoWTools_SC_Item= {}
-        WoWTools_SC_SetsItem= {}
-
-        WoWTools_SC_Spell= {}
-        WoWTools_SC_Spell2= {}
-        WoWTools_SC_Unit= {}
-
-        WoWTools_SC_Holyday= {}
-
-        WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
-        WoWTools_SC_Campaign= {}
-
-    else
-        WoWTools_SC_Achievement = WoWTools_SC_Achievement or {}
-        WoWTools_SC_Quest = WoWTools_SC_Quest or {}
-        WoWTools_SC_Encounter= WoWTools_SC_Encounter or {}
-        WoWTools_SC_SectionEncounter= WoWTools_SC_SectionEncounter or {}
-
-        WoWTools_SC_Item= WoWTools_SC_Item or {}
-        WoWTools_SC_SetsItem= WoWTools_SC_SetsItem or {}
-
-        WoWTools_SC_Spell= WoWTools_SC_Spell or {}
-        WoWTools_SC_Spell2= WoWTools_SC_Spell2 or {}
-        WoWTools_SC_Unit= WoWTools_SC_Unit or {}
-
-        WoWTools_SC_Holyday= WoWTools_SC_Holyday or {}
-
-
-        WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
-        WoWTools_SC_Campaign= WoWTools_SC_Campaign or {}
-    end]]
+    WoWTools_SC= WoWTools_SC or {isLoopRun=true}
 
     Init_Gossip()
     Init()
