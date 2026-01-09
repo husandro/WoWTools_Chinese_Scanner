@@ -72,7 +72,8 @@
         "ArchaeologyFrame_ShowArtifact",
         "MenuResponse",
         "ZOOM_OUT",
-        "WoWTools_SC_Sets"
+        "WoWTools_SC_Sets",
+        "WoWTools_SC_IsKeepRun"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

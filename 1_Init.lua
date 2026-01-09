@@ -140,7 +140,7 @@ local function Is_StopRun(self, startIndex)
 
         self.num= 0
 
-        if Save().isLoopRun then
+        if WoWTools_SC_IsLoopRun then
             self:run()
             print(
                 self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
@@ -1133,7 +1133,7 @@ local function Create_Button(tab)
         end
     end
     btn:SetScript('OnMouseDown', function(self)
-        Save().keepRun= self.isStop and self.name or nil
+        WoWTools_Sc_KeepRunName= self.isStop and self.name or nil
         _G['WoWToolsSCContion']:set_atlas()
         self:run()
     end)
@@ -1297,7 +1297,7 @@ local function Create_Button(tab)
     end
     btn:settings()
 
-    if Save().keepRun==name and Save().isKeepRun then
+    if WoWTools_Sc_KeepRunName==name and WoWTools_SC_IsKeepRun then
         btn:run()
     end
 
@@ -1496,17 +1496,17 @@ local function Init()
     function keepRun:set_tooltip()
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText('重新加载UI时，继续上次运行')
-        GameTooltip:AddDoubleLine('当前 '..(Save().keepRun or '|cff626262无'), Save().isKeepRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
+        GameTooltip:AddDoubleLine('|cffffffff当前|r '..(WoWTools_Sc_KeepRunName or '|cff626262无'), WoWTools_SC_IsKeepRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
         GameTooltip:Show()
     end
     keepRun:SetScript('OnEnter', keepRun.set_tooltip)
     function keepRun:set_atlas()
-        self:SetCheckedTexture(Save().keepRun and 'checkmark-minimal' or 'checkmark-minimal-disabled')
+        self:SetCheckedTexture(WoWTools_Sc_KeepRunName and 'checkmark-minimal' or 'checkmark-minimal-disabled')
     end
     keepRun:set_atlas()
-    keepRun:SetChecked(Save().isKeepRun)
+    keepRun:SetChecked(WoWTools_SC_IsKeepRun)
     keepRun:SetScript('OnMouseDown', function(self)
-        Save().isKeepRun= not Save().isKeepRun and true or nil
+        WoWTools_SC_IsKeepRun= not WoWTools_SC_IsKeepRun and true or nil
         self:set_tooltip()
     end)
 
@@ -1517,14 +1517,14 @@ local function Init()
     function loopRun:set_tooltip()
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText('循环运行')
-        GameTooltip:AddDoubleLine('完成运行后，再次运行', Save().isLoopRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
+        GameTooltip:AddDoubleLine('完成运行后，再次运行', WoWTools_SC_IsLoopRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
         GameTooltip:Show()
     end
     loopRun:SetScript('OnEnter', loopRun.set_tooltip)
     loopRun:SetCheckedTexture('FlightMasterArgus')
-    loopRun:SetChecked(Save().isLoopRun)
+    loopRun:SetChecked(WoWTools_SC_IsLoopRun)
     loopRun:SetScript('OnMouseDown', function(self)
-        Save().isLoopRun= not Save().isLoopRun and true or nil
+        WoWTools_SC_IsLoopRun= not WoWTools_SC_IsLoopRun and true or nil
         self:set_tooltip()
     end)
 
@@ -1616,6 +1616,9 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     end
 
     WoWTools_SC= WoWTools_SC or {isLoopRun=true}
+    Save().isKeepRun= nil
+    Save().isLoopRun= nil
+    Save().keepRun= nil
 
     Init_Gossip()
     Init()
