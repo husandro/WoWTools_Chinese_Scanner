@@ -99,7 +99,7 @@ end
 local function Is_StopRun(self, startIndex)
     if self.isStop then
         self.Value:SetFormattedText(
-            '|cffff8200暂停, %s条, %.1f%%',
+            '|cffff8200暂停  %s条  %.1f%%',
             MK(self.num),
             (startIndex-self.min)/(self.max-self.min)*100
         )
@@ -112,7 +112,7 @@ local function Is_StopRun(self, startIndex)
         clock= clock:gsub('：', ':')
         local num= MK(self.num)
         self.Value:SetFormattedText(
-            '|cffff00ff完成|r, %s条, %s',
+            '|cffff00ff完成|r  %s条  %s',
             num,
             clock
         )
