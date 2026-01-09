@@ -395,11 +395,13 @@ end
 
 --C_LootJournal.GetItemSetItems
 local function S_SetsItem(self, setID)
-    local data= C_Transmog.GetAllSetAppearancesByID(setID)
-    if not data then
-        return
+    for _, sets in pairs(C_Transmog.GetAllSetAppearancesByID(setID) or {}) do
+        local itemID= sets.itemID
+        if itemID then
+            Cahce_Item(self, itemID, true)
+        end
     end
-    for _, sets in pairs(data) do
+    for _, sets in pairs(C_LootJournal.GetItemSetItems(setID) or {}) do
         local itemID= sets.itemID
         if itemID then
             Cahce_Item(self, itemID, true)
@@ -417,12 +419,6 @@ local function Load_Sets(self)
                     if data.setID then
                         S_SetsItem(self, data.setID)
                     end
-                    --[[for _, sets in pairs(C_LootJournal.GetItemSetItems(data.setID) or {}) do
-                        local itemID= sets.itemID
-                        if itemID then
-                            Cahce_Item(self, itemID, true)
-                        end
-                    end]]
                 end
             end
         end
@@ -1551,9 +1547,9 @@ do
     for _, tab in pairs({
         {name='Item', func=S_Item, tooltip='10w0365 02:42', max=MaxItemID, text='物品', atlas='bag-main'},
         {name='Item2', func=S_Item, tooltip='6w9934 04:14', min=MaxItemID+1, max=MaxItemID2, text='物品 II', atlas='bag-main'},
-        {name='Sets', func=S_Sets, tooltip='5k511 00:50', max=MaxSetsID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
+        {name='Sets', func=S_Sets, tooltip='qs 1w1705 00:40', max=MaxSetsID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
 '-',
-        {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},        
+        {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
 '-',
         {name='Unit', func=S_Unit, tooltip='17w8822 20:00', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
@@ -1561,7 +1557,7 @@ do
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3137', atlas='KyrianAssaults-64x64'},
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        
+
 '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
