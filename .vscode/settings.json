@@ -73,7 +73,11 @@
         "MenuResponse",
         "ZOOM_OUT",
         "WoWTools_SC_Sets",
-        "WoWTools_SC_IsKeepRun"
+        "WoWTools_SC_IsKeepRun",
+        "SELECT_LOOT_SPECIALIZATION",
+        "PlayerUtil",
+        "GameTooltip_ShowSimpleTooltip",
+        "SimpleTooltipConstants"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

@@ -9,7 +9,7 @@ local function Save()
 end
 
 local Ver= GetBuildInfo()
-local GameVer= math.modf(select(4, GetBuildInfo())/10000)--11
+local GameVer= select(4, GetBuildInfo())/1e4--11
 
 local MaxAchievementID= (GameVer-4)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
@@ -36,6 +36,7 @@ local MaxSectionEncounterID= (GameVer-6)*1e4--11.2.5版本，最高33986 https:/
 
 local Frame, MaxButtonLabel
 local Buttons={}
+local ClassButton={}
 
 
 
@@ -226,10 +227,14 @@ StaticPopupDialogs['WoWTools_SC']={
         if data then
             clear_data(data)
         else
-            do
-                for _, name in pairs(Buttons) do
-                    clear_data(name)
-                end
+            WoWTools_SC_LogClass={[PlayerUtil.GetClassID()]= true}
+
+            for _, name in pairs(ClassButton) do
+                _G[name]:set_stat()
+            end
+
+            for _, name in pairs(Buttons) do
+                clear_data(name)
             end
             --C_UI.Reload()
         end
@@ -1572,7 +1577,67 @@ do
 end
 
 
-    Frame:SetHeight(-y+75)
+    for class= 1, GetNumClasses() do
+        local classInfo = C_CreatureInfo.GetClassInfo(class) or {}
+
+        if classInfo.classFile and classInfo.classID then
+
+            local btn= CreateFrame('Button', 'WoWToolsSCClassButton'..classInfo.classID, Frame)
+            table.insert(ClassButton, 'WoWToolsSCClassButton'..classInfo.classID)
+
+            btn.classID= classInfo.classID
+            btn.name= classInfo.className
+
+            btn.texture= btn:CreateTexture(nil, 'ARTWORK')
+            btn.texture:SetAllPoints()
+            btn.texture:SetAtlas('groupfinder-icon-class-'..classInfo.classFile)
+
+            btn:SetSize(23,23)
+            btn:SetPoint('BOTTOMLEFT', clear, 'TOPLEFT', classInfo.classID*32, 23)
+            btn:SetPushedAtlas('PetList-ButtonSelect')
+            btn:SetHighlightAtlas('PetList-ButtonHighlight')
+            btn:SetNormalAtlas('groupfinder-icon-class-color-'..classInfo.classFile)
+            function btn:get_value()
+                return WoWTools_SC_LogClass[self.classID]
+            end
+            function btn:set_tooltip()
+                local n=0
+                for _ in pairs(WoWTools_SC_LogClass) do
+                    n=n+1
+                end
+                local all= GetNumClasses()
+                GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+                GameTooltip:SetText(self.name or self.classFile)
+                GameTooltip:AddDoubleLine(
+                    '记录职业: '
+                    ..(btn:get_value() and '|cnGREEN_FONT_COLOR:已登入' or '|cff626262未登入'),
+
+                    (n~=all and '' or '|cnGREEN_FONT_COLOR:')
+                    ..(n..'/'..all)
+                )
+                GameTooltip:Show()
+            end
+            function btn:set_stat()
+                self:SetButtonState(self:get_value() and 'PUSHED' or 'NORMAL')
+            end
+            btn:SetScript('OnLeave', function(self)
+                GameTooltip:Hide()
+                self:set_stat()
+            end)
+            btn:SetScript('OnEnter', function(self)
+                self:set_tooltip()
+                self:SetButtonState('PUSHED')
+            end)
+            btn:SetScript('OnMouseDown', function(self)
+                WoWTools_SC_LogClass[self.classID]= not WoWTools_SC_LogClass[self.classID] and self.classID or nil
+                self:set_tooltip()
+                self:set_stat()
+            end)
+            btn:set_stat()
+        end
+    end
+
+    Frame:SetHeight(-y+110)
 
 
 
@@ -1612,6 +1677,11 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     end
 
     WoWTools_SC= WoWTools_SC or {isLoopRun=true}
+
+    WoWTools_SC_LogClass= WoWTools_SC_LogClass or {}
+
+    WoWTools_SC_LogClass[PlayerUtil.GetClassID()]= true
+
     Save().isKeepRun= nil
     Save().isLoopRun= nil
     Save().keepRun= nil
