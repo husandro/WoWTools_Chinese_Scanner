@@ -143,6 +143,10 @@ local function Is_StopRun(self, startIndex)
 end
 
 local function Set_ValueText(self, startIndex)
+    if self.isStop then
+        return
+    end
+
     local va= (startIndex-self.min)/(self.max-self.min)*100
     local clock= SecondsToClock(GetTime()-self.time)
     clock= clock:gsub('：', ':')
@@ -175,18 +179,12 @@ local function Is_StopCahceRun(self, startIndex)
     end
 end
 
-local function Save_Value(self, ID, tab)
-    if tab and ID then
-        if not _G['WoWTools_SC_'..self.name] then
-            _G['WoWTools_SC_'..self.name]={}
-        end
-        _G['WoWTools_SC_'..self.name][tonumber(ID)] = tab
+local function Save_Value(self, id, tab)
+    if tab and id then
+        _G['WoWTools_SC_'..self.name][tonumber(id)..''] = tab
         --if count==1 or not count then
             self.num= self.num+1
-            local id= tab.T and MK(ID)
-            if id then
-                self.Name:SetText(id..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..tab.T)
-            end
+            self.Name:SetText(MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
         --end
     end
 end
@@ -288,48 +286,74 @@ local function Set_ItemSets(self, itemID)
         if data then
             local desc= Get_Item_Lines(data.lines)
             if desc then
-                local tab={}
-                if WoWTools_SC_Sets and WoWTools_SC_Sets[setID] then
-                    tab=WoWTools_SC_Sets[setID][specID] or {}
-                end
 
+                local tab= WoWTools_SC_Sets[setID] or {}
                 tab[specID]= desc
 
-                Save_Value(self, ID, tab)
+                Save_Value(self, setID, tab)
             end
         end
     end
 end
 
-local function Save_Item(self, ID, isSet)
-    local data= C_TooltipInfo.GetItemByID(ID)
+local function Save_Item(self, itemID, isSet)
+    local data= C_TooltipInfo.GetItemByID(itemID)
     if data
         and data.lines
         and data.lines[1]
         and IsCN(data.lines[1].leftText)
     then
         if isSet then
-            Set_ItemSets(self, ID)
+            Set_ItemSets(self, itemID)
         else
-            Save_Value(self, ID, {
-                T= C_Item.GetItemInfo(ID) or data.lines[1].leftText,
-                D= Get_Item_Lines(data.lines),
-            })
+            local tab={
+                T=C_Item.GetItemInfo(itemID) or data.lines[1].leftText
+            }
+            --local setID, _, itemDescription = select(16, C_Item.GetItemInfo(itemID))
+
+            tab.D= Get_Item_Lines(data.lines)
+
+            Save_Value(self, itemID, tab)
         end
     end
 end
 
-local function Cahce_Item(self, ID)
-    if not C_Item.IsItemDataCachedByID(ID) then
-        ItemEventListener:AddCancelableCallback(ID, function()
-            Save_Item(self, ID)
+local function Cahce_Item(self, id, isSet)
+    if not C_Item.IsItemDataCachedByID(id) then
+        ItemEventListener:AddCancelableCallback(id, function()
+            Save_Item(self, id, isSet)
         end)
     else
-        Save_Item(self, ID)
+        Save_Item(self, id, isSet)
     end
 end
 
-local function Load_Item(self)
+
+local function S_Item(self, startIndex)
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+
+    for itemID = startIndex, startIndex + 100 do
+        if C_Item.GetItemInfoInstant(itemID) then
+            Cahce_Item(self, itemID, false)
+        end
+    end
+    Set_ValueText(self, startIndex)
+    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
+end
+
+
+
+
+
+
+
+
+
+
+
+local function Load_Sets(self)
     for classID= 1, GetNumClasses() do
 		classID = select(3, GetClassInfo(classID)) or classID
         for specIndex = 1, C_SpecializationInfo.GetNumSpecializationsForClassID(classID) or 0 do
@@ -339,7 +363,7 @@ local function Load_Item(self)
                     for _, sets in pairs(C_LootJournal.GetItemSetItems(data.setID) or {}) do
                         local itemID= sets.itemID
                         if itemID then
-                            Cahce_Item(self, itemID)
+                            Cahce_Item(self, itemID, true)
                         end
                     end
                 end
@@ -348,46 +372,23 @@ local function Load_Item(self)
     end
 end
 
-local function S_Item(self, startIndex)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
-    if startIndex==1 then
-        Load_Item(self)
-    end
-
-    for itemID = startIndex, startIndex + 100 do
-        if C_Item.GetItemInfoInstant(ID) then
-            Cahce_Item(self, itemID)
-        end
-    end
-    Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
-end
-
-
-
-
-
-
-
-
-
-
-
-
 
 local function S_Sets(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
+
+    if startIndex==1 then
+        Load_Sets(self)
+    end
+
     for itemID = startIndex, startIndex + 100 do
-        if C_Item.GetItemInfoInstant(ID) then
-            Cahce_Item(self, itemID)
+        if C_Item.GetItemInfoInstant(itemID) then
+            Cahce_Item(self, itemID, true)
         end
     end
     Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
+    C_Timer.After(0.1, function() S_Sets(self, startIndex + 101) end)
 end
 
 
@@ -409,19 +410,19 @@ local data= C_TooltipInfo.GetHyperlink('spell:'.. spellID)
 local spell = Spell:CreateFromSpellID(spellID)
 print(spell:GetSpellSubtext(), '|cnGREEN_FONT_COLOR:'..spellID..'|r', spell:GetSpellDescription())
 ]]
-local function Save_Spell(self, ID)
-    local title= C_Spell.GetSpellName(ID)
+local function Save_Spell(self, id)
+    local title= C_Spell.GetSpellName(id)
     if IsCN(title) then
         local desc, sub
-        local d= C_Spell.GetSpellDescription(ID)
-        local s= C_Spell.GetSpellSubtext(ID)
+        local d= C_Spell.GetSpellDescription(id)
+        local s= C_Spell.GetSpellSubtext(id)
         if IsCN(d) then
             desc= d
         end
         if IsCN(s) then
             sub= s
         end
-        Save_Value(self, ID, {
+        Save_Value(self, id, {
             T= title,
             D= desc,
             S= sub,
@@ -548,8 +549,8 @@ local function Get_Objectives(questID)
     end
 end
 
-local function Save_Quest(self, ID)
-    local data= C_TooltipInfo.GetHyperlink('quest:' .. ID)
+local function Save_Quest(self, id)
+    local data= C_TooltipInfo.GetHyperlink('quest:' .. id)
     if not data or
         not data.lines
         or not data.lines[1]
@@ -557,20 +558,20 @@ local function Save_Quest(self, ID)
     then
         return
     end
-    local title= QuestUtils_GetQuestName(ID) or data.lines[1].leftText
+    local title= QuestUtils_GetQuestName(id) or data.lines[1].leftText
     local obj
     if data.lines[3] and IsCN(data.lines[3].leftText) then
         obj= data.lines[3].leftText
     end
 
-    local obs= Get_Objectives(ID)
+    local obs= Get_Objectives(id)
 
     --[[local campaignID= C_CampaignInfo.GetCampaignID(ID)
     if campaignID then
         C_LoreText.RequestLoreTextForCampaignID(campaignID)
     end]]
 
-    Save_Value(self, ID, {
+    Save_Value(self, id, {
         T= title,
         O= obj,
         S= obs,
@@ -627,8 +628,8 @@ end
 
 
 
-local function Save_Unit(self, ID)
-    local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..ID..'-0000000000')
+local function Save_Unit(self, id)
+    local data= C_TooltipInfo.GetHyperlink('unit:Creature-0-0-0-0-'..id..'-0000000000')
     if not data
         or not data.lines
         or not data.lines[1]
@@ -647,7 +648,7 @@ local function Save_Unit(self, ID)
         end
     end
     if title then
-        Save_Value(self, ID, {
+        Save_Value(self, id, {
             T= title,
             D= desc,
         })
@@ -657,8 +658,8 @@ local function S_Unit(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
-    for ID = startIndex, startIndex + 100 do
-        Save_Unit(self, ID)
+    for id = startIndex, startIndex + 100 do
+        Save_Unit(self, id)
     end
     Set_ValueText(self, startIndex)
 
@@ -726,9 +727,9 @@ end
 
 
 --Encounter [字符journalEncounterID]= {T=, D=}
-local function Get_Encounter_Tab(self, ID)
+local function Get_Encounter_Tab(self, id)
     local name, desc
-    local n, d = EJ_GetEncounterInfo(ID)
+    local n, d = EJ_GetEncounterInfo(id)
     if IsCN(n) then
         name= n
     end
@@ -736,7 +737,7 @@ local function Get_Encounter_Tab(self, ID)
         desc= d
     end
     if name or desc then
-        Save_Value(self, ID, {
+        Save_Value(self, id, {
             T=name,
             D=desc
         })
@@ -747,8 +748,8 @@ local function S_Encounter(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
-    for ID = startIndex, startIndex + 100 do
-        Get_Encounter_Tab(self, ID)
+    for id = startIndex, startIndex + 100 do
+        Get_Encounter_Tab(self, id)
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
@@ -773,7 +774,7 @@ end
 
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
-local function S_SectionEncounter(self, startIndex, count)
+local function S_SectionEncounter(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
@@ -789,8 +790,7 @@ do
         do
             for sectionID= startIndex, startIndex + 100 do
                 local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-                local id= EJ_GetDifficulty() or difficultyID
-                if sectionInfo and not sectionInfo.filteredByDifficulty then
+                if sectionInfo then
                     local title, desc
                     if IsCN(sectionInfo.title) then
                         title= sectionInfo.title
@@ -799,18 +799,17 @@ do
                         desc= sectionInfo.description
                     end
                     if title or desc then
-                        _G['WoWTools_SC_'..self.name][sectionID]= _G['WoWTools_SC_'..self.name][sectionID] or {}
-                        if title then
-                            _G['WoWTools_SC_'..self.name][sectionID].T=title
-                        end
                         if desc then
                             desc= desc:gsub('|cffffffff', '|cff000000')
-                            _G['WoWTools_SC_'..self.name][sectionID][id]= desc
                         end
-                        self.num= self.num + 1
-                        if title then
-                            self.Name:SetText(sectionID..' '..title)
-                        end
+
+                        local tab=_G['WoWTools_SC_'..self.name][sectionID] or {}
+
+                        tab.T= title or tab.T
+
+                        tab[difficultyID]= desc or tab[difficultyID]
+
+                        Save_Value(self, sectionID, tab)
                     end
                 end
             end
@@ -820,11 +819,7 @@ end
 
     Set_ValueText(self, startIndex)
 
-    --if count==3 then
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
-    --else
-        --C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count+1) end)
-   -- end
+    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
 end
 
 
@@ -865,8 +860,8 @@ local function S_CacheAchievement(self, startIndex)
     C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 101) end)
 end
 
-local function Save_Achievement(self, ID, count)
-    local _, title, _, _, _, _, _, desc, _, _, reward = GetAchievementInfo(ID)
+local function Save_Achievement(self, id)
+    local _, title, _, _, _, _, _, desc, _, _, reward = GetAchievementInfo(id)
     if IsCN(title) then
         local d,r
         if IsCN(desc) then
@@ -876,11 +871,11 @@ local function Save_Achievement(self, ID, count)
             r= reward--奖励
         end
         local s, find
-        local numCriteria= GetAchievementNumCriteria(ID) or 0--条件
+        local numCriteria= GetAchievementNumCriteria(id) or 0--条件
         if numCriteria>0 then
             local t={}
             for index = 1, numCriteria do
-                local criteriaString = GetAchievementCriteriaInfo(ID, index)
+                local criteriaString = GetAchievementCriteriaInfo(id, index)
                 if IsCN(criteriaString) then
                     t[index]= criteriaString
                     find= true
@@ -890,7 +885,7 @@ local function Save_Achievement(self, ID, count)
                 s= t
             end
         end
-        Save_Value(self, ID, {
+        Save_Value(self, id, {
             T= title,
             D= d,
             R= r,
@@ -899,20 +894,20 @@ local function Save_Achievement(self, ID, count)
     end
 end
 
-local function S_Achievement(self, startIndex, count)
+local function S_Achievement(self, startIndex)
     if Is_StopRun(self, startIndex) then
         return
     end
-    for ID = startIndex, startIndex + 100 do
-        if C_AchievementInfo.IsValidAchievement(ID) then
-            Save_Achievement(self, ID, count)
+    for id = startIndex, startIndex + 100 do
+        if C_AchievementInfo.IsValidAchievement(id) then
+            Save_Achievement(self, id)
         end
     end
     Set_ValueText(self, startIndex)
     --if count==3 then
         C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101) end)
     --else
-    --    C_Timer.After(0.1, function() S_Achievement(self, startIndex, count+1) end)
+    --    C_Timer.After(0.1, function() S_Achievement(self, startIndex+1) end)
     --end
 end
 
@@ -930,7 +925,7 @@ end
 
 
 
-local function Save_Holyday(self, day, index, count)
+local function Save_Holyday(self, day, index)
     local data= C_Calendar.GetDayEvent(0, day, index)
     if data and data.eventID and data.calendarType~='PLAYER' then
         local holiday= C_Calendar.GetHolidayInfo(0, day, index)
@@ -988,6 +983,7 @@ local function Init_Gossip()
         if info and info.gossipOptionID then
             local text= self:GetText()
             if IsCN(text) then
+                WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
                 if not WoWTools_SC_Gossip[info.gossipOptionID] then
                     print(addName, '|cnGREEN_FONT_COLOR:添加|r',info.gossipOptionID, text)
                 end
@@ -1110,6 +1106,8 @@ local function Create_Button(tab)
         GameTooltip:Show()
     end)
     function btn:run()
+        _G['WoWTools_SC_'..self.name]= _G['WoWTools_SC_'..self.name] or {}
+
         self:settings()
         if not self.isStop then
             self.func(self, self.min, 1)
