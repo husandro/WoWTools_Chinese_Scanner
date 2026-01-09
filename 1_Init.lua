@@ -32,6 +32,10 @@ local Buttons={}
 
 
 
+local function GetNameForID(self, id)
+    return 'WoWTools_SC_'..self.name..(id>10e4 and 1 or '')
+end
+
 
 local ReceString={
     [ERR_TRAVEL_PASS_NO_INFO] = 1,--正在获取信息……
@@ -181,7 +185,11 @@ end
 
 local function Save_Value(self, id, tab)
     if tab and id then
-        _G['WoWTools_SC_'..self.name][tonumber(id)..''] = tab
+        local name= GetNameForID(self, id)
+        _G[name]= _G[name] or {}
+
+        _G[name][tonumber(id)] = tab
+
         --if count==1 or not count then
             self.num= self.num+1
             self.Name:SetText(MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
@@ -803,7 +811,12 @@ do
                             desc= desc:gsub('|cffffffff', '|cff000000')
                         end
 
-                        local tab=_G['WoWTools_SC_'..self.name][sectionID] or {}
+                        local tab={}
+
+                        local name= GetNameForID(self, sectionID)
+                        if _G[name] and _G[name][sectionID] then
+                            tab= _G[name][sectionID]
+                        end
 
                         tab.T= title or tab.T
 
@@ -1028,6 +1041,9 @@ local function clear_data(name)
     Save()[name..'Ver']= nil
 
     _G['WoWTools_SC_'..name]= nil
+    if _G['WoWTools_SC_'..name..'1'] then
+        _G['WoWTools_SC_'..name..'1']= nil
+    end
 
     local self= _G['WoWToolsSC'..name..'Button']
     if not self.isStop then
