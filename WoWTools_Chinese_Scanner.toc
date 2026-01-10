@@ -16,3 +16,4 @@
 2_ViewFrame.lua
 z_MapIDAchievement.lua
 z_GlobalStrings.lua
+z_Unit.lua
