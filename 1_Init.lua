@@ -191,6 +191,10 @@ end
 
 local function Save_Value(self, id, tab)
     if tab and id then
+        if not _G['WoWTools_SC_'..self.name] then
+            _G['WoWTools_SC_'..self.name]= {}
+        end
+
         _G['WoWTools_SC_'..self.name][tonumber(id)] = tab
 
         self.num= self.num+1
