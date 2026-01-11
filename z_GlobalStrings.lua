@@ -14,6 +14,7 @@ local function IsCN(text)
         and text:find('[\228-\233]')
         and not text:find('DNT')
         and not text:find('UNUSED')
+        and not text:find('TEST')
 end
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     if tab then

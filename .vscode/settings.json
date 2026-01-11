@@ -78,7 +78,8 @@
         "PlayerUtil",
         "GameTooltip_ShowSimpleTooltip",
         "SimpleTooltipConstants",
-        "DifficultyUtil"
+        "DifficultyUtil",
+        "AdventureGuideUtil"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

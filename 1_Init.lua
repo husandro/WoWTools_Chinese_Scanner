@@ -1,6 +1,6 @@
 local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r|cff28a3ffChinese|r数据扫描'
 if not LOCALE_zhCN then
-    print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文')
+    print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文|r')
     return
 end
 
@@ -61,6 +61,7 @@ local function IsCN(text)
         and text:find('[\228-\233]')
         and not text:find('DNT')
         and not text:find('UNUSED')
+        and not text:find('TEST')
         and not ReceString[text]
 end
 local function MK(number, notColor)
@@ -111,7 +112,7 @@ end
 local function Is_StopRun(self, startIndex)
     if self.isStop then
         self.Value:SetFormattedText(
-            '|cffff8200暂停  %s条  %.1f%%',
+            '|cffff8200暂停|r  %s条  %.1f%%',
             MK(self.num),
             (startIndex-self.min)/(self.max-self.min)*100
         )
@@ -145,8 +146,7 @@ local function Is_StopRun(self, startIndex)
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
         print(
             self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
-            '|cnGREEN_FONT_COLOR:完成|r '..num..'条|cnWARNING_FONT_COLOR:',
-            clock
+            '|cnGREEN_FONT_COLOR:完成|r '..num..'条 |cnWARNING_FONT_COLOR:'..clock..'|r'
         )
 
         self:settings()
@@ -188,7 +188,7 @@ local function Is_StopCahceRun(self, startIndex)
         return true
 
     elseif (startIndex > self.max) then
-        print(addName, '获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成')
+        print(addName, '获取“'..self.name..'” 数据 |cnGREEN_FONT_COLOR:完成|r')
         self.bar2:SetValue(0)
         self.bar2:Hide()
         local clock= SecondsToClock(GetTime()-self.cahceTime)
@@ -238,7 +238,7 @@ local function clear_data(name)
     self.Value:SetText('')
     self.Ver:SetText('')
 
-    print('清除数据|cnWARNING_FONT_COLOR:', self.text, '|r|cnGREEN_FONT_COLOR:完成')
+    print('清除数据|cnWARNING_FONT_COLOR:', self.text, '|r|cnGREEN_FONT_COLOR:完成|r')
 end
 
 StaticPopupDialogs['WoWTools_SC']={
@@ -251,7 +251,7 @@ StaticPopupDialogs['WoWTools_SC']={
         else
             WoWTools_SC_LogClass={[PlayerUtil.GetClassID()]= true}
             WoWTools_Sc_KeepRunName= nil
-            _G['WoWToolsSCReloadButton']:set_atlas()
+            _G['WoWToolsSCKeepRunButton']:set_atlas()
 
             for _, name in pairs(ClassButton) do
                 _G[name]:set_stat()
@@ -863,14 +863,46 @@ end
 
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
+--[[
 
+function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
+  if (startIndex > 50000) then
+    WoWeuCN_Scanner_Index = 0
+    return;
+  end
+  for difficultyId = 1, 45 do
+    EJ_SetDifficulty(difficultyId)
+    for i = startIndex, startIndex + 100 do
+      local sectionInfo =  C_EncounterJournal.GetSectionInfo(i)
+      if (sectionInfo and not sectionInfo.filteredByDifficulty) then
+        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i] = {}
+        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Title"] = sectionInfo.title
+        
+        print(sectionInfo.title)
+        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Description"] = sectionInfo.description
+      end
+    end
+  end
+  print(attempt)
+  print('index ' .. startIndex)
+  WoWeuCN_Scanner_Index = startIndex
+  if (counter >= 2) then
+     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex + 100, attempt + 1, 0)
+  else
+     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex, attempt + 1, counter + 1)
+  end
+end
+]]
 
-local function S_SectionEncounter(self, startIndex)
-    if startIndex==1 then
-        print(self.text, '|cnGREEN_FONT_COLOR:难度开始|r', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
+local function S_SectionEncounter(self, startIndex, count)
+    count= (count or 0)+1
 
-    elseif Is_StopRun(self, startIndex) then
-        print(self.text, '|cnWARNING_FONT_COLOR:难度结束|r', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
+    if not EncounterJournal  then
+        EncounterJournal_LoadUI()
+    end
+
+    if Is_StopRun(self, startIndex) then
+        print(self.text, '|cnWARNING_FONT_COLOR:难度结束', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
 
         if startIndex > self.max then
             difficultyIndex= difficultyIndex+1
@@ -886,9 +918,13 @@ local function S_SectionEncounter(self, startIndex)
         EJ_SetDifficulty(difficultyID)
     end
 
+    local name= 'WoWTools_SC_'..self.name
+    local id= difficultyID
     for sectionID= startIndex, startIndex + 100 do
         local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
         if sectionInfo and not sectionInfo.filteredByDifficulty then
+            EJ_GetSectionPath(sectionID)
+
             local title, desc
             if IsCN(sectionInfo.title) then
                 title= sectionInfo.title
@@ -898,7 +934,6 @@ local function S_SectionEncounter(self, startIndex)
             end
             if title or desc then
                 if desc then
-                    
                     desc= desc:gsub('^\r\n\r\n', '')
                     desc= desc:gsub('|cffffffff', '|cff000000')
                     desc= desc:gsub('%d+,%d+', function(number)
@@ -908,23 +943,27 @@ local function S_SectionEncounter(self, startIndex)
 
                 local tab={}
 
-                local name= 'WoWTools_SC_'..self.name
                 if _G[name] and _G[name][sectionID] then
                     tab= _G[name][sectionID]
                 end
 
                 tab.T= title or tab.T
 
-                tab[difficultyID]= desc or tab[difficultyID]
+                tab[id]= desc or tab[id]
 
-                Save_Value(self, sectionID, tab)
+                if count==1 then
+                    Save_Value(self, sectionID, tab)
+                end
             end
         end
     end
 
     Set_ValueText(self, startIndex)
-
-    C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101) end)
+    if count>2 then
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101, 0) end)
+    else
+        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count) end)
+    end
 end
 
 
@@ -1165,7 +1204,7 @@ local function Create_Button(tab)
 
         self:settings()
         if not self.isStop then
-            self.func(self, self.min, 1)
+            self:func(self.min)
         end
     end
     btn:SetScript('OnMouseDown', function(self)
@@ -1282,7 +1321,7 @@ local function Create_Button(tab)
         function btn.cahce:run()
             local p= self:GetParent()
             p.isCahceStop= not p.isCahceStop and true or false
-            self.func(p, self.min or 1, self.max)
+            self.func(p, self.min)
             p.cahceTime= not p.isCahceStop and GetTime() or nil
             self:settings()
             self:set_tooltip()
@@ -1320,8 +1359,7 @@ local function Create_Button(tab)
 
 
     function btn:settings()
-        local isSE= self.name=='SectionEncounter'
-        
+
         self.isStop= not self.isStop and true or nil
 
         if self.isStop then
@@ -1329,21 +1367,10 @@ local function Create_Button(tab)
             self.time=nil
         else
             self:SetNormalAtlas('common-dropdown-icon-stop')
-            if isSE then
-                self.time= self.time or GetTime()
-            else
-                self.time= GetTime()
-            end
+            self.time= GetTime()
         end
-        if isSE then
-            if self.isStop or difficultyID==1 then
-                self.num= 0
-            else
-                self.num= self.num or 0
-            end
-        else
-            self.num= 0
-        end
+
+        self.num= 0
 
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
@@ -1618,8 +1645,8 @@ do
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5w3168 00:59', atlas='KyrianAssaults-64x64'},
 '-',
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='|cff626262Boss 技能', tooltip='12.0 5w3168 00:59', atlas='KyrianAssaults-64x64'},
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
         if tab=='-' then
