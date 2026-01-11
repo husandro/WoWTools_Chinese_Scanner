@@ -59,27 +59,35 @@ local function IsCN(text)
         and not text:find('UNUSED')
         and not ReceString[text]
 end
-local function MK(number)
+local function MK(number, notColor)
     number= number and tonumber(number)
     if number then
         local b=3
         local t=''
+        local hex
         if number>=1e8 then
             number= (number/1e8)-- 1 0000 0000
-            t='|cffff4800m|r'
+            hex='|cffff4800%s|r'
+            t='m'
             b=8
         elseif number>= 1e4 then
             number= (number/1e4)
-            t='|cffff00ffw|r'
+            hex= '|cffff00ff%s|r'
+            t='w'
             b=4
         elseif number>=1e3 then
             number= (number/1e3)
-            t='|cff00ff00k|r'
+            hex= '|cff00ff00%s|r'
+            t='k'
         else
             return number..''
         end
 
         local num, point= math.modf(number)
+        if not notColor then
+            t= format(hex, t)
+        end
+
         if point==0 then
             return num..t
         else--0.5/10^bit
@@ -161,7 +169,7 @@ local function Set_ValueText(self, startIndex)
     local clock= SecondsToClock(GetTime()-self.time)
     clock= clock:gsub('：', ':')
     self.Value:SetFormattedText(
-        '%s, %s条, %.1f%%',
+        '%s  %s条  %.1f%%',
         clock,
         MK(self.num),
         va
@@ -172,7 +180,7 @@ end
 
 local function Is_StopCahceRun(self, startIndex)
     if self.isCahceStop then
-        print(addName, '|cffff0000停止|r, 获取“'..self.name..'”数据')
+        print(addName, '|cffff0000停止|r 获取“'..self.name..'”数据')
         self.bar2:Hide()
         self.bar2:SetValue(0)
         return true
@@ -850,7 +858,8 @@ local function S_SectionEncounter(self, startIndex)
 
 
 do
-    for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
+    --for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机, 1,2,23
+    for _, difficultyID in pairs({1,2,23, 17,14,15,16}) do
         do
             EJ_SetDifficulty(difficultyID)
         end
@@ -868,6 +877,9 @@ do
                     if title or desc then
                         if desc then
                             desc= desc:gsub('|cffffffff', '|cff000000')
+                            desc= desc:gsub('%d+,%d+', function(number)
+                                return MK(number:gsub(',', ''), true)
+                            end)
                         end
 
                         local tab={}
@@ -1564,7 +1576,7 @@ do
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3137', atlas='KyrianAssaults-64x64'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5w3168 00:59', atlas='KyrianAssaults-64x64'},
 '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
