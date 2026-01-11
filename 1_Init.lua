@@ -852,9 +852,7 @@ local function S_SectionEncounter(self, startIndex)
 do
     for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机
         do
-            if EJ_GetDifficulty()~= difficultyID then
-                EJ_SetDifficulty(difficultyID)
-            end
+            EJ_SetDifficulty(difficultyID)
         end
         do
             for sectionID= startIndex, startIndex + 100 do
@@ -1563,10 +1561,10 @@ do
 '-',
         {name='Unit', func=S_Unit, tooltip='12.0 18w9561 13:12', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058', atlas='UI-Achievement-Shield-NoPoints'},
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3137', atlas='KyrianAssaults-64x64'},
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
-        {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
 
+        {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='6w3137', atlas='KyrianAssaults-64x64'},
 '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
