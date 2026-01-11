@@ -1645,8 +1645,9 @@ do
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-'-',
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='|cff626262Boss 技能', tooltip='12.0 5w3168 00:59', atlas='KyrianAssaults-64x64'},
+
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 6k 4k 8k 9k 9k', atlas='KyrianAssaults-64x64'},
+        '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
         if tab=='-' then
