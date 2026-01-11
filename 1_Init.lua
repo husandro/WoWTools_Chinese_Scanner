@@ -859,7 +859,7 @@ do
         do
             for sectionID= startIndex, startIndex + 100 do
                 local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-                if sectionInfo then
+                if sectionInfo and not sectionInfo.filteredByDifficulty then
                     local title, desc
                     if IsCN(sectionInfo.title) then
                         title= sectionInfo.title
@@ -1139,7 +1139,7 @@ local function Create_Button(tab)
     end
     btn:SetScript('OnMouseDown', function(self)
         WoWTools_Sc_KeepRunName= self.isStop and self.name or nil
-        _G['WoWToolsSCContion']:set_atlas()
+        _G['WoWToolsSCKeepRunButton']:set_atlas()
         self:run()
     end)
 
@@ -1494,7 +1494,7 @@ local function Init()
     reload:SetScript('OnClick', C_UI.Reload)
     reload:SetPoint('BOTTOMRIGHT', -12, 24)
 
-    local keepRun= CreateFrame('CheckButton', 'WoWToolsSCContion', Frame, 'UICheckButtonArtTemplate')
+    local keepRun= CreateFrame('CheckButton', 'WoWToolsSCKeepRunButton', Frame, 'UICheckButtonArtTemplate')
     keepRun:SetPoint('BOTTOM', reload, 'TOP')
     keepRun:SetSize(23,23)
     keepRun:SetScript('OnLeave', GameTooltip_Hide)
@@ -1515,7 +1515,7 @@ local function Init()
         self:set_tooltip()
     end)
 
-    local loopRun= CreateFrame('CheckButton', 'WoWToolsSCContion', Frame, 'UICheckButtonArtTemplate')
+    local loopRun= CreateFrame('CheckButton', 'WoWToolsSCLoopRunButton', Frame, 'UICheckButtonArtTemplate')
     loopRun:SetPoint('RIGHT', keepRun, 'LEFT', -4, 0)
     loopRun:SetSize(23,23)
     loopRun:SetScript('OnLeave', GameTooltip_Hide)
