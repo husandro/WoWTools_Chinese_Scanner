@@ -32,7 +32,11 @@ local MinSpell2ID= 12* 1e5
 local MaxSpell2ID= (GameVer+2)* 10e4--120w- 150w
 
 
-local MaxSectionEncounterID= (GameVer-6)*1e4--11.2.5版本，最高33986 https://wago.tools/db2/JournalEncounterSection
+
+local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
+local difficultyID= 1
+local difficultyIndex=1
+local MaxSectionEncounterID= (GameVer-8)*1e4--12.0版本，最高35159 https://wago.tools/db2/JournalEncounterSection
 
 local Frame, MaxButtonLabel
 local Buttons={}
@@ -141,13 +145,11 @@ local function Is_StopRun(self, startIndex)
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
         print(
             self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
-            '|cnGREEN_FONT_COLOR:完成|r'..num..'条|cnWARNING_FONT_COLOR:',
+            '|cnGREEN_FONT_COLOR:完成|r '..num..'条|cnWARNING_FONT_COLOR:',
             clock
         )
 
         self:settings()
-
-        self.num= 0
 
         if WoWTools_SC_IsLoopRun then
             self:run()
@@ -217,12 +219,20 @@ local function clear_data(name)
         _G['WoWTools_SC_'..name]= nil
     end
 
+--Boss 技能
+    if name=='SectionEncounter' then
+        difficultyID= 1
+        difficultyIndex=1
+    end
+
     local self= _G['WoWToolsSC'..name..'Button']
     if not self.isStop then
         self:settings()
     else
         self.time=nil
     end
+
+
 
     self.bar:SetValue(0)
     self.Value:SetText('')
@@ -240,6 +250,8 @@ StaticPopupDialogs['WoWTools_SC']={
             clear_data(data)
         else
             WoWTools_SC_LogClass={[PlayerUtil.GetClassID()]= true}
+            WoWTools_Sc_KeepRunName= nil
+            _G['WoWToolsSCReloadButton']:set_atlas()
 
             for _, name in pairs(ClassButton) do
                 _G[name]:set_stat()
@@ -851,55 +863,64 @@ end
 
 
 --EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
+
+
 local function S_SectionEncounter(self, startIndex)
-    if Is_StopRun(self, startIndex) then
+    if startIndex==1 then
+        print(self.text, '|cnGREEN_FONT_COLOR:难度开始|r', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
+
+    elseif Is_StopRun(self, startIndex) then
+        print(self.text, '|cnWARNING_FONT_COLOR:难度结束|r', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
+
+        if startIndex > self.max then
+            difficultyIndex= difficultyIndex+1
+
+            difficultyIndex= difficultyIndex> #difficultyIDs and 1 or difficultyIndex
+
+            difficultyID= difficultyIDs[difficultyIndex]
+        end
         return
     end
 
+    if EJ_GetDifficulty()~=difficultyID then
+        EJ_SetDifficulty(difficultyID)
+    end
 
-do
-    --for difficultyID= 1, 45 do--in pairs({16, 15, 14, 17}) do-- 16史诗 15英雄 14普通 17随机, 1,2,23
-    for _, difficultyID in pairs({1,2,23, 17,14,15,16}) do
-        do
-            EJ_SetDifficulty(difficultyID)
-        end
-        do
-            for sectionID= startIndex, startIndex + 100 do
-                local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-                if sectionInfo and not sectionInfo.filteredByDifficulty then
-                    local title, desc
-                    if IsCN(sectionInfo.title) then
-                        title= sectionInfo.title
-                    end
-                    if IsCN(sectionInfo.description) then
-                        desc= sectionInfo.description
-                    end
-                    if title or desc then
-                        if desc then
-                            desc= desc:gsub('|cffffffff', '|cff000000')
-                            desc= desc:gsub('%d+,%d+', function(number)
-                                return MK(number:gsub(',', ''), true)
-                            end)
-                        end
-
-                        local tab={}
-
-                        local name= 'WoWTools_SC_'..self.name
-                        if _G[name] and _G[name][sectionID] then
-                            tab= _G[name][sectionID]
-                        end
-
-                        tab.T= title or tab.T
-
-                        tab[difficultyID]= desc or tab[difficultyID]
-
-                        Save_Value(self, sectionID, tab)
-                    end
+    for sectionID= startIndex, startIndex + 100 do
+        local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+        if sectionInfo and not sectionInfo.filteredByDifficulty then
+            local title, desc
+            if IsCN(sectionInfo.title) then
+                title= sectionInfo.title
+            end
+            if IsCN(sectionInfo.description) then
+                desc= sectionInfo.description
+            end
+            if title or desc then
+                if desc then
+                    
+                    desc= desc:gsub('^\r\n\r\n', '')
+                    desc= desc:gsub('|cffffffff', '|cff000000')
+                    desc= desc:gsub('%d+,%d+', function(number)
+                        return MK(number:gsub(',', ''), true)
+                    end)
                 end
+
+                local tab={}
+
+                local name= 'WoWTools_SC_'..self.name
+                if _G[name] and _G[name][sectionID] then
+                    tab= _G[name][sectionID]
+                end
+
+                tab.T= title or tab.T
+
+                tab[difficultyID]= desc or tab[difficultyID]
+
+                Save_Value(self, sectionID, tab)
             end
         end
     end
-end
 
     Set_ValueText(self, startIndex)
 
@@ -1299,15 +1320,31 @@ local function Create_Button(tab)
 
 
     function btn:settings()
+        local isSE= self.name=='SectionEncounter'
+        
         self.isStop= not self.isStop and true or nil
+
         if self.isStop then
             self:SetNormalAtlas(self.atlas or 'common-dropdown-icon-next')
             self.time=nil
         else
             self:SetNormalAtlas('common-dropdown-icon-stop')
-            self.time= GetTime()
+            if isSE then
+                self.time= self.time or GetTime()
+            else
+                self.time= GetTime()
+            end
         end
-        self.num= 0
+        if isSE then
+            if self.isStop or difficultyID==1 then
+                self.num= 0
+            else
+                self.num= self.num or 0
+            end
+        else
+            self.num= 0
+        end
+
         self.Ver:SetText(Save()[self.name..'Ver'] or '')
     end
     btn:settings()
@@ -1424,6 +1461,10 @@ local function Init()
     end)
     maxButton:SetScript("OnMouseUp", function() ResetCursor() end)
     maxButton:SetScript("OnMouseDown", function(self, d)
+        if Frame:IsProtected() and InCombatLockdown() then
+            return
+        end
+
         if d=='LeftButton' then
             Frame:Show()
             self:Hide()
@@ -1459,13 +1500,14 @@ local function Init()
         self:SetButtonState('NORMAL')
     end)
     minButton:SetScript('OnMouseDown', function(self)
+        if Frame:IsProtected() and InCombatLockdown() then
+            return
+        end
         self:GetParent():Hide()
         maxButton:Show()
     end)
 
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
-    --[[Frame.CloseButton=CreateFrame('Button', 'WoWTools_SC_FrameCloseButton', Frame, 'UIPanelCloseButton')--SharedUIPanelTemplates.xml
-    Frame.CloseButton:SetPoint('TOPRIGHT')]]
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
     Frame.Header:Setup(addName)
 

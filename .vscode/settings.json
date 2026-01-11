@@ -77,7 +77,8 @@
         "SELECT_LOOT_SPECIALIZATION",
         "PlayerUtil",
         "GameTooltip_ShowSimpleTooltip",
-        "SimpleTooltipConstants"
+        "SimpleTooltipConstants",
+        "DifficultyUtil"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
