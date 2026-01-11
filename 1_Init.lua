@@ -1646,7 +1646,7 @@ do
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
 
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 6k 4k 8k 9k 9k', atlas='KyrianAssaults-64x64'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5k363 6k384 4k257 8k499 9k 9k', atlas='KyrianAssaults-64x64'},
         '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
