@@ -1782,7 +1782,7 @@ local function Init()
     runCount:SetupMenu(function(self, root)
         for i=1, 10 do
             root:CreateRadio(
-                (i==1 and '|cnGREEN_FONT_COLOR:' and '')..i..' 次数',
+                (i==1 and '|cnGREEN_FONT_COLOR:' or '')..i..' 次数',
             function(index)
                 return MaxCount==index
             end, function(index)
