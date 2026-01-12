@@ -459,11 +459,9 @@ end
 
 
 local function S_Sets(self, startIndex)
-    if Is_StopRun(self, startIndex) then
-        return
-    end
 
-    if startIndex==self.min then
+
+    if startIndex==self.min or startIndex==self.max then
         Load_Sets(self)
     end
 do
@@ -475,8 +473,8 @@ end
 
     C_Timer.After(0.1, function() S_Sets(self, startIndex + 10) end)
 
-    if startIndex==self.max then
-        Load_Sets(self)
+    if Is_StopRun(self, startIndex) then
+        return
     end
 end
 
