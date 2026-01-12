@@ -1,7 +1,6 @@
 local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r|cff28a3ffChinese|r数据扫描'
 if not LOCALE_zhCN then
     print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文|r')
-    return
 end
 
 local function Save()
@@ -1762,6 +1761,41 @@ local function Init()
         self:set_tooltip()
     end)
 
+
+    local runCount= CreateFrame('DropdownButton', 'WoWToolsSCRunCountMenuButton', Frame)
+    runCount.text= runCount:CreateFontString(nil, nil, 'GameFontNormal')
+    runCount.text:SetPoint('CENTER')
+    runCount.text:SetJustifyH('CENTER')
+    runCount:SetPoint('RIGHT', loopRun, 'LEFT')
+    runCount:SetHighlightAtlas('Forge-ColorSwatchSelection')
+    runCount:SetPushedAtlas('PetList-ButtonSelect')
+    runCount:SetSize(23,23)
+    runCount:SetScript('OnLeave', GameTooltip_Hide)
+    runCount:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText('每次，运行 '..MaxCount..' 次数')
+        GameTooltip:Show()
+    end)
+    function runCount:settings()
+        runCount.text:SetText(MaxCount or 1)
+    end
+    runCount:SetupMenu(function(self, root)
+        for i=1, 10 do
+            root:CreateRadio(
+                (i==1 and '|cnGREEN_FONT_COLOR:' and '')..i..' 次数',
+            function(index)
+                return MaxCount==index
+            end, function(index)
+                Save().runCount= index
+                MaxCount= index
+                self:settings()
+                return MenuResponse.Refresh
+            end, i)
+        end
+    end)
+    runCount:settings()
+
+
     local out= CreateFrame('Button', 'WoWToolsSCLogoutButton', Frame, 'SecureActionButtonTemplate UIPanelButtonTemplate')
     out:SetSize(80, 23)
     out:SetPoint("TOPLEFT", 40, 0)
@@ -1780,6 +1814,18 @@ local function Init()
         WoWTools_TextureMixin:SetCheckBox(keepRun)
         WoWTools_TextureMixin:SetCheckBox(loopRun)
     end
+
+
+
+    
+
+
+
+
+
+
+
+
 
 do
     for _, tab in pairs({
@@ -1811,6 +1857,16 @@ do
         table.insert(Buttons, tab.name)
     end
 end
+
+
+
+
+
+
+
+
+
+
 
 
     for class= 1, GetNumClasses() do
@@ -1911,6 +1967,7 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     if arg1~='WoWTools_Chinese_Scanner' then
         return
     end
+    MaxCount= Save().runCount or 1
 
     WoWTools_SC= WoWTools_SC or {isLoopRun=true}
 
