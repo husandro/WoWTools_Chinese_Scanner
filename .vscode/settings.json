@@ -79,7 +79,9 @@
         "GameTooltip_ShowSimpleTooltip",
         "SimpleTooltipConstants",
         "DifficultyUtil",
-        "AdventureGuideUtil"
+        "AdventureGuideUtil",
+        "RenownRewardUtil",
+        "GenerateClosure"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",

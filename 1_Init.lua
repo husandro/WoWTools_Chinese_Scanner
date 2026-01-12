@@ -31,19 +31,21 @@ local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
 local MinSpell2ID= 12* 1e5
 local MaxSpell2ID= (GameVer+2)* 10e4--120w- 150w
 
-
-
 local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
 local difficultyID= 1
 local difficultyIndex=1
 local MaxSectionEncounterID= (GameVer-8)*1e4--12.0版本，最高35159 https://wago.tools/db2/JournalEncounterSection
 
+local MaxFactionID=(GameVer-9)*1e3+ 100 --12.0 2781 https://wago.tools/db2/Faction
+
+
+
 local Frame, MaxButtonLabel
 local Buttons={}
 local ClassButton={}
 
-
-
+local MaxCount= 1--运行次数
+local MaxLoopCount= 100
 
 
 
@@ -330,8 +332,7 @@ local function RUN(self)
 
     self:settings()
     if not self.isStop then
-        print('a', self.min)
-        self.func(self, self.min, 0)
+        self:func(self.min or 1, 0)
     end
 end
 
@@ -433,7 +434,7 @@ local function Save_Item(self, itemID, isSet)
     end
 end
 
-local function Cahce_Item(self, id, isSet)
+local function Load_Item(self, id, isSet)
     if not C_Item.IsItemDataCachedByID(id) then
         ItemEventListener:AddCancelableCallback(id, function()
             Save_Item(self, id, isSet)
@@ -444,18 +445,24 @@ local function Cahce_Item(self, id, isSet)
 end
 
 
-local function S_Item(self, startIndex)
+local function S_Item(self, startIndex, count)
+    count= count +1
     if Is_StopRun(self, startIndex) then
         return
     end
-
-    for itemID = startIndex, startIndex + 100 do
+    for itemID = startIndex, startIndex + MaxLoopCount do
         if C_Item.GetItemInfoInstant(itemID) then
-            Cahce_Item(self, itemID, false)
+            Load_Item(self, itemID, false)
         end
     end
-    Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Item(self, startIndex + 101) end)
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Item(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Item(self, startIndex, count) end)
+    end
 end
 
 
@@ -470,13 +477,13 @@ local function S_SetsItem(self, setID)
     for _, sets in pairs(C_Transmog.GetAllSetAppearancesByID(setID) or {}) do
         local itemID= sets.itemID
         if itemID then
-            Cahce_Item(self, itemID, true)
+            Load_Item(self, itemID, true)
         end
     end
     for _, sets in pairs(C_LootJournal.GetItemSetItems(setID) or {}) do
         local itemID= sets.itemID
         if itemID then
-            Cahce_Item(self, itemID, true)
+            Load_Item(self, itemID, true)
         end
     end
 end
@@ -501,21 +508,25 @@ end
 
 
 
-local function S_Sets(self, startIndex)
+local function S_Sets(self, startIndex, count)
+    count= count +1
     if startIndex==self.min or startIndex==self.max then
         Load_Sets(self)
     end
-
     if Is_StopRun(self, startIndex) then
         return
     end
-
-    for itemID = startIndex, startIndex + 10 do
+    for itemID = startIndex, startIndex + 50 do
         S_SetsItem(self, itemID)
     end
-    Set_ValueText(self, startIndex)
-
-    C_Timer.After(0.1, function() S_Sets(self, startIndex + 10) end)
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Sets(self, startIndex + 51, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Sets(self, startIndex, count) end)
+    end
 end
 
 
@@ -563,21 +574,34 @@ local function Save_Spell(self, id)
     end
 end
 
-local function S_Spell(self, startIndex)
+
+local function S_LoadSpell(self, spellID)
+    if not C_Spell.IsSpellDataCached(spellID) then
+        SpellEventListener:AddCancelableCallback(spellID, function()
+            Save_Spell(self, spellID)
+        end)
+    else
+        Save_Spell(self, spellID)
+    end
+end
+
+
+local function S_Spell(self, startIndex, count)
+    count= count+ 1
     if Is_StopRun(self, startIndex) then
         return
     end
-    for spellID = startIndex, startIndex + 100 do
-        if not C_Spell.IsSpellDataCached(spellID) then
-            SpellEventListener:AddCancelableCallback(spellID, function()
-                Save_Spell(self, spellID)
-            end)
-        else
-            Save_Spell(self, spellID)
-        end
+    for spellID = startIndex, startIndex + MaxLoopCount do
+        S_LoadSpell(self, spellID)
     end
-    Set_ValueText(self, startIndex)
-    C_Timer.After(0.1, function() S_Spell(self, startIndex + 101) end)
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Spell(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Spell(self, startIndex, count) end)
+    end
 end
 
 
@@ -711,26 +735,34 @@ local function Save_Quest(self, id)
     })
 end
 
-local function S_Quest(self, startIndex)
+local function Load_Quest(self, questID)
+    if not HaveQuestData(questID) then
+        QuestEventListener:AddCancelableCallback(questID, function()
+            Save_Quest(self, questID)
+        end)
+    else
+        Save_Quest(self, questID)
+    end
+end
+
+
+local function S_Quest(self, startIndex, count)
+    count= count + 1
     if Is_StopRun(self, startIndex) then
         return
     end
-    for questID = startIndex, startIndex + 100 do
-        if not HaveQuestData(questID) then
-            QuestEventListener:AddCancelableCallback(questID, function()
-                Save_Quest(self, questID)
-            end)
-        else
-            Save_Quest(self, questID)
-        end
+    for questID = startIndex, startIndex + MaxLoopCount do
+        Load_Quest(self, questID)
     end
-    Set_ValueText(self, startIndex)
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
 
-    --if count==3 then
-    C_Timer.After(0.1, function() S_Quest(self, startIndex + 101) end)
-
-        --C_Timer.After(0.1, function() S_Quest(self, startIndex+1) end)
-
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Quest(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Quest(self, startIndex, count) end)
+    end
 end
 
 
@@ -787,20 +819,22 @@ local function Save_Unit(self, id)
         })
     end
 end
-local function S_Unit(self, startIndex)
+local function S_Unit(self, startIndex, count)
+    count= count+ 1
     if Is_StopRun(self, startIndex) then
         return
     end
-    for id = startIndex, startIndex + 100 do
+    for id = startIndex, startIndex + MaxLoopCount do
         Save_Unit(self, id)
     end
-    Set_ValueText(self, startIndex)
-
-    --if count==3 then
-        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
-    --else
-      --  C_Timer.After(0.1, function() S_Unit(self, startIndex+1) end)
-    --end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Unit(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Unit(self, startIndex, count) end)
+    end
 end
 
 
@@ -877,19 +911,22 @@ local function Get_Encounter_Tab(self, id)
     end
 end
 
-local function S_Encounter(self, startIndex)
+local function S_Encounter(self, startIndex, count)
+    count= count +1
     if Is_StopRun(self, startIndex) then
         return
     end
-    for id = startIndex, startIndex + 100 do
+    for id = startIndex, startIndex + MaxLoopCount do
         Get_Encounter_Tab(self, id)
     end
-    Set_ValueText(self, startIndex)
-    --if count==3 then
-        C_Timer.After(0.1, function() S_Encounter(self, startIndex + 101) end)
-    --else
-        --C_Timer.After(0.1, function() S_Encounter(self, startIndex, count+1) end)
-   -- end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Encounter(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Encounter(self, startIndex, count) end)
+    end
 end
 
 
@@ -946,14 +983,16 @@ local function S_SectionEncounter(self, startIndex, count)
     end
 
     if Is_StopRun(self, startIndex) then
-        print(self.text, '|cnWARNING_FONT_COLOR:难度结束', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
+        if count>=MaxCount then
+            print(self.text, '|cnWARNING_FONT_COLOR:难度结束', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
 
-        if startIndex > self.max then
-            difficultyIndex= difficultyIndex+1
+            if startIndex > self.max then
+                difficultyIndex= difficultyIndex+1
 
-            difficultyIndex= difficultyIndex> #difficultyIDs and 1 or difficultyIndex
+                difficultyIndex= difficultyIndex> #difficultyIDs and 1 or difficultyIndex
 
-            difficultyID= difficultyIDs[difficultyIndex]
+                difficultyID= difficultyIDs[difficultyIndex]
+            end
         end
         return
     end
@@ -964,7 +1003,7 @@ local function S_SectionEncounter(self, startIndex, count)
 
     local name= 'WoWTools_SC_'..self.name
     local id= difficultyID
-    for sectionID= startIndex, startIndex + 100 do
+    for sectionID= startIndex, startIndex + MaxLoopCount do
         local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
         if sectionInfo and not sectionInfo.filteredByDifficulty then
             EJ_GetSectionPath(sectionID)
@@ -1001,12 +1040,13 @@ local function S_SectionEncounter(self, startIndex, count)
             end
         end
     end
-
-    Set_ValueText(self, startIndex)
-    if count>2 then
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex + 101, 0) end)
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_SectionEncounter(self, startIndex + MaxLoopCount+1, 0) end)
     else
-        C_Timer.After(0.1, function() S_SectionEncounter(self, startIndex, count) end)
+        C_Timer.After(0.3, function() S_SectionEncounter(self, startIndex, count) end)
     end
 end
 
@@ -1045,7 +1085,7 @@ local function S_CacheAchievement(self, startIndex)
         self.bar2:SetValue(achievementID/self.max*100)
         self.bar2:SetShown(true)
     end
-    C_Timer.After(0.1, function() S_CacheAchievement(self, startIndex + 101) end)
+    C_Timer.After(0.3, function() S_CacheAchievement(self, startIndex + 101) end)
 end
 
 local function Save_Achievement(self, id)
@@ -1082,22 +1122,112 @@ local function Save_Achievement(self, id)
     end
 end
 
-local function S_Achievement(self, startIndex)
+local function S_Achievement(self, startIndex, count)
+    count= count+ 1
     if Is_StopRun(self, startIndex) then
         return
     end
-    for id = startIndex, startIndex + 100 do
+    for id = startIndex, startIndex + MaxLoopCount do
         if C_AchievementInfo.IsValidAchievement(id) then
             Save_Achievement(self, id)
         end
     end
-    Set_ValueText(self, startIndex)
-    --if count==3 then
-        C_Timer.After(0.1, function() S_Achievement(self, startIndex + 101) end)
-    --else
-    --    C_Timer.After(0.1, function() S_Achievement(self, startIndex+1) end)
-    --end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Achievement(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Achievement(self, startIndex, count) end)
+    end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function Get_Faction(self, factionID)
+    local data= C_Reputation.GetFactionDataByID(factionID)
+    if data and IsCN(data.name) and data.factionID then
+        factionID= data.factionID
+
+        local tab={
+            T= data.name
+        }
+        if IsCN(data.description) then
+            tab.D= data.description
+        end
+        if C_Reputation.IsMajorFaction(factionID) then
+            local rew={}
+            local find
+
+            local major= C_MajorFactions.GetMajorFactionData(factionID) or {}
+            if major.isUnlocked==false and IsCN(major.unlockDescription) then
+                tab.U= major.unlockDescription
+            end
+
+            for i=1, #C_MajorFactions.GetRenownLevels(factionID) do
+                local rewards = C_MajorFactions.GetRenownRewardsForLevel(factionID, i)
+                if rewards then
+                    for index, info in pairs(rewards) do
+                        if IsCN(info.name) then
+                            rew[i]= rew[i] or {}
+                            rew[i][index]= rew[i][index] or {}
+                            rew[i][index].T= info.name
+                            if IsCN(info.description) then
+                                rew[i][index].D=info.description
+                            end
+                            find=true
+                        end
+                    end
+                end
+            end
+            if find then
+                tab.O=rew
+            end
+        end
+        Save_Value(self, factionID, tab)
+    end
+end
+
+local function S_Faction(self, startIndex, count)
+     count= count +1
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for id = startIndex, startIndex + MaxLoopCount do
+        Get_Faction(self, id)
+    end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Faction(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Faction(self, startIndex, count) end)
+    end
+end
+
+
+
+
+
 
 
 
@@ -1134,7 +1264,7 @@ local function Save_Holyday(self, day, index)
 end
 
 local function S_Holyday(self, startIndex)
-   if Is_StopRun(self, startIndex) then
+    if Is_StopRun(self, startIndex) then
         return
     end
     if startIndex==1 then
@@ -1145,16 +1275,12 @@ local function S_Holyday(self, startIndex)
     C_Calendar.SetMonth(1)
 
     for day=1, 31 do
-
         for index= 1, C_Calendar.GetNumDayEvents(0, day), 1 do
             Save_Holyday(self, day, index)
         end
     end
-
     Set_ValueText(self, startIndex)
-
-
-    C_Timer.After(0.1, function() S_Holyday(self, startIndex+1) end)
+    C_Timer.After(0.3, function() S_Holyday(self, startIndex+1) end)
 end
 
 
@@ -1243,7 +1369,7 @@ local function Create_Button(tab)
         end
         GameTooltip:Show()
     end)
-    
+
     btn:SetScript('OnMouseDown', function(self)
         WoWTools_Sc_KeepRunName= self.name
         _G['WoWToolsSCKeepRunButton']:set_atlas()
@@ -1669,8 +1795,10 @@ do
         {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5k363 6k384 4k257 8k499 9k 9k', atlas='KyrianAssaults-64x64'},
+
+        {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='', atlas='VignetteEventElite'},
+
         '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
     }) do
