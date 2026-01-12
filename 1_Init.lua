@@ -753,7 +753,7 @@ local function S_Unit(self, startIndex)
     Set_ValueText(self, startIndex)
 
     --if count==3 then
-        C_Timer.After(0.2, function() S_Unit(self, startIndex + 101) end)
+        C_Timer.After(0.1, function() S_Unit(self, startIndex + 101) end)
     --else
       --  C_Timer.After(0.1, function() S_Unit(self, startIndex+1) end)
     --end
@@ -895,7 +895,7 @@ end
 ]]
 
 local function S_SectionEncounter(self, startIndex, count)
-    count= (count or 0)+1
+    count= count +1
 
     if not EncounterJournal  then
         EncounterJournal_LoadUI()
@@ -1204,7 +1204,7 @@ local function Create_Button(tab)
 
         self:settings()
         if not self.isStop then
-            self:func(self.min)
+            self:func(self.min, 0)
         end
     end
     btn:SetScript('OnMouseDown', function(self)
@@ -1321,7 +1321,7 @@ local function Create_Button(tab)
         function btn.cahce:run()
             local p= self:GetParent()
             p.isCahceStop= not p.isCahceStop and true or false
-            self.func(p, self.min)
+            self.func(p, self.min, 0)
             p.cahceTime= not p.isCahceStop and GetTime() or nil
             self:settings()
             self:set_tooltip()
