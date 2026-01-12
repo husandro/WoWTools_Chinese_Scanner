@@ -307,6 +307,49 @@ StaticPopupDialogs['WoWTools_SC']={
 
 
 
+local function Settings(self)
+    self.isStop= not self.isStop and true or nil
+
+    if self.isStop then
+        self:SetNormalAtlas(self.atlas or 'common-dropdown-icon-next')
+        self.time=nil
+    else
+        self:SetNormalAtlas('common-dropdown-icon-stop')
+        self.time= GetTime()
+    end
+
+    self.num= 0
+
+    self.Ver:SetText(Save()[self.name..'Ver'] or '')
+end
+
+
+
+local function RUN(self)
+    _G['WoWTools_SC_'..self.name]= _G['WoWTools_SC_'..self.name] or {}
+
+    self:settings()
+    if not self.isStop then
+        print('a', self.min)
+        self.func(self, self.min, 0)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -459,24 +502,27 @@ end
 
 
 local function S_Sets(self, startIndex)
-
-
     if startIndex==self.min or startIndex==self.max then
         Load_Sets(self)
     end
-do
-    for itemID = startIndex, startIndex + 10 do
-        S_SetsItem(self, itemID)
-    end
-    Set_ValueText(self, startIndex)
-end
-
-    C_Timer.After(0.1, function() S_Sets(self, startIndex + 10) end)
 
     if Is_StopRun(self, startIndex) then
         return
     end
+
+    for itemID = startIndex, startIndex + 10 do
+        S_SetsItem(self, itemID)
+    end
+    Set_ValueText(self, startIndex)
+
+    C_Timer.After(0.1, function() S_Sets(self, startIndex + 10) end)
 end
+
+
+
+
+
+
 
 
 
@@ -1197,19 +1243,14 @@ local function Create_Button(tab)
         end
         GameTooltip:Show()
     end)
-    function btn:run()
-        _G['WoWTools_SC_'..self.name]= _G['WoWTools_SC_'..self.name] or {}
-
-        self:settings()
-        if not self.isStop then
-            self:func(self.min, 0)
-        end
-    end
+    
     btn:SetScript('OnMouseDown', function(self)
-        WoWTools_Sc_KeepRunName= self.isStop and self.name or nil
+        WoWTools_Sc_KeepRunName= self.name
         _G['WoWToolsSCKeepRunButton']:set_atlas()
         self:run()
     end)
+    btn.run= RUN
+    btn.settings= Settings
 
 
 
@@ -1356,23 +1397,8 @@ local function Create_Button(tab)
     btn.view:SetAlpha(0.3)
 
 
-    function btn:settings()
 
-        self.isStop= not self.isStop and true or nil
-
-        if self.isStop then
-            self:SetNormalAtlas(self.atlas or 'common-dropdown-icon-next')
-            self.time=nil
-        else
-            self:SetNormalAtlas('common-dropdown-icon-stop')
-            self.time= GetTime()
-        end
-
-        self.num= 0
-
-        self.Ver:SetText(Save()[self.name..'Ver'] or '')
-    end
-    btn:settings()
+    Settings(btn)
 
     if WoWTools_Sc_KeepRunName==name and WoWTools_SC_IsKeepRun then
         btn:run()
