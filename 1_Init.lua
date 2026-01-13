@@ -1160,9 +1160,83 @@ end
 
 
 
+--[[
+C_CovenantSanctumUI.GetRenownLevels(covenantID) : levels
+C_CovenantSanctumUI.GetRenownRewardsForLevel(covenantID, renownLevel) : rewards
+]]
+local function Get_MajoData(self, factionID)
+    
+    local data= C_MajorFactions.GetMajorFactionData(factionID)
+    if not data then
+        return
+    end
 
+    local tab={}
+    local find=false
+
+    if IsCN(data.name) then
+        tab.T= data.name
+        find=true
+    end
+    if IsCN(data.description) then
+        tab.D= data.description
+        find=true
+    end
+    if IsCN(data.unlockDescription) then
+        tab.U= data.unlockDescription
+        find=true
+    end
+
+
+    local rew={}
+    local findRew= false
+
+    for level in pairs(C_MajorFactions.GetRenownLevels(factionID) or {}) do
+         for index, info in pairs(C_MajorFactions.GetRenownRewardsForLevel(factionID, level) or {}) do
+            if IsCN(info.name) then
+                rew[level]= rew[level] or {}
+                rew[level][index]= rew[level][index] or {}
+                rew[level][index].T= info.name
+                if IsCN(info.description) then
+                    rew[level][index].D=info.description
+                end
+                if IsCN(info.toastDescription) then
+                    rew[level][index].U=info.toastDescription
+                end
+                findRew=true
+            end
+        end
+    end
+
+    if findRew then
+        tab.O=rew
+        find=true
+    end
+
+    if find then
+        Save_Value(self, factionID, tab)
+    end
+end
 
 local function Get_Faction(self, factionID)
+    if C_Reputation.IsMajorFaction(factionID) then
+        Get_MajoData(self, factionID)
+    else
+        local data= C_Reputation.GetFactionDataByID(factionID)
+        if data and IsCN(data.name) and data.factionID then
+            factionID= data.factionID
+
+            local tab={
+                T= data.name
+            }
+            if IsCN(data.description) then
+                tab.D= data.description
+            end
+            Save_Value(self, data.factionID, tab)
+        end
+    end
+end
+--[[
     local data= C_Reputation.GetFactionDataByID(factionID)
     if data and IsCN(data.name) and data.factionID then
         factionID= data.factionID
@@ -1202,12 +1276,16 @@ local function Get_Faction(self, factionID)
                 tab.O=rew
             end
         end
+        if factionID==2722 then
+            print(data.name, data.description)
+        end
         Save_Value(self, factionID, tab)
     end
-end
+end]]
 
 local function S_Faction(self, startIndex, count)
-     count= count +1
+    count= count +1
+
     if Is_StopRun(self, startIndex) then
         return
     end
@@ -1844,7 +1922,7 @@ do
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5k363 6k384 4k257 8k499 9k 9k', atlas='KyrianAssaults-64x64'},
 
-        {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='', atlas='VignetteEventElite'},
+        {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='12.0 1K713', atlas='VignetteEventElite'},
 
         '-',
         {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
