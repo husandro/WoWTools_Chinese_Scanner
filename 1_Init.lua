@@ -1432,21 +1432,6 @@ local function Create_Button(tab)
     btn:SetSize(23, 23)
     btn:SetPoint('TOPRIGHT', -23*2-13, y)
 
-    function btn:set_event()
-        if self:IsVisible() then
-            self:RegisterEvent('PLAYER_REGEN_DISABLED')
-        else
-            self:UnregisterAllEvents()
-        end
-    end
-    btn:SetScript('OnHide', btn.set_event)
-    btn:SetScript('OnShow', btn.set_event)
-    btn:SetScript('OnEvent', function(self)
-        if not self.isStop then
-            Settings(self)
-        end
-    end)
-    btn:set_event()
 
     btn:SetScript('OnLeave', GameTooltip_Hide)
     btn:SetScript('OnEnter', function(self)
@@ -1472,6 +1457,14 @@ local function Create_Button(tab)
     end)
     btn.run= RUN
     btn.settings= Settings
+
+    btn:RegisterEvent('PLAYER_REGEN_DISABLED')
+    btn:SetScript('OnEvent', function(self)
+        if not self.isStop then
+            self:settings()
+        end
+    end)
+
 
 
 
@@ -1647,7 +1640,9 @@ end
 
 local function Set_Point(self)
     self:ClearAllPoints()
-     local point= Save().point
+    local name= self.isMaxButton and 'maxPoint' or 'point'
+    local point= Save()[name]
+    print('set', name)
     if point and point[1] then
         self:SetPoint(point[1], UIParent, point[3], point[4], point[5])
     else
@@ -1658,7 +1653,9 @@ end
 local function Save_Point(self)
     ResetCursor()
     self:StopMovingOrSizing()
+
 --确认框架中心点，在屏幕内
+
     local isInSchermo= true
     local centerX, centerY = self:GetCenter()
     local screenWidth, screenHeight = UIParent:GetWidth(), UIParent:GetHeight()
@@ -1669,8 +1666,9 @@ local function Save_Point(self)
         isInSchermo = false
     end
     if isInSchermo then
-        Save().point= {self:GetPoint(1)}
-        Save().point[2]= nil
+        local name= self.isMaxButton and 'maxPoint' or 'point'
+        Save()[name]= {self:GetPoint(1)}
+        Save()[name]= nil
     end
 end
 
@@ -1705,15 +1703,14 @@ local function Init()
     Frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
     Frame:SetScript("OnDragStop", function(self)
        Save_Point(self)
-    end)
-    Frame:SetScript('OnShow', function(self)
-        Set_Point(self)
-    end)
+    end)    
+    Set_Point(Frame)
 
-    local maxButton= CreateFrame('Button', 'WoWTools_SC_FrameMaximizeButton', UIParent)
+    local maxButton= CreateFrame('Button', 'WoWToolsSCMaximizeButton', UIParent)
     maxButton.texture= maxButton:CreateTexture(nil, "BACKGROUND")
     maxButton.texture:SetAllPoints()
     maxButton.texture:SetColorTexture(0,0,0)
+    maxButton.isMaxButton= true
     maxButton:Hide()
     maxButton:SetFrameStrata('HIGH')
     maxButton:SetFrameLevel(502)
@@ -1751,12 +1748,12 @@ local function Init()
         Save().MaxButtonIsShow= nil
     end)
     maxButton:SetScript('OnShow', function(self)
-        Set_Point(self)
         self:SetButtonState('NORMAL')
         MaxButtonLabel:SetText('')
         Save().MaxButtonIsShow= true
         Frame:set_event()
     end)
+    Set_Point(maxButton)
 
     MaxButtonLabel= maxButton:CreateFontString('WoWToolsSCMaxButtonLabel', "OVERLAY")
     MaxButtonLabel:SetFontObject('GameFontNormal')
@@ -1767,18 +1764,10 @@ local function Init()
     minButton:SetNormalAtlas('RedButton-Condense')
     minButton:SetPushedAtlas('RedButton-Condense-Pressed')
     minButton:SetHighlightAtlas('RedButton-Highlight')
-    minButton:SetPoint('TOPRIGHT')    
-    function minButton:set_event()
-        if self:IsVisible() then
-            self:RegisterEvent('PLAYER_REGEN_DISABLED')
-        else
-            self:UnregisterAllEvents()
-        end
-    end
-    minButton:SetScript('OnHide', minButton.set_event)
+    minButton:SetPoint('TOPRIGHT')
+    minButton:RegisterEvent('PLAYER_REGEN_DISABLED')
     minButton:SetScript('OnShow', function(self)
         self:SetButtonState('NORMAL')
-        self:set_event()
     end)
     minButton:SetScript('OnMouseDown', function(self)
         if Frame:IsProtected() and InCombatLockdown() then
@@ -1788,10 +1777,11 @@ local function Init()
         maxButton:Show()
     end)
     minButton:SetScript('OnEvent', function(self)
-        self:GetParent():Hide()
-        maxButton:Show()
+        if self:IsVisible() then
+            self:GetParent():Hide()
+            maxButton:Show()
+        end
     end)
-    minButton:set_event()
 
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
