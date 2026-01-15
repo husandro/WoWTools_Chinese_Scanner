@@ -1642,7 +1642,6 @@ local function Set_Point(self)
     self:ClearAllPoints()
     local name= self.isMaxButton and 'maxPoint' or 'point'
     local point= Save()[name]
-    print('set', name)
     if point and point[1] then
         self:SetPoint(point[1], UIParent, point[3], point[4], point[5])
     else
