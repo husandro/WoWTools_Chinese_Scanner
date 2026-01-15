@@ -1431,6 +1431,23 @@ local function Create_Button(tab)
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
     btn:SetPoint('TOPRIGHT', -23*2-13, y)
+
+    function btn:set_event()
+        if self:IsVisible() then
+            self:RegisterEvent('PLAYER_REGEN_DISABLED')
+        else
+            self:UnregisterAllEvents()
+        end
+    end
+    btn:SetScript('OnHide', btn.set_event)
+    btn:SetScript('OnShow', btn.set_event)
+    btn:SetScript('OnEvent', function(self)
+        if not self.isStop then
+            Settings(self)
+        end
+    end)
+    btn:set_event()
+
     btn:SetScript('OnLeave', GameTooltip_Hide)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
@@ -1750,9 +1767,18 @@ local function Init()
     minButton:SetNormalAtlas('RedButton-Condense')
     minButton:SetPushedAtlas('RedButton-Condense-Pressed')
     minButton:SetHighlightAtlas('RedButton-Highlight')
-    minButton:SetPoint('TOPRIGHT')
+    minButton:SetPoint('TOPRIGHT')    
+    function minButton:set_event()
+        if self:IsVisible() then
+            self:RegisterEvent('PLAYER_REGEN_DISABLED')
+        else
+            self:UnregisterAllEvents()
+        end
+    end
+    minButton:SetScript('OnHide', minButton.set_event)
     minButton:SetScript('OnShow', function(self)
         self:SetButtonState('NORMAL')
+        self:set_event()
     end)
     minButton:SetScript('OnMouseDown', function(self)
         if Frame:IsProtected() and InCombatLockdown() then
@@ -1761,6 +1787,11 @@ local function Init()
         self:GetParent():Hide()
         maxButton:Show()
     end)
+    minButton:SetScript('OnEvent', function(self)
+        self:GetParent():Hide()
+        maxButton:Show()
+    end)
+    minButton:set_event()
 
     Frame.Border= CreateFrame('Frame', nil, Frame, 'DialogBorderTemplate')
     Frame.Header= CreateFrame('Frame', nil, Frame, 'DialogHeaderTemplate')--DialogHeaderMixin
