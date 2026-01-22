@@ -8,7 +8,7 @@
 ## X-Category: Plugins
 ## DefaultState: disabled
 ## IconTexture: Interface\AddOns\WoWTools_Chinese_Scanner\Source\WoWtools.tga
-## SavedVariables: WoWTools_SC_Faction, WoWTools_SC_Holyday, WoWTools_SC_Spell, WoWTools_SC_Spell2, WoWTools_SC_Sets, WoWTools_SC_Item, WoWTools_SC_Item2 WoWTools_SC_Unit, WoWTools_SC_Quest, WoWTools_SC_Campaign, WoWTools_SC_Encounter, WoWTools_SC_SectionEncounter, WoWTools_SC_Achievement, WoWTools_SC_Gossip, WoWTools_SC_MapIDAchievements, WoWTools_SC_GlobalStrings, WoWTools_SC_HouseItemSource, WoWTools_SC_HouseFilterTag,    WoWTools_SC_IsKeepRun, WoWTools_SC_IsLoopRun, WoWTools_Sc_KeepRunName, WoWTools_SC_LogClass
+## SavedVariables: WoWTools_SC_Mount, WoWTools_SC_Currency, WoWTools_SC_Faction, WoWTools_SC_Holyday, WoWTools_SC_Spell, WoWTools_SC_Spell2, WoWTools_SC_Sets, WoWTools_SC_Item, WoWTools_SC_Item2 WoWTools_SC_Unit, WoWTools_SC_Quest, WoWTools_SC_Campaign, WoWTools_SC_Encounter, WoWTools_SC_SectionEncounter, WoWTools_SC_Achievement, WoWTools_SC_Gossip, WoWTools_SC_MapIDAchievements, WoWTools_SC_GlobalStrings, WoWTools_SC_HouseItemSource, WoWTools_SC_HouseFilterTag,    WoWTools_SC_IsKeepRun, WoWTools_SC_IsLoopRun, WoWTools_Sc_KeepRunName, WoWTools_SC_LogClass
 ## SavedVariablesPerCharacter: WoWTools_SC
 
 1_Init.lua
