@@ -38,7 +38,7 @@ local MaxSectionEncounterID= (GameVer-8)*1e4--12.0版本，最高35159 https://w
 
 local MaxFactionID=(GameVer-9)*1e3+ 100 --12.0 2781 https://wago.tools/db2/Faction
 local MaxMountID= (GameVer-9)*1e3+ 200 --12.01 2917 https://wago.tools/db2/Mount
-
+local MaxCurrencyID= (GameVer-8)*1e3 --12.01 3436 https://wago.tools/db2/CurrencyTypes
 
 local Frame, MaxButtonLabel
 local Buttons={}
@@ -1315,6 +1315,50 @@ end
 
 
 
+local function Save_Currency(self, currencyID)
+    local data = C_CurrencyInfo.GetCurrencyInfo(currencyID)
+    if data and IsCN(data.name) then
+        local tab={name= data.name}
+
+        if IsCN(data.description) then
+            tab.desc= data.description
+        end
+        Save_Value(self, currencyID, tab)
+    end
+end
+
+local function S_Currency(self, startIndex, count)
+    count= count +1
+
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for id = startIndex, startIndex + MaxLoopCount do
+        Save_Currency(self, id)
+    end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Currency(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Currency(self, startIndex, count) end)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local function Save_Holyday(self, day, index)
     local data= C_Calendar.GetDayEvent(0, day, index)
     if data and data.eventID and data.calendarType~='PLAYER' then
@@ -1614,7 +1658,7 @@ local function Create_Button(tab)
 
 
 
-    y= y- 23- 8
+    y= y- 8-- -23
 end
 
 
@@ -1920,6 +1964,10 @@ local function Init()
 
 
 
+
+
+
+
 do
     
     for _, tab in pairs({
@@ -1939,6 +1987,7 @@ do
 
         {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='12.0 1K713', atlas='VignetteEventElite'},
         {name='Mount', func=S_Mount, max=MaxFactionID, text='坐骑', tooltip=nil, atlas='shop-icon-mount-ground-up'},
+        {name='Currency', func=S_Currency, max=MaxCurrencyID, text='货币', tooltip=nil, atlas='shop-icon-mount-ground-up'},
 
         '-',
         {name='Holyday', func=S_Holyday, max=MaxMountID, text='|cff626262节日|r', tooltip='119条'},
@@ -1953,6 +2002,9 @@ do
     end
 
 end
+
+
+
 
 
 
