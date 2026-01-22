@@ -82,7 +82,8 @@
         "AdventureGuideUtil",
         "RenownRewardUtil",
         "GenerateClosure",
-        "C_HousingCatalog"
+        "C_HousingCatalog",
+        "HousingDashboardFrame"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
