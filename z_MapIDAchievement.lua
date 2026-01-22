@@ -21,7 +21,7 @@ end
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
 
     if tab then
-       WoWTools_SC_MapIDAchievements={}
+       WoWTools_SC_MapIDAchievements= WoWTools_SC_MapIDAchievements or {}
        for _, data in pairs(tab) do
             local mapID= data[2] or 0
             local achievementID= data[1] or 0

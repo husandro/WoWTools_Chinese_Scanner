@@ -2330,14 +2330,16 @@ local function IsCN(text)
         and not text:find('TEST')
 end
 
-
+local index
 local function Save_Item(itemID)
-    local entryInfo = C_HousingCatalog.GetCatalogEntryInfoByItem(itemID)
+    local entryInfo = C_HousingCatalog.GetCatalogEntryInfoByItem(itemID, true)
     if not entryInfo or not IsCN(entryInfo.sourceText) then
         return
     end
-    print(entryInfo.sourceText)
+
     WoWTools_SC_HouseItemSource[itemID]= entryInfo.sourceText
+    print(index..'/'..#tab..')',select(2, C_Item.GetItemInfo(itemID)), entryInfo.sourceText)
+    index= index+1
 end
 
 
@@ -2353,12 +2355,18 @@ end
 
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     if tab then
-        WoWTools_SC_HouseItemSource={}
-        for _, itemID in pairs(tab) do
-            if C_Item.IsDecorItem(itemID) then
-                Load_Item(itemID)
+        
+            index=1
+            if not _G['HousingDashboardFrame'] then
+                C_AddOns.LoadAddOn('Blizzard_HousingDashboard')
             end
-        end
+            WoWTools_SC_HouseItemSource={}
+            for _, itemID in pairs(tab) do
+                if C_Item.IsDecorItem(itemID) then
+                    Load_Item(itemID)
+                end
+            end
+        
     else
         WoWTools_SC_HouseItemSource=nil
     end
