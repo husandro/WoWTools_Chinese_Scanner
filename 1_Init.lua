@@ -37,7 +37,7 @@ local difficultyIndex=1
 local MaxSectionEncounterID= (GameVer-8)*1e4--12.0版本，最高35159 https://wago.tools/db2/JournalEncounterSection
 
 local MaxFactionID=(GameVer-9)*1e3+ 100 --12.0 2781 https://wago.tools/db2/Faction
-
+local MaxMountID= (GameVer-9)*1e3+ 200 --12.01 2917 https://wago.tools/db2/Mount
 
 
 local Frame, MaxButtonLabel
@@ -1236,52 +1236,6 @@ local function Get_Faction(self, factionID)
         end
     end
 end
---[[
-    local data= C_Reputation.GetFactionDataByID(factionID)
-    if data and IsCN(data.name) and data.factionID then
-        factionID= data.factionID
-
-        local tab={
-            T= data.name
-        }
-        if IsCN(data.description) then
-            tab.D= data.description
-        end
-        if C_Reputation.IsMajorFaction(factionID) then
-            local rew={}
-            local find
-
-            local major= C_MajorFactions.GetMajorFactionData(factionID) or {}
-            if major.isUnlocked==false and IsCN(major.unlockDescription) then
-                tab.U= major.unlockDescription
-            end
-
-            for i=1, #C_MajorFactions.GetRenownLevels(factionID) do
-                local rewards = C_MajorFactions.GetRenownRewardsForLevel(factionID, i)
-                if rewards then
-                    for index, info in pairs(rewards) do
-                        if IsCN(info.name) then
-                            rew[i]= rew[i] or {}
-                            rew[i][index]= rew[i][index] or {}
-                            rew[i][index].T= info.name
-                            if IsCN(info.description) then
-                                rew[i][index].D=info.description
-                            end
-                            find=true
-                        end
-                    end
-                end
-            end
-            if find then
-                tab.O=rew
-            end
-        end
-        if factionID==2722 then
-            print(data.name, data.description)
-        end
-        Save_Value(self, factionID, tab)
-    end
-end]]
 
 local function S_Faction(self, startIndex, count)
     count= count +1
@@ -1307,6 +1261,46 @@ end
 
 
 
+
+
+
+
+
+
+local function Save_Mount(self, mountID)
+    local name = C_MountJournal.GetMountInfoByID(mountID)
+    if IsCN(name) then
+        local tab={name=name}
+        local desc, source= select(2, C_MountJournal.GetMountInfoExtraByID(mountID))
+        if IsCN(source) then
+            tab.source= source
+        end
+        if IsCN(desc) then
+            tab.desc= desc
+        end
+        Save_Value(self, mountID, tab)
+    end
+end
+
+
+local function S_Mount(self, startIndex, count)
+    count= count +1
+
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for id = startIndex, startIndex + MaxLoopCount do
+        Save_Mount(self, id)
+    end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_Mount(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_Mount(self, startIndex, count) end)
+    end
+end
 
 
 
@@ -1927,6 +1921,7 @@ local function Init()
 
 
 do
+    
     for _, tab in pairs({
         {name='Item', func=S_Item, tooltip='10w0365 02:42', max=MaxItemID, text='物品', atlas='bag-main'},
         {name='Item2', func=S_Item, tooltip='6w9934 04:14', min=MaxItemID+1, max=MaxItemID2, text='物品 II', atlas='bag-main'},
@@ -1943,9 +1938,10 @@ do
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5k363 6k384 4k257 8k499 9k 9k', atlas='KyrianAssaults-64x64'},
 
         {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='12.0 1K713', atlas='VignetteEventElite'},
+        {name='Mount', func=S_Mount, max=MaxFactionID, text='坐骑', tooltip=nil, atlas='shop-icon-mount-ground-up'},
 
         '-',
-        {name='Holyday', func=S_Holyday, max=24, text='|cff626262节日|r', tooltip='119条'},
+        {name='Holyday', func=S_Holyday, max=MaxMountID, text='|cff626262节日|r', tooltip='119条'},
     }) do
         if tab=='-' then
             y=y-12
@@ -1955,6 +1951,7 @@ do
 
         table.insert(Buttons, tab.name)
     end
+
 end
 
 
