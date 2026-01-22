@@ -24,8 +24,8 @@ local MaxUnitID= (GameVer-8)* 10e4--30w0000 11.25 最高 25w4359 https://wago.to
 
 local MaxItemID= 15e4
 local MaxItemID2= (GameVer-8)* 10e4--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-
 local MaxSetsID= (GameVer-9)*1e3 + 100-- 12.0 2000 https://wago.tools/db2/ItemSet
+local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseDecor?locale=zhCN
 
 local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
 local MinSpell2ID= 12* 1e5
@@ -203,11 +203,11 @@ end
 
 local function Save_Value(self, id, tab)
     if tab and id then
-        if not _G['WoWTools_SC_'..self.name] then
-            _G['WoWTools_SC_'..self.name]= {}
-        end
+        --[[if not WoWTools_SCData[self.name] then
+            WoWTools_SCData[self.name]= {}
+        end]]
 
-        _G['WoWTools_SC_'..self.name][tonumber(id)] = tab
+        WoWTools_SCData[self.name][tonumber(id)] = tab
 
         self.num= self.num+1
         self.Name:SetText(MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
@@ -217,8 +217,8 @@ end
 local function clear_data(name)
     Save()[name..'Ver']= nil
 
-    if _G['WoWTools_SC_'..name] then
-        _G['WoWTools_SC_'..name]= nil
+    if WoWTools_SCData[name] then
+        WoWTools_SCData[name]= nil
     end
 
 --Boss 技能
@@ -259,9 +259,7 @@ StaticPopupDialogs['WoWTools_SC']={
                 _G[name]:set_stat()
             end
 
-            for _, name in pairs(Buttons) do
-                clear_data(name)
-            end
+            WoWTools_SCData={}
             --C_UI.Reload()
         end
     end
@@ -328,7 +326,7 @@ end
 
 
 local function RUN(self)
-    _G['WoWTools_SC_'..self.name]= _G['WoWTools_SC_'..self.name] or {}
+    WoWTools_SCData[self.name]= WoWTools_SCData[self.name] or {}
 
     self:settings()
     if not self.isStop then
@@ -407,7 +405,7 @@ local function Set_ItemSets(self, itemID)
             local desc= Get_Item_Lines(data.lines)
             if desc then
 
-                local tab= WoWTools_SC_Sets[setID] or {}
+                local tab= WoWTools_SCData[self.name][setID] or {}
                 tab[specID]= desc
 
                 Save_Value(self, setID, tab)
@@ -540,9 +538,51 @@ end
 
 
 
+local function Save_HouseItem(self, itemID)
+    local entryInfo = C_HousingCatalog.GetCatalogEntryInfoByItem(itemID, true)
 
+    if not entryInfo or not IsCN(entryInfo.name) then
+        return
+    end
 
+    local tab= {name=entryInfo.name}
+    if IsCN(entryInfo.sourceText) then
+        tab.source= entryInfo.sourceText
+    end
 
+    Save_Value(self, itemID, tab)
+end
+
+local function Load_HouseItem(self, id)
+    if not C_Item.IsItemDataCachedByID(id) then
+        ItemEventListener:AddCancelableCallback(id, function()
+            Save_HouseItem(self, id)
+        end)
+    else
+        Save_HouseItem(self, id)
+    end
+end
+
+local function S_HouseItem(self, startIndex, count)
+    count= count +1
+
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for itemID = startIndex, startIndex + 50 do
+         if C_Item.IsDecorItem(itemID) then
+            Load_HouseItem(itemID)
+        end
+    end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_HouseItem(self, startIndex + 51, 0) end)
+    else
+        C_Timer.After(0.3, function() S_HouseItem(self, startIndex, count) end)
+    end
+end
 
 
 
@@ -1024,11 +1064,8 @@ local function S_SectionEncounter(self, startIndex, count)
                     end)
                 end
 
-                local tab={}
+                local tab= WoWTools_SCData[self.name][sectionID] or {}
 
-                if _G[name] and _G[name][sectionID] then
-                    tab= _G[name][sectionID]
-                end
 
                 tab.T= title or tab.T
 
@@ -1165,7 +1202,7 @@ C_CovenantSanctumUI.GetRenownLevels(covenantID) : levels
 C_CovenantSanctumUI.GetRenownRewardsForLevel(covenantID, renownLevel) : rewards
 ]]
 local function Get_MajoData(self, factionID)
-    
+
     local data= C_MajorFactions.GetMajorFactionData(factionID)
     if not data then
         return
@@ -1413,11 +1450,11 @@ local function Init_Gossip()
         if info and info.gossipOptionID then
             local text= self:GetText()
             if IsCN(text) then
-                WoWTools_SC_Gossip= WoWTools_SC_Gossip or {}
-                if not WoWTools_SC_Gossip[info.gossipOptionID] then
+                WoWTools_SCData['Gossip']= WoWTools_SCData['Gossip'] or {}
+                if not WoWTools_SCData['Gossip'][info.gossipOptionID] then
                     print(addName, '|cnGREEN_FONT_COLOR:添加|r',info.gossipOptionID, text)
                 end
-                WoWTools_SC_Gossip[info.gossipOptionID]= text
+                WoWTools_SCData['Gossip'][info.gossipOptionID]= text
             end
         end
     end
@@ -1658,7 +1695,7 @@ local function Create_Button(tab)
 
 
 
-    y= y- 8-- -23
+    y= y- 23
 end
 
 
@@ -1740,7 +1777,7 @@ local function Init()
     Frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
     Frame:SetScript("OnDragStop", function(self)
        Save_Point(self)
-    end)    
+    end)
     Set_Point(Frame)
 
     local maxButton= CreateFrame('Button', 'WoWToolsSCMaximizeButton', UIParent)
@@ -1954,7 +1991,7 @@ local function Init()
 
 
 
-    
+
 
 
 
@@ -1969,11 +2006,13 @@ local function Init()
 
 
 do
-    
+
     for _, tab in pairs({
         {name='Item', func=S_Item, tooltip='10w0365 02:42', max=MaxItemID, text='物品', atlas='bag-main'},
         {name='Item2', func=S_Item, tooltip='6w9934 04:14', min=MaxItemID+1, max=MaxItemID2, text='物品 II', atlas='bag-main'},
         {name='Sets', func=S_Sets, tooltip='qs 1w1705 00:40', max=MaxSetsID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
+        {name='HouseItemSource', func=S_HouseItem, tooltip=nil, max=MaxHouseItemID, text='住宅物品', atlas='housing-map-plot-occupied-highlight'},
+
 '-',
         {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
         {name='Spell2', func=S_Spell, tooltip='1w0454', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
@@ -1987,7 +2026,7 @@ do
 
         {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='12.0 1K713', atlas='VignetteEventElite'},
         {name='Mount', func=S_Mount, max=MaxFactionID, text='坐骑', tooltip=nil, atlas='shop-icon-mount-ground-up'},
-        {name='Currency', func=S_Currency, max=MaxCurrencyID, text='货币', tooltip=nil, atlas='shop-icon-mount-ground-up'},
+        {name='Currency', func=S_Currency, max=MaxCurrencyID, text='货币', tooltip=nil, atlas='legionmission-icon-currency'},
 
         '-',
         {name='Holyday', func=S_Holyday, max=MaxMountID, text='|cff626262节日|r', tooltip='119条'},
@@ -2116,6 +2155,8 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
         return
     end
     WoWTools_SC= WoWTools_SC or {}
+    WoWTools_SCData= WoWTools_SCData or {}
+
     MaxCount= Save().runCount or 1
 
     WoWTools_SC= WoWTools_SC or {isLoopRun=true}
