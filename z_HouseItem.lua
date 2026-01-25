@@ -2393,7 +2393,7 @@ end
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     if tab then
         WoWTools_SCData.HouseSource= {}
-
+        WoWTools_SCData.HouseObje
         if not HousingDashboardFrame then
             C_AddOns.LoadAddOn('Blizzard_HousingDashboard')
         end
