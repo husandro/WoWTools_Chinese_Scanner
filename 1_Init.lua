@@ -1,7 +1,6 @@
 local addName= '|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t'..'|cffff00ffWoW|r|cff00ff00Tools|r|cff28a3ffChinese|r数据扫描'
 if not LOCALE_zhCN then
     print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文|r')
-    return
 end
 
 local function Save()
@@ -540,6 +539,11 @@ end
 
 local function Save_HouseItem(self, itemID)
     local entryInfo = C_HousingCatalog.GetCatalogEntryInfoByItem(itemID, true)
+print(itemID)
+    if entryInfo and entryInfo.entryID then
+        local obj= C_ContentTracking.GetObjectiveText(entryInfo.entryID.entryType, entryInfo.entryID.recordID)
+        print(obj, entryInfo.entryID.entryType, entryInfo.entryID.recordID)
+    end
 
     if not entryInfo or not IsCN(entryInfo.name) then
         return
@@ -549,6 +553,8 @@ local function Save_HouseItem(self, itemID)
     if IsCN(entryInfo.sourceText) then
         tab.source= entryInfo.sourceText
     end
+    
+    
 
     Save_Value(self, itemID, tab)
 end
