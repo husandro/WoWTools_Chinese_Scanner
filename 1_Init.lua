@@ -575,8 +575,11 @@ local function S_HouseItem(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
+
     for itemID = startIndex, startIndex + 50 do
-         if C_Item.IsDecorItem(itemID) then
+        
+        if C_Item.IsDecorItem(itemID) then
+            print( C_Item.IsDecorItem(itemID))
             Load_HouseItem(itemID)
         end
     end
@@ -2017,7 +2020,7 @@ do
         {name='Item', func=S_Item, tooltip='10w0365 02:42', max=MaxItemID, text='物品', atlas='bag-main'},
         {name='Item2', func=S_Item, tooltip='6w9934 04:14', min=MaxItemID+1, max=MaxItemID2, text='物品 II', atlas='bag-main'},
         {name='Sets', func=S_Sets, tooltip='qs 1w1705 00:40', max=MaxSetsID, text='套装', atlas='Warfronts-BaseMapIcons-Alliance-Heroes-Minimap'},
-        {name='HouseItemSource', func=S_HouseItem, tooltip=nil, max=MaxHouseItemID, text='住宅物品', atlas='housing-map-plot-occupied-highlight'},
+        {name='HouseItem', func=S_HouseItem, tooltip=nil, max=MaxHouseItemID, text='住宅物品', atlas='housing-map-plot-occupied-highlight'},
 
 '-',
         {name='Spell', func=S_Spell, tooltip='27w9449', max=MaxSpellID, text='法术', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
