@@ -7,7 +7,6 @@ tab={
 ]]
 local tab
 
-
 local function IsCN(text)
     return
         text
@@ -16,6 +15,7 @@ local function IsCN(text)
         and not text:find('UNUSED')
         and not text:find('TEST')
 end
+
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
     if tab then
        WoWTools_SC_GlobalStrings={}
