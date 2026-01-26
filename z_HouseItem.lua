@@ -5,8 +5,6 @@ https://wago.tools/db2/HouseDecor?locale=zhCN
 ]]
 -- C_HousingCatalog.GetAllFilterTagGroups() 需要打开一次，
 local tab={
-
-    {ID,ItemID},
 {12,245399},
 {13,245420},
 {60,245419},
