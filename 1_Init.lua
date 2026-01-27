@@ -1407,6 +1407,9 @@ local function Save_PerksActivit(self, perksActivityID)
         if IsCN(data.description) then
             tab.desc= data.description
         end
+        if IsCN(data.eventName) then
+            tab.event= data.eventName
+        end
         Save_Value(self, perksActivityID, tab)
     end
 end
