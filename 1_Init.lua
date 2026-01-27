@@ -8,7 +8,7 @@ local function Save()
 end
 
 local Ver= GetBuildInfo()
-local GameVer= select(4, GetBuildInfo())/1e4--11
+local GameVer= select(4, GetBuildInfo())/1e4--12
 
 local MaxAchievementID= (GameVer-4)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
@@ -38,6 +38,7 @@ local MaxSectionEncounterID= (GameVer-8)*1e4--12.0版本，最高35159 https://w
 local MaxFactionID=(GameVer-9)*1e3+ 100 --12.0 2781 https://wago.tools/db2/Faction
 local MaxMountID= (GameVer-9)*1e3+ 200 --12.01 2917 https://wago.tools/db2/Mount
 local MaxCurrencyID= (GameVer-8)*1e3 --12.01 3436 https://wago.tools/db2/CurrencyTypes
+local MaxPerksActivityID=(GameVer-11)*1e3+100--12.01 934 https://wago.tools/db2/PerksActivity
 
 local MaxObjectiveID= (GameVer-7)*1e5
 
@@ -1397,6 +1398,51 @@ end
 
 
 
+
+
+local function Save_PerksActivit(self, perksActivityID)
+    local data= C_PerksActivities.GetPerksActivityInfo(perksActivityID)
+    if data and IsCN(data.activityName) then
+        local tab= {name= data.activityName}
+        if IsCN(data.description) then
+            tab.desc= data.description
+        end
+        Save_Value(self, perksActivityID, tab)
+    end
+end
+
+
+local function S_PerksActivity(self, startIndex, count)
+    count= count +1
+
+    if Is_StopRun(self, startIndex) then
+        return
+    end
+    for id = startIndex, startIndex + MaxLoopCount do
+        Save_PerksActivit(self, id)
+    end
+    if count==1 then
+        Set_ValueText(self, startIndex)
+    end
+    if count>=MaxCount then
+        C_Timer.After(0.3, function() S_PerksActivity(self, startIndex + MaxLoopCount+1, 0) end)
+    else
+        C_Timer.After(0.3, function() S_PerksActivity(self, startIndex, count) end)
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
 local faction= UnitFactionGroup('player')
 
 local function Save_Objective(self, targetType, targetID)
@@ -2071,6 +2117,9 @@ do
         {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='12.0 1K713', atlas='VignetteEventElite'},
         {name='Mount', func=S_Mount, max=MaxFactionID, text='坐骑', tooltip=nil, atlas='shop-icon-mount-ground-up'},
         {name='Currency', func=S_Currency, max=MaxCurrencyID, text='货币', tooltip=nil, atlas='legionmission-icon-currency'},
+
+        {name='PerksActivity', func=S_PerksActivity, max=MaxPerksActivityID, text='旅行者', tooltip=nil, atlas='activities-toast-icon'},
+        
 
 --{name='ObjectiveText', func=S_Objective, max=MaxObjectiveID, text='追踪', tooltip=nil, atlas='waypoint-mappin-minimap-untracked'},
 
