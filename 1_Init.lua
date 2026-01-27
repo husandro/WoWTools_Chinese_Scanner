@@ -1418,6 +1418,21 @@ local function S_PerksActivity(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
+
+    if startIndex==1 then
+--https://wago.tools/db2/PerksActivityTag?locale=zhCN
+        WoWTools_SCData.PerksActivityTags= C_PerksActivities.GetAllPerksActivityTags()
+
+--https://wago.tools/db2/PerksVendorCategory?locale=zhCN
+        WoWTools_SCData.PerksVendorCategory= WoWTools_SCData.PerksVendorCategory or {}
+        for categoryID=1, 20 do
+            local categoryInfo = C_PerksProgram.GetCategoryInfo(categoryID)
+            if categoryInfo and IsCN(categoryInfo.displayName) then
+                WoWTools_SCData.PerksVendorCategory[categoryID]= categoryInfo.displayName
+            end
+        end
+    end
+
     for id = startIndex, startIndex + MaxLoopCount do
         Save_PerksActivit(self, id)
     end
@@ -2118,7 +2133,7 @@ do
         {name='Mount', func=S_Mount, max=MaxFactionID, text='坐骑', tooltip=nil, atlas='shop-icon-mount-ground-up'},
         {name='Currency', func=S_Currency, max=MaxCurrencyID, text='货币', tooltip=nil, atlas='legionmission-icon-currency'},
 
-        {name='PerksActivity', func=S_PerksActivity, max=MaxPerksActivityID, text='旅行者', tooltip=nil, atlas='activities-toast-icon'},
+        {name='PerksActivity', func=S_PerksActivity, max=MaxPerksActivityID, text='旅行者', tooltip='12.0 885 00:0.3', atlas='activities-toast-icon'},
         
 
 --{name='ObjectiveText', func=S_Objective, max=MaxObjectiveID, text='追踪', tooltip=nil, atlas='waypoint-mappin-minimap-untracked'},
