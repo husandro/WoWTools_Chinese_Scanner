@@ -728,7 +728,30 @@ EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", functi
     end
 end)]]
 
+local qcInformationTooltip = CreateFrame("GameTooltip", "qcInformationTooltip", UIParent, "GameTooltipTemplate")
+qcInformationTooltip:SetFrameStrata("TOOLTIP")
 
+
+local function EnumerateTooltipStyledLines_helper(...)
+  local texts = '';
+
+    for i = 1, select("#", ...) do
+        local region = select(i, ...)
+        if region and region:GetObjectType() == "FontString" then
+        local text = region:GetText() -- string or nil
+            if text and text ~= '' then
+                print(i)
+                print(text)
+                texts = texts .. text
+			end
+        end
+	end
+	return texts
+end
+
+local function EnumerateTooltipStyledLines(tooltip) -- good for script handlers that pass the tooltip as the first argument.
+  return EnumerateTooltipStyledLines_helper(tooltip:GetRegions())
+end
 
 
 local function Get_Objectives(questID)
@@ -754,6 +777,17 @@ local function Get_Objectives(questID)
 end
 
 local function Save_Quest(self, id)
+
+    qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    qcInformationTooltip:ClearLines()
+    qcInformationTooltip:SetHyperlink('quest:' .. id)
+    qcInformationTooltip:Show()
+    local text =  EnumerateTooltipStyledLines(qcInformationTooltip)
+    if (text ~= '' and text ~= nil) then
+      print( text)
+    
+    end
+
     local data= C_TooltipInfo.GetHyperlink('quest:' .. id)
     if not data or
         not data.lines
