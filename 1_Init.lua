@@ -787,6 +787,9 @@ local function Save_Quest(self, id)
     
     end]]
 
+--C_TooltipInfo.GetHyperlink('quest:86938')
+--QuestUtils_GetQuestName(86938)
+
     local data= C_TooltipInfo.GetHyperlink('quest:' .. id)
     if not data or
         not data.lines
