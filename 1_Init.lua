@@ -205,9 +205,9 @@ end
 
 local function Save_Value(self, id, tab)
     if tab and id then
-        --[[if not WoWTools_SCData[self.name] then
+        if not WoWTools_SCData[self.name] then
             WoWTools_SCData[self.name]= {}
-        end]]
+        end
 
         WoWTools_SCData[self.name][tonumber(id)] = tab
 
@@ -2137,7 +2137,7 @@ do
         {name='Currency', func=S_Currency, max=MaxCurrencyID, text='货币', tooltip=nil, atlas='legionmission-icon-currency'},
 
         {name='PerksActivity', func=S_PerksActivity, max=MaxPerksActivityID, text='旅行者', tooltip='12.0 885 00:0.3', atlas='activities-toast-icon'},
-        
+
 
 --{name='ObjectiveText', func=S_Objective, max=MaxObjectiveID, text='追踪', tooltip=nil, atlas='waypoint-mappin-minimap-untracked'},
 
