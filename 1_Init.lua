@@ -728,8 +728,8 @@ EventRegistry:RegisterFrameEventAndCallback("LORE_TEXT_UPDATED_CAMPAIGN", functi
     end
 end)]]
 
-local qcInformationTooltip = CreateFrame("GameTooltip", "qcInformationTooltip", UIParent, "GameTooltipTemplate")
-qcInformationTooltip:SetFrameStrata("TOOLTIP")
+--local qcInformationTooltip = CreateFrame("GameTooltip", "qcInformationTooltip", UIParent, "GameTooltipTemplate")
+--qcInformationTooltip:SetFrameStrata("TOOLTIP")
 
 
 local function EnumerateTooltipStyledLines_helper(...)
@@ -740,7 +740,6 @@ local function EnumerateTooltipStyledLines_helper(...)
         if region and region:GetObjectType() == "FontString" then
         local text = region:GetText() -- string or nil
             if text and text ~= '' then
-                print(i)
                 print(text)
                 texts = texts .. text
 			end
@@ -778,7 +777,7 @@ end
 
 local function Save_Quest(self, id)
 
-    qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    --[[qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
     qcInformationTooltip:ClearLines()
     qcInformationTooltip:SetHyperlink('quest:' .. id)
     qcInformationTooltip:Show()
@@ -786,7 +785,7 @@ local function Save_Quest(self, id)
     if (text ~= '' and text ~= nil) then
       print( text)
     
-    end
+    end]]
 
     local data= C_TooltipInfo.GetHyperlink('quest:' .. id)
     if not data or
@@ -2161,7 +2160,7 @@ do
 '-',
         {name='Unit', func=S_Unit, tooltip='12.0 18w9561 13:12', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
         {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058', atlas='UI-Achievement-Shield-NoPoints'},
-        {name='Quest', func=S_Quest, tooltip='2w0659', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
+        {name='Quest', func=S_Quest, tooltip='1w5724', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
         {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5k363 6k384 4k257 8k499 9k 9k', atlas='KyrianAssaults-64x64'},
