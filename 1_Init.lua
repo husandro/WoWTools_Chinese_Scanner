@@ -775,7 +775,7 @@ local function Get_Objectives(questID)
     end
 end
 
-local function Save_Quest(self, id)
+
 
     --[[qcInformationTooltip:SetOwner(UIParent, "ANCHOR_NONE")
     qcInformationTooltip:ClearLines()
@@ -785,11 +785,15 @@ local function Save_Quest(self, id)
     if (text ~= '' and text ~= nil) then
       print( text)
     
-    end]]
+    end
 
---C_TooltipInfo.GetHyperlink('quest:86938')
---QuestUtils_GetQuestName(86938)
+C_TooltipInfo.GetHyperlink('quest:86938')
+QuestUtils_GetQuestName(86938)
+C_QuestLog.IsWorldQuest(86938)
 
+
+]]
+local function Save_Quest(self, id)
     local data= C_TooltipInfo.GetHyperlink('quest:' .. id)
     if not data or
         not data.lines
