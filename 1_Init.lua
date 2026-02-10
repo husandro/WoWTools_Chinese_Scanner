@@ -183,7 +183,7 @@ local function Set_ValueText(self, startIndex)
     self.bar:SetValue(va)
 end
 
-local function Is_StopCahceRun(self, startIndex)
+--[[local function Is_StopCahceRun(self, startIndex)
     if self.isCahceStop then
         print(addName, '|cffff0000停止|r 获取“'..self.name..'”数据')
         self.bar2:Hide()
@@ -200,12 +200,15 @@ local function Is_StopCahceRun(self, startIndex)
         self.cahce:settings()
         return true
     end
-end
+end]]
 
 local function Save_Value(self, id, tab)
-    if tab and id then
+    id= tab and tonumber(id)
+    if id then
         if not WoWTools_SCData[self.name] then
-            WoWTools_SCData[self.name]= {}
+            WoWTools_SCData[self.name]= {
+                ['0000版本']= format('%s - %s', GetBuildInfo())
+            }
         end
 
         WoWTools_SCData[self.name][tonumber(id)] = tab
