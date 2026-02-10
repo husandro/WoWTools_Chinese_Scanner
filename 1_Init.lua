@@ -1653,7 +1653,7 @@ local function Create_Button(tab)
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
-    btn:SetPoint('TOPRIGHT', -23*2-13, y)
+    btn:SetPoint('TOPRIGHT', -23-13, y)
 
 
     btn:SetScript('OnLeave', GameTooltip_Hide)
@@ -1813,7 +1813,7 @@ local function Create_Button(tab)
     end
 
 
-    btn.view= CreateFrame('Button', nil, btn)
+    --[[btn.view= CreateFrame('Button', nil, btn)
     btn.view.name= name
     btn.view.text= text
     btn.view:SetNormalAtlas('Perks-PreviewOn')
@@ -1836,7 +1836,7 @@ local function Create_Button(tab)
     btn.view:SetScript('OnMouseDown', function(self)
         WoWToolsSCViewFrame:SetText(self.name, self.text)
     end)
-    btn.view:SetAlpha(0.3)
+    btn.view:SetAlpha(0.3)]]
 
 
 
