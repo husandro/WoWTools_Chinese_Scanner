@@ -8,8 +8,8 @@
 ## X-Category: Plugins
 ## DefaultState: disabled
 ## IconTexture: Interface\AddOns\WoWTools_Chinese_Scanner\Source\WoWtools.tga
-## SavedVariables: WoWTools_SCData, WoWTools_SC_IsKeepRun, WoWTools_SC_IsLoopRun, WoWTools_Sc_KeepRunName, WoWTools_SC_LogClass
-## SavedVariablesPerCharacter: WoWTools_SC
+## SavedVariables: WoWTools_SCData, WoWTools_SCSave
+
 
 1_Init.lua
 2_ViewFrame.lua

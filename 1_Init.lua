@@ -4,7 +4,7 @@ if not LOCALE_zhCN then
 end
 
 local function Save()
-    return WoWTools_SC
+    return WoWTools_SCSave
 end
 
 local Ver= GetBuildInfo()
@@ -22,7 +22,7 @@ local MaxUnitID= (GameVer-8)* 10e4--30w0000 11.25 最高 25w4359 https://wago.to
 
 
 local MaxItemID= 15e4
-local MaxItemID2= (GameVer-8)* 10e4--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxItemID2= (GameVer-9)* 10e4--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSetsID= (GameVer-9)*1e3 + 100-- 12.0 2000 https://wago.tools/db2/ItemSet
 local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseDecor?locale=zhCN
 
@@ -155,7 +155,7 @@ local function Is_StopRun(self, startIndex)
 
         self:settings()
 
-        if WoWTools_SC_IsLoopRun then
+        if Save().isLoopRun then
             self:run()
             print(
                 self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
@@ -253,8 +253,8 @@ StaticPopupDialogs['WoWTools_SC']={
         if data then
             clear_data(data)
         else
-            WoWTools_SC_LogClass={[PlayerUtil.GetClassID()]= true}
-            WoWTools_Sc_KeepRunName= nil
+            Save().Class={[PlayerUtil.GetClassID()]= true}
+            Save().keepRunName= nil
             _G['WoWToolsSCKeepRunButton']:set_atlas()
 
             for _, name in pairs(ClassButton) do
@@ -1674,7 +1674,12 @@ local function Create_Button(tab)
     end)
 
     btn:SetScript('OnMouseDown', function(self)
-        WoWTools_Sc_KeepRunName= self.name
+        if self.isStop then
+            Save().keepRunName= self.name
+        elseif Save().keepRunName==self.name then
+            Save().keepRunName= nil
+        end
+
         _G['WoWToolsSCKeepRunButton']:set_atlas()
         self:run()
     end)
@@ -1837,7 +1842,7 @@ local function Create_Button(tab)
 
     Settings(btn)
 
-    if WoWTools_Sc_KeepRunName==name and WoWTools_SC_IsKeepRun then
+    if Save().keepRunName==name and Save().isKeepRun then
         btn:run()
     end
 
@@ -2051,17 +2056,17 @@ local function Init()
     function keepRun:set_tooltip()
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText('重新加载UI时，继续上次运行')
-        GameTooltip:AddDoubleLine('|cffffffff当前|r '..(WoWTools_Sc_KeepRunName or '|cff626262无'), WoWTools_SC_IsKeepRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
+        GameTooltip:AddDoubleLine('|cffffffff当前|r '..(Save().keepRunName or '|cff626262无'), Save().isKeepRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
         GameTooltip:Show()
     end
     keepRun:SetScript('OnEnter', keepRun.set_tooltip)
     function keepRun:set_atlas()
-        self:SetCheckedTexture(WoWTools_Sc_KeepRunName and 'checkmark-minimal' or 'checkmark-minimal-disabled')
+        self:SetCheckedTexture(Save().keepRunName and 'checkmark-minimal' or 'checkmark-minimal-disabled')
     end
     keepRun:set_atlas()
-    keepRun:SetChecked(WoWTools_SC_IsKeepRun)
+    keepRun:SetChecked(Save().isKeepRun)
     keepRun:SetScript('OnMouseDown', function(self)
-        WoWTools_SC_IsKeepRun= not WoWTools_SC_IsKeepRun and true or nil
+        Save().isKeepRun= not Save().isKeepRun and true or nil
         self:set_tooltip()
     end)
 
@@ -2072,14 +2077,14 @@ local function Init()
     function loopRun:set_tooltip()
         GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
         GameTooltip:SetText('循环运行')
-        GameTooltip:AddDoubleLine('完成运行后，再次运行', WoWTools_SC_IsLoopRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
+        GameTooltip:AddDoubleLine('完成运行后，再次运行', Save().isLoopRun and '|cnGREEN_FONT_COLOR:启用' or '|cff626262禁用')
         GameTooltip:Show()
     end
     loopRun:SetScript('OnEnter', loopRun.set_tooltip)
     loopRun:SetCheckedTexture('FlightMasterArgus')
-    loopRun:SetChecked(WoWTools_SC_IsLoopRun)
+    loopRun:SetChecked(Save().isLoopRun)
     loopRun:SetScript('OnMouseDown', function(self)
-        WoWTools_SC_IsLoopRun= not WoWTools_SC_IsLoopRun and true or nil
+        Save().isLoopRun= not Save().isLoopRun and true or nil
         self:set_tooltip()
     end)
 
@@ -2230,11 +2235,11 @@ end
             btn:SetHighlightAtlas('PetList-ButtonHighlight')
             btn:SetNormalAtlas('groupfinder-icon-class-color-'..classInfo.classFile)
             function btn:get_value()
-                return WoWTools_SC_LogClass[self.classID]
+                return Save().Class[self.classID]
             end
             function btn:set_tooltip()
                 local n=0
-                for _ in pairs(WoWTools_SC_LogClass) do
+                for _ in pairs(Save().Class) do
                     n=n+1
                 end
                 local all= GetNumClasses()
@@ -2261,7 +2266,7 @@ end
                 self:SetButtonState('PUSHED')
             end)
             btn:SetScript('OnMouseDown', function(self)
-                WoWTools_SC_LogClass[self.classID]= not WoWTools_SC_LogClass[self.classID] and self.classID or nil
+                Save().Class[self.classID]= not Save().Class[self.classID] and self.classID or nil
                 self:set_tooltip()
                 self:set_stat()
             end)
@@ -2307,16 +2312,12 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     if arg1~='WoWTools_Chinese_Scanner' then
         return
     end
-    WoWTools_SC= WoWTools_SC or {}
+
     WoWTools_SCData= WoWTools_SCData or {}
+    WoWTools_SCSave= WoWTools_SCSave or {Class={}, isLoopRun=true}
 
     MaxCount= Save().runCount or 1
-
-    WoWTools_SC= WoWTools_SC or {isLoopRun=true}
-
-    WoWTools_SC_LogClass= WoWTools_SC_LogClass or {}
-
-    WoWTools_SC_LogClass[PlayerUtil.GetClassID()]= true
+    Save().Class[PlayerUtil.GetClassID()]= true
 
     Save().isKeepRun= nil
     Save().isLoopRun= nil
