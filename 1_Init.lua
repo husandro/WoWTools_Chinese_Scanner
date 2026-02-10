@@ -2314,14 +2314,15 @@ EventRegistry:RegisterFrameEventAndCallback("ADDON_LOADED", function(owner, arg1
     end
 
     WoWTools_SCData= WoWTools_SCData or {}
-    WoWTools_SCSave= WoWTools_SCSave or {Class={}, isLoopRun=true}
+    WoWTools_SCSave= WoWTools_SCSave or {
+        Class={},
+        isLoopRun=true,
+        runCount=1,
+        isKeepRun=true,
+    }
 
     MaxCount= Save().runCount or 1
     Save().Class[PlayerUtil.GetClassID()]= true
-
-    Save().isKeepRun= nil
-    Save().isLoopRun= nil
-    Save().keepRun= nil
 
     Init_Gossip()
     Init()
