@@ -1159,7 +1159,7 @@ local function Cahce_Achievement(achievementID)
     GetAchievementInfo(achievementID)
 end
 
-local function S_CacheAchievement(self, startIndex)
+--[[local function S_CacheAchievement(self, startIndex)
     if Is_StopCahceRun(self, startIndex) then
         return
     end
@@ -1169,7 +1169,7 @@ local function S_CacheAchievement(self, startIndex)
         self.bar2:SetShown(true)
     end
     C_Timer.After(0.3, function() S_CacheAchievement(self, startIndex + 101) end)
-end
+end]]
 
 local function Save_Achievement(self, id)
     local _, title, _, _, _, _, _, desc, _, _, reward = GetAchievementInfo(id)
@@ -1205,6 +1205,13 @@ local function Save_Achievement(self, id)
     end
 end
 
+
+local function S_Achievement_Load(self, id)
+    GetAchievementInfo(id)
+    C_Timer.After(0.3, function()
+        Save_Achievement(self, id)
+    end)
+end
 local function S_Achievement(self, startIndex, count)
     count= count+ 1
     if Is_StopRun(self, startIndex) then
@@ -1212,7 +1219,7 @@ local function S_Achievement(self, startIndex, count)
     end
     for id = startIndex, startIndex + MaxLoopCount do
         if C_AchievementInfo.IsValidAchievement(id) then
-            Save_Achievement(self, id)
+           S_Achievement_Load(self, id)
         end
     end
     if count==1 then
@@ -1653,7 +1660,7 @@ local function Create_Button(tab)
     btn:SetPushedAtlas('PetList-ButtonSelect')
     btn:SetHighlightAtlas('PetList-ButtonHighlight')
     btn:SetSize(23, 23)
-    btn:SetPoint('TOPRIGHT', -23-13, y)
+    btn:SetPoint('TOPRIGHT', -13, y)
 
 
     btn:SetScript('OnLeave', GameTooltip_Hide)
@@ -1765,7 +1772,7 @@ local function Create_Button(tab)
         StaticPopup_Show('WoWTools_SC', n, nil, n)
     end)
 
-    if tab.cahce then
+    --[[if tab.cahce then
         btn.cahce= CreateFrame('Button', nil, btn)
         btn.cahce:SetPushedAtlas('PetList-ButtonSelect')
         btn.cahce:SetHighlightAtlas('PetList-ButtonHighlight')
@@ -1810,7 +1817,7 @@ local function Create_Button(tab)
         btn.cahce:SetScript('OnMouseDown', function(self)
             self:run()
         end)
-    end
+    end]]
 
 
     --[[btn.view= CreateFrame('Button', nil, btn)
@@ -2171,7 +2178,7 @@ do
         {name='Spell2', func=S_Spell, tooltip='2w9772 10:00', min=MinSpell2ID, max=MaxSpell2ID, text='法术II', atlas='UI-HUD-MicroMenu-SpellbookAbilities-Mouseover'},
 '-',
         {name='Unit', func=S_Unit, tooltip='12.0 18w9561 13:12', max=MaxUnitID,text='怪物名称', atlas='BuildanAbomination-32x32'},
-        {name='Achievement', func=S_Achievement, cahce=S_CacheAchievement, max=MaxAchievementID,text='成就', tooltip='1w2058', atlas='UI-Achievement-Shield-NoPoints'},
+        {name='Achievement', func=S_Achievement, max=MaxAchievementID,text='成就', tooltip='1w2058', atlas='UI-Achievement-Shield-NoPoints'},
         {name='Quest', func=S_Quest, tooltip='1w5724', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
