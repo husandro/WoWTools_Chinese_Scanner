@@ -135,17 +135,16 @@ local function Is_StopRun(self, startIndex)
         )
         self.Name:SetText(self.text)
         Save()[self.name..'Ver']= Ver
-
-        Save()[self.name..'Data']= Save()[self.name..'Data'] or {}
-        if #Save()[self.name..'Data']>=4 then
-           table.remove(Save()[self.name..'Data'], #Save()[self.name..'Data'])
+        Save()[self.name..'Tooltips']= Save()[self.name..'Tooltips'] or {}
+        if #Save()[self.name..'Tooltips']>=4 then
+           table.remove(Save()[self.name..'Tooltips'], #Save()[self.name..'Tooltips'])
         end
 
         local t= date('%D')..' '.. date('%T')
             ..' 版本'..Ver..'|r'
             ..' |cffffffff'..num..'条|r'
             ..' 运行'..clock
-        table.insert(Save()[self.name..'Data'], 1, t)
+        table.insert(Save()[self.name..'Tooltips'], 1, t)
 
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
         print(
@@ -252,6 +251,8 @@ StaticPopupDialogs['WoWTools_SC']={
     OnAccept=function(_, data)
         if data then
             clear_data(data)
+            Save()[data..'Ver']= nil
+            Save()[data..'Tooltips']= nil
         else
             Save().Class={[PlayerUtil.GetClassID()]= true}
             Save().keepRunName= nil
@@ -1669,8 +1670,8 @@ local function Create_Button(tab)
         GameTooltip:ClearLines()
         GameTooltip:AddDoubleLine(self.text, self.name)
         GameTooltip:AddLine(self.isStop and '|cnGREEN_FONT_COLOR:运行' or '|cffffffff暂停')
-        if Save()[self.name..'Data']  then
-            for _, t in pairs (Save()[self.name..'Data']) do
+        if Save()[self.name..'Tooltips']  then
+            for _, t in pairs (Save()[self.name..'Tooltips']) do
                 GameTooltip:AddLine(t)
             end
         end
@@ -1834,7 +1835,7 @@ local function Create_Button(tab)
         GameTooltip:SetText('查看结果, '..self.text)
         GameTooltip:AddLine(' ')
         GameTooltip_AddErrorLine(GameTooltip, '如果数据太大会出错')
-        local va= (Save()[self.name..'Data'] or {})[1]
+        local va= (Save()[self.name..'Tooltips'] or {})[1]
         if va then
             GameTooltip:AddLine(va:match(' .- .- (.-条)') or va)
         end
