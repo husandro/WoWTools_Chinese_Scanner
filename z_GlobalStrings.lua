@@ -1,32 +1,35 @@
 --[[
 https://wago.tools/db2/GlobalStrings?locale=zhCN
 tab={
-    [BaseTag]= TagText_lang,
-    ...
+    "BUG_BUTTON",
 }
 ]]
-local tab
 
-local function IsCN(text)
+
+local tab={
+
+}
+
+
+if not tab or TableIsEmpty(tab) then
     return
-        text
-        and text:find('[\228-\233]')
-        and not text:find('DNT')
-        and not text:find('UNUSED')
-        and not text:find('TEST')
 end
 
+
+
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
-    if tab then
-       WoWTools_SC_GlobalStrings={}
-       for _, en in pairs(tab) do
+    WoWTools_SCData.GlobalStrings= {}--WoWTools_SCMixin:InitTable('GlobalStrings')
+
+    do
+        for _, en in pairs(tab) do
             local cn= _G[en]
-            if cn and IsCN(cn) then
-                WoWTools_SC_GlobalStrings[en]= cn
+            if WoWTools_SCMixin:IsCN(cn) then
+                WoWTools_SCData.GlobalStrings[en]= cn
             end
-       end
-    else
-        WoWTools_SC_GlobalStrings=nil
+        end
     end
+
+    --WoWTools_SCMixin:InitTable('GlobalStrings', WoWTools_SCData.GlobalStrings)
+
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)

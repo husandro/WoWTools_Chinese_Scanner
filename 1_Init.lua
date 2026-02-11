@@ -3,6 +3,21 @@ if not LOCALE_zhCN then
     print(addName, '|cnGREEN_FONT_COLOR:需求 简体中文|r')
 end
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local function Save()
     return WoWTools_SCSave
 end
@@ -59,50 +74,9 @@ local ReceString={
     ['暂无信息']=1,
     ['传承套装：套装奖励未激活']=1
 }
+
 local function IsCN(text)
-    return
-        text
-        and text:find('[\228-\233]')
-        and not text:find('DNT')
-        and not text:find('UNUSED')
-        and not text:find('TEST')
-        and not ReceString[text]
-end
-local function MK(number, notColor)
-    number= number and tonumber(number)
-    if number then
-        local b=3
-        local t=''
-        local hex
-        if number>=1e8 then
-            number= (number/1e8)-- 1 0000 0000
-            hex='|cffff4800%s|r'
-            t='m'
-            b=8
-        elseif number>= 1e4 then
-            number= (number/1e4)
-            hex= '|cffff00ff%s|r'
-            t='w'
-            b=4
-        elseif number>=1e3 then
-            number= (number/1e3)
-            hex= '|cff00ff00%s|r'
-            t='k'
-        else
-            return number..''
-        end
-
-        local num, point= math.modf(number)
-        if not notColor then
-            t= format(hex, t)
-        end
-
-        if point==0 then
-            return num..t
-        else--0.5/10^bit
-            return format('%0.'..b..'f', number):gsub('%.', t)
-        end
-    end
+    return WoWTools_SCMixin:IsCN(text) and not ReceString[text]
 end
 
 
@@ -117,17 +91,23 @@ local function Is_StopRun(self, startIndex)
     if self.isStop then
         self.Value:SetFormattedText(
             '|cffff8200暂停|r  %s条  %.1f%%',
-            MK(self.num),
+            WoWTools_SCMixin:MK(self.num),
             (startIndex-self.min)/(self.max-self.min)*100
         )
         self.Name:SetText(self.text)
+
+--更新，数量提示
+--[[        do
+            WoWTools_SCMixin:InitTable(self.name, WoWTools_SCData[self.name])
+        end
+]]
         return true
 
     elseif (startIndex > self.max) then
         self.bar:SetValue(100)
         local clock= SecondsToClock(GetTime()-self.time)
         clock= clock:gsub('：', ':')
-        local num= MK(self.num)
+        local num= WoWTools_SCMixin:MK(self.num)
         self.Value:SetFormattedText(
             '|cffff00ff完成|r  %s条  %s',
             num,
@@ -140,9 +120,16 @@ local function Is_StopRun(self, startIndex)
            table.remove(Save()[self.name..'Tooltips'], #Save()[self.name..'Tooltips'])
         end
 
+        local buildVersion, buildNumber = GetBuildInfo()
+        local faction, localizedFaction = UnitFactionGroup('player')
+        local factionIcon= faction=='Alliance' and '|A:charcreatetest-logo-alliance:0:0|a'
+                        or (faction=='Horde' and '|A:charcreatetest-logo-horde:0:0|a')
+                        or '|A:nameplates-icon-flag-neutral:0:0|a'
+
         local t= date('%D')..' '.. date('%T')
-            ..' 版本'..Ver..'|r'
+            ..' 版本'..buildVersion..' ('..buildNumber..')|r'
             ..' |cffffffff'..num..'条|r'
+            ..' '..(localizedFaction or '')..factionIcon
             ..' 运行'..clock
         table.insert(Save()[self.name..'Tooltips'], 1, t)
 
@@ -153,6 +140,11 @@ local function Is_StopRun(self, startIndex)
         )
 
         self:settings()
+
+--[[更新，数量提示
+        do
+            WoWTools_SCMixin:InitTable(self.name, WoWTools_SCData[self.name])
+        end]]
 
         if Save().isLoopRun then
             self:run()
@@ -176,7 +168,7 @@ local function Set_ValueText(self, startIndex)
     self.Value:SetFormattedText(
         '%s  %s条  %.1f%%',
         clock,
-        MK(self.num),
+        WoWTools_SCMixin:MK(self.num),
         va
     )
     MaxButtonLabel:SetFormattedText('%.1f', va)
@@ -204,18 +196,18 @@ end]]
 
 local function Save_Value(self, id, tab)
     id= tab and tonumber(id)
-    if id then
-        if not WoWTools_SCData[self.name] then
-            WoWTools_SCData[self.name]= {
-                ['0000版本']= format('%s - %s', GetBuildInfo())
-            }
-        end
-
-        WoWTools_SCData[self.name][tonumber(id)] = tab
-
-        self.num= self.num+1
-        self.Name:SetText(MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
+    if not id then
+        return
     end
+
+    if not WoWTools_SCData[self.name] then --添加，数量提示
+        WoWTools_SCData[self.name]= {}-- WoWTools_SCMixin:InitTable(self.Name)
+    end
+
+    WoWTools_SCData[self.name][tonumber(id)] = tab
+    local num= self.num+1
+    self.num= num
+    self.Name:SetText(WoWTools_SCMixin:MK(id)..(self.isStop and '|cnGREEN_FONT_COLOR: ' or ' ')..(tab.T or ''))
 end
 
 local function clear_data(name)
@@ -1110,7 +1102,7 @@ local function S_SectionEncounter(self, startIndex, count)
                     desc= desc:gsub('^\r\n\r\n', '')
                     desc= desc:gsub('|cffffffff', '|cff000000')
                     desc= desc:gsub('%d+,%d+', function(number)
-                        return MK(number:gsub(',', ''), true)
+                        return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
                     end)
                 end
 
@@ -1650,7 +1642,7 @@ local function Create_Button(tab)
     local name= tab.name
     local min= tab.min or 1
     local max= tab.max
-    local text= (tab.atlas and '|A:'..tab.atlas..':0:0|a' or '')..(tab.text or tab.name)..' '..MK(min)..'-'..MK(max)
+    local text= (tab.atlas and '|A:'..tab.atlas..':0:0|a' or '')..(tab.text or tab.name)..' '..WoWTools_SCMixin:MK(min)..'-'..WoWTools_SCMixin:MK(max)
 
     local btn= CreateFrame('Button', 'WoWToolsSC'..name..'Button', Frame)
 
@@ -2374,4 +2366,12 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
         end
     end
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
+end)
+
+
+
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_LEAVING_WORLD", function()
+    for name in pairs(WoWTools_SCData) do
+        WoWTools_SCMixin:InitTable(name, WoWTools_SCData[name])
+    end
 end)

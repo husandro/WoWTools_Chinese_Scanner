@@ -2333,14 +2333,7 @@ local tab--[[={
 }
 ]]
 
-local function IsCN(text)
-    return
-        text
-        and text:find('[\228-\233]')
-        and not text:find('DNT')
-        and not text:find('UNUSED')
-        and not text:find('TEST')
-end
+
 local index
 local faction
 
@@ -2350,7 +2343,7 @@ local faction
 
 local function GetObjectiveText(targetType, targetID)
     local objectiveText= C_ContentTracking.GetObjectiveText(targetType, targetID, false)
-    if IsCN(objectiveText) then
+    if WoWTools_SCMixin:IsCN(objectiveText) then
         WoWTools_SCData.HouseTrackerObjective[targetID]= WoWTools_SCData.HouseTrackerObjective[targetID] or {}
         WoWTools_SCData.HouseTrackerObjective[targetID].targetType= targetType
         WoWTools_SCData.HouseTrackerObjective[targetID][faction]= objectiveText
@@ -2368,17 +2361,16 @@ local function Save_Item(itemID)
     if entryInfo.entryID then
         local recordID= entryInfo.entryID.recordID
         if C_ContentTracking.IsTrackable(Enum.ContentTrackingType.Decor, recordID) then
-           -- C_ContentTracking.StartTracking(Enum.ContentTrackingType.Decor, recordID)
+           
             local targetType, targetID = C_ContentTracking.GetCurrentTrackingTarget(Enum.ContentTrackingType.Decor, recordID)
             if targetType then
                 GetObjectiveText(targetType, targetID)
                 C_Timer.After(1, function() GetObjectiveText(targetType, targetID) end)
             end
-          --  C_ContentTracking.StopTracking(Enum.ContentTrackingType.Decor, recordID, Enum.ContentTrackingStopType.Manual)
         end
     end
 
-    if IsCN(entryInfo.sourceText) then
+    if WoWTools_SCMixin:IsCN(entryInfo.sourceText) then
         WoWTools_SCData.HouseSource[itemID]= WoWTools_SCData.HouseSource[itemID] or {}
         WoWTools_SCData.HouseSource[itemID][faction]= entryInfo.sourceText
         print(index..'/'..#tab..')', select(2, C_Item.GetItemInfo(itemID)), entryInfo.sourceText)
@@ -2401,23 +2393,25 @@ end
 local function Init()
     index=1
 
-    WoWTools_SCData.HouseName= WoWTools_SCData.HouseName or {}
-    WoWTools_SCData.HouseSource=  WoWTools_SCData.HouseSource or {}
+    WoWTools_SCData.HouseName= WoWTools_SCData.HouseName or {}-- WoWTools_SCMixin:InitTable('HouseName')
+    WoWTools_SCData.HouseSource= WoWTools_SCData.HouseSource or {}-- WoWTools_SCMixin:InitTable('HouseSource')
     WoWTools_SCData.HouseTrackerObjective= WoWTools_SCData.HouseTrackerObjective or {}
-
-    for _, data in pairs(tab) do
-        Load_Item(data[2])
-
-        local decorID= data[1]
-        local name= C_HousingDecor.GetDecorName(decorID)
-
-        if IsCN(name) then
-            WoWTools_SCData.HouseName[decorID]= name
+    do
+        for _, data in pairs(tab) do
             Load_Item(data[2])
+
+            local decorID= data[1]
+            local name= C_HousingDecor.GetDecorName(decorID)
+
+            if WoWTools_SCMixin:IsCN(name) then
+                WoWTools_SCData.HouseName[decorID]= name
+                Load_Item(data[2])
+            end
         end
     end
-
-    WoWTools_SCData.HouseFilter= C_HousingCatalog.GetAllFilterTagGroups()
+    do
+        WoWTools_SCData.HouseFilter= C_HousingCatalog.GetAllFilterTagGroups()
+    end
 end
 
 
@@ -2437,11 +2431,13 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
         Init()
         HousingDashboardFrame:HookScript('OnShow', Init)
 
+        
     else
         WoWTools_SCData.HouseName= nil
         WoWTools_SCData.HouseSource= nil
         WoWTools_SCData.HouseFilter= nil
         WoWTools_SCData.HouseTrackerObjective= nil
+
     end
 
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)

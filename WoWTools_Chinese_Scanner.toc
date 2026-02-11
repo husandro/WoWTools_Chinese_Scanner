@@ -1,4 +1,4 @@
-## Interface: 120000
+## Interface: 120001
 ## Title: |cffff00ffWoW|r|cff00ff00Tools|r_|cff28a3ffChinese|r_数据扫描
 ## Author: husandro
 ## Version: @project-version@
@@ -11,6 +11,7 @@
 ## SavedVariables: WoWTools_SCData, WoWTools_SCSave
 
 
+0_WoWTools_SCMixin.lua
 1_Init.lua
 2_ViewFrame.lua
 z_MapIDAchievement.lua
