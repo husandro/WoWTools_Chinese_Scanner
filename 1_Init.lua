@@ -2130,9 +2130,9 @@ local function Init()
     out:SetSize(80, 23)
     out:SetPoint("TOPLEFT", 40, 0)
     out:SetText('登出')
-    out:SetAttribute('type1', 'macro')
-    out:SetAttribute("macrotext1", '/logout')
-    out:RegisterForClicks('AnyDown')
+    out:SetAttribute('type', 'macro')
+    out:SetAttribute("macrotext", '/logout')
+    out:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 
     if WoWTools_TextureMixin then
         WoWTools_TextureMixin:SetButton(minButton)

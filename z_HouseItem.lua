@@ -5,9 +5,8 @@ https://wago.tools/db2/HouseDecor?locale=zhCN
 ]]
 -- C_HousingCatalog.GetAllFilterTagGroups() 需要打开一次，
 
-local tab--[[={
-    
-{12,245399},
+local tab={
+    {12,245399},
 {13,245420},
 {60,245419},
 {80,235994},
@@ -2312,6 +2311,19 @@ local tab--[[={
 {15668,264396},
 {15669,264397},
 {12300,259354},
+{9265,253244},
+{9270,253254},
+{9271,253255},
+{9272,253256},
+{9273,253257},
+{9274,253290},
+{9275,253291},
+{9276,253292},
+{9277,253293},
+{9278,253294},
+{9279,253295},
+{9280,253296},
+{9281,253297},
 {15553,264281},
 {12247,259055},
 {12248,259056},
@@ -2331,7 +2343,22 @@ local tab--[[={
 {12262,259070},
 {15555,264283},
 }
-]]
+
+
+
+
+
+
+
+
+
+if not tab or TableIsEmpty(tab) then
+    return
+end
+
+
+
+
 
 
 local index
@@ -2361,7 +2388,7 @@ local function Save_Item(itemID)
     if entryInfo.entryID then
         local recordID= entryInfo.entryID.recordID
         if C_ContentTracking.IsTrackable(Enum.ContentTrackingType.Decor, recordID) then
-           
+
             local targetType, targetID = C_ContentTracking.GetCurrentTrackingTarget(Enum.ContentTrackingType.Decor, recordID)
             if targetType then
                 GetObjectiveText(targetType, targetID)
@@ -2431,7 +2458,7 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
         Init()
         HousingDashboardFrame:HookScript('OnShow', Init)
 
-        
+
     else
         WoWTools_SCData.HouseName= nil
         WoWTools_SCData.HouseSource= nil
