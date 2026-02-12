@@ -25,7 +25,7 @@ end
 local Ver= GetBuildInfo()
 local GameVer= select(4, GetBuildInfo())/1e4--12
 
-local MaxAchievementID= (GameVer-4)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+local MaxAchievementID= (GameVer-5)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
 
