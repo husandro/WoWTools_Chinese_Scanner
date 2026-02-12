@@ -13644,18 +13644,15 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
     for _, data in pairs(tab) do
         local mapID= data[2] or 0 --Instance_ID
         local achievementID= data[1] or 0--ID
-        
+
         if mapID>10 and achievementID>0 then
 
             if not select(10, GetAchievementInfo(achievementID))~= 136243 then
-                 WoWTools_SCData.MapIDAchievementData[mapID]=  WoWTools_SCData.MapIDAchievementData[mapID] or {}
-                table.insert( WoWTools_SCData.MapIDAchievementData[mapID], achievementID)
-
-            else
-                local link= GetAchievementLink(achievementID)
-                if link then
-                    print(link)
+                if not WoWTools_SCData.MapIDAchievementData[mapID] then
+                    WoWTools_SCData.MapIDAchievementData[mapID]= {}
                 end
+
+                table.insert( WoWTools_SCData.MapIDAchievementData[mapID], achievementID)
             end
 
         end
