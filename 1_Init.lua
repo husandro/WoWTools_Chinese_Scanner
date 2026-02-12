@@ -30,7 +30,7 @@ local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
 
 
-local MaxUnitID= (GameVer-8)* 10e4--30w0000 11.25 最高 25w4359 https://wago.tools/db2/Creature
+local MaxUnitID= (GameVer-9)* 10e4--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
 
 
 
