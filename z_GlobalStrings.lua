@@ -18,7 +18,7 @@ end
 
 
 EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(owner)
-    WoWTools_SCData.GlobalStrings= {}--WoWTools_SCMixin:InitTable('GlobalStrings')
+    WoWTools_SCData.GlobalStrings= {}
 
     do
         for _, en in pairs(tab) do
@@ -28,8 +28,6 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
             end
         end
     end
-
-    --WoWTools_SCMixin:InitTable('GlobalStrings', WoWTools_SCData.GlobalStrings)
 
     EventRegistry:UnregisterCallback('PLAYER_ENTERING_WORLD', owner)
 end)

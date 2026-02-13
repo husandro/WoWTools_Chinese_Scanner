@@ -30,7 +30,7 @@ local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
 
 
-local MaxUnitID= GameVer==120001 and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
+local MaxUnitID= Ver=='12.0001' and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
 
 
 
@@ -43,7 +43,7 @@ local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseD
 
 local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
 local MinSpell2ID= 12* 1e5
-local MaxSpell2ID= (GameVer+2)* 10e4--120w- 150w
+local MaxSpell2ID= Ver=='12.0001' and 1288115 or ((GameVer+2)* 10e4)--120w- 150w https://wago.tools/db2/SpellName
 
 local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
 local difficultyID= 1
@@ -96,26 +96,28 @@ local function Is_StopRun(self, startIndex)
         )
         self.Name:SetText(self.text)
 
---更新，数量提示
---[[        do
-            WoWTools_SCMixin:InitTable(self.name, WoWTools_SCData[self.name])
-        end
-]]
         return true
 
     elseif (startIndex > self.max) then
         self.bar:SetValue(100)
+
         local clock= SecondsToClock(GetTime()-self.time)
         clock= clock:gsub('：', ':')
-        local num= WoWTools_SCMixin:MK(self.num)
+
+        local num= WoWTools_SCMixin:InitTable(self.name, WoWTools_SCData[self.name])
+
+        num= WoWTools_SCMixin:MK(num)
+
         self.Value:SetFormattedText(
             '|cffff00ff完成|r  %s条  %s',
             num,
             clock
         )
+
         self.Name:SetText(self.text)
         Save()[self.name..'Ver']= Ver
         Save()[self.name..'Tooltips']= Save()[self.name..'Tooltips'] or {}
+
         if #Save()[self.name..'Tooltips']>=4 then
            table.remove(Save()[self.name..'Tooltips'], #Save()[self.name..'Tooltips'])
         end
@@ -131,9 +133,11 @@ local function Is_StopRun(self, startIndex)
             ..' |cffffffff'..num..'条|r'
             ..' '..(localizedFaction or '')..factionIcon
             ..' 运行'..clock
+
         table.insert(Save()[self.name..'Tooltips'], 1, t)
 
         MaxButtonLabel:SetText('|cnGREEN_FONT_COLOR:完成')
+
         print(
             self.text..'|TInterface\\AddOns\\WoWTools_Chinese_Scanner\\Source\\WoWtools.tga:0:0|t',
             '|cnGREEN_FONT_COLOR:完成|r '..num..'条 |cnWARNING_FONT_COLOR:'..clock..'|r'
@@ -141,10 +145,6 @@ local function Is_StopRun(self, startIndex)
 
         self:settings()
 
---[[更新，数量提示
-        do
-            WoWTools_SCMixin:InitTable(self.name, WoWTools_SCData[self.name])
-        end]]
 
         if Save().isLoopRun then
             self:run()
@@ -201,7 +201,7 @@ local function Save_Value(self, id, tab)
     end
 
     if not WoWTools_SCData[self.name] then --添加，数量提示
-        WoWTools_SCData[self.name]= {}-- WoWTools_SCMixin:InitTable(self.Name)
+        WoWTools_SCData[self.name]= {}
     end
 
     WoWTools_SCData[self.name][tonumber(id)] = tab

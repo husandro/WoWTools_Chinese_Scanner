@@ -50,17 +50,19 @@ function WoWTools_SCMixin:MK(number, notColor)
 end
 
 function WoWTools_SCMixin:InitTable(name, tab)
+    tab= tab or {}
+
     local buildVersion, buildNumber = GetBuildInfo()
+    local num= CountTable(tab)
+
     local text= format('%s 数据版本 %s - %s 总数 %s, 由 WoWTools Chinese Scanner 插件收集',
             name,
             buildVersion,
             buildNumber,
             tab and self:MK(CountTable(tab), true) or '0'
     )
-    if tab then
 
-        tab[0]= text
-    else
-        return { [0]= text}
-    end
+    tab[0]= text
+
+    return num
 end

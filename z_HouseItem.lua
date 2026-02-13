@@ -85,8 +85,8 @@ end
 local function Init()
     index=1
 
-    WoWTools_SCData.HouseName= WoWTools_SCData.HouseName or {}-- WoWTools_SCMixin:InitTable('HouseName')
-    WoWTools_SCData.HouseSource= WoWTools_SCData.HouseSource or {}-- WoWTools_SCMixin:InitTable('HouseSource')
+    WoWTools_SCData.HouseName= WoWTools_SCData.HouseName or {}
+    WoWTools_SCData.HouseSource= WoWTools_SCData.HouseSource or {}
     WoWTools_SCData.HouseTrackerObjective= WoWTools_SCData.HouseTrackerObjective or {}
     do
         for _, data in pairs(tab) do
