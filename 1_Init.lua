@@ -21,19 +21,23 @@ end
 local function Save()
     return WoWTools_SCSave
 end
-
 local Ver= GetBuildInfo()
+local IsCurVersion= Ver=='12.0.1'
 local GameVer= select(4, GetBuildInfo())/1e4--12
+
+
+
+
+
+
+
 
 local MaxAchievementID= (GameVer-5)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
 local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
 
 
-local MaxUnitID= Ver=='12.0001' and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
-
-
-
+local MaxUnitID= IsCurVersion and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
 
 
 local MaxItemID= 15e4
@@ -43,7 +47,9 @@ local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseD
 
 local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
 local MinSpell2ID= 12* 1e5
-local MaxSpell2ID= Ver=='12.0001' and 1288115 or ((GameVer+2)* 10e4)--120w- 150w https://wago.tools/db2/SpellName
+local MaxSpell2ID= IsCurVersion and 1288115 or ((GameVer+2)* 10e4)--120w- 150w https://wago.tools/db2/SpellName
+
+
 
 local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
 local difficultyID= 1
