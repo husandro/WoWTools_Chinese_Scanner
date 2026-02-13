@@ -2141,7 +2141,10 @@ local function Init()
     out:SetText('登出')
     out:SetAttribute('type', 'macro')
     out:SetAttribute("macrotext", '/logout')
-    out:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+    local LeftButtonDown= C_CVar.GetCVarBool("ActionButtonUseKeyDown") and 'LeftButtonDown' or 'LeftButtonUp'
+    local RightButtonDown= C_CVar.GetCVarBool("ActionButtonUseKeyDown") and 'RightButtonDown' or 'RightButtonUp'
+
+    out:RegisterForClicks(LeftButtonDown, RightButtonDown)
 
     if WoWTools_TextureMixin then
         WoWTools_TextureMixin:SetButton(minButton)
