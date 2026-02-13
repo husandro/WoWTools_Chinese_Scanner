@@ -1698,10 +1698,8 @@ local function Create_Button(tab)
                 self.inBatIsStop= true
             end
         else
-            if self.isStop then
-                if self.inBatIsStop then
-                    self:settings()
-                end
+            if self.isStop and self.inBatIsStop then
+                self:settings()
             end
             self.inBatIsStop= true
         end
