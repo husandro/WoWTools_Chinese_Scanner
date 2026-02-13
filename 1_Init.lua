@@ -30,7 +30,7 @@ local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
 
 
-local MaxUnitID= (GameVer-9)* 10e4--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
+local MaxUnitID= GameVer==120001 and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
 
 
 
@@ -1690,9 +1690,20 @@ local function Create_Button(tab)
     btn.settings= Settings
 
     btn:RegisterEvent('PLAYER_REGEN_DISABLED')
-    btn:SetScript('OnEvent', function(self)
-        if not self.isStop then
-            self:settings()
+    btn:RegisterEvent('PLAYER_REGEN_ENABLED')
+    btn:SetScript('OnEvent', function(self, event)
+        if event=='PLAYER_REGEN_DISABLED' then
+            if not self.isStop then
+                self:settings()
+                self.inBatIsStop= true
+            end
+        else
+            if self.isStop then
+                if self.inBatIsStop then
+                    self:settings()
+                end
+            end
+            self.inBatIsStop= true
         end
     end)
 
