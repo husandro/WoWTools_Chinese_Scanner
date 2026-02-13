@@ -1689,7 +1689,7 @@ local function Create_Button(tab)
     btn.run= RUN
     btn.settings= Settings
 
-    btn:RegisterEvent('PLAYER_REGEN_DISABLED')
+    --[[btn:RegisterEvent('PLAYER_REGEN_DISABLED')
     btn:RegisterEvent('PLAYER_REGEN_ENABLED')
     btn:SetScript('OnEvent', function(self, event)
         if event=='PLAYER_REGEN_DISABLED' then
@@ -1703,7 +1703,7 @@ local function Create_Button(tab)
             end
             self.inBatIsStop= true
         end
-    end)
+    end)]]
 
 
 
