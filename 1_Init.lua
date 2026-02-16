@@ -41,7 +41,7 @@ local MaxUnitID= IsCurVersion and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 �
 
 
 local MaxItemID= 15e4
-local MaxItemID2= (GameVer-9)* 10e4--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxItemID2= IsCurVersion and 270444 or ((GameVer-9)*10e4)--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
 local MaxSetsID= (GameVer-9)*1e3 + 100-- 12.0 2000 https://wago.tools/db2/ItemSet
 local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseDecor?locale=zhCN
 
