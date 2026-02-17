@@ -22,10 +22,19 @@ local function Save()
     return WoWTools_SCSave
 end
 local Ver= GetBuildInfo()
-local IsCurVersion= Ver=='12.0.1'
 local GameVer= select(4, GetBuildInfo())/1e4--12
 
 
+--当前版本，最大值，可修改
+local VerTab={}
+if Ver=='12.0.1' then
+    VerTab={
+        MaxUnitID= 261081,--https://wago.tools/db2/Creature
+        MaxItemID2= 270444,--https://wago.tools/db2/Item
+        MaxSetsID= 1990,--https://wago.tools/db2/ItemSet
+        MaxSpell2ID= 1288115,--https://wago.tools/db2/SpellName
+    }
+end
 
 
 
@@ -37,17 +46,17 @@ local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
 
 
-local MaxUnitID= IsCurVersion and 261081 or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
+local MaxUnitID= VerTab.MaxUnitID or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
 
 
 local MaxItemID= 15e4
-local MaxItemID2= IsCurVersion and 270444 or ((GameVer-9)*10e4)--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSetsID= (GameVer-9)*1e3 + 100-- 12.0 2000 https://wago.tools/db2/ItemSet
+local MaxItemID2= VerTab.MaxItemID2 or ((GameVer-9)*10e4)--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
+local MaxSetsID= VerTab.MaxSetsID or  ((GameVer-9)*1e3 + 100)-- 12.0 2000 https://wago.tools/db2/ItemSet
 local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseDecor?locale=zhCN
 
 local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
 local MinSpell2ID= 12* 1e5
-local MaxSpell2ID= IsCurVersion and 1288115 or ((GameVer+2)* 10e4)--120w- 150w https://wago.tools/db2/SpellName
+local MaxSpell2ID= VerTab.MaxSpell2ID or ((GameVer+2)* 10e4)--120w- 150w https://wago.tools/db2/SpellName
 
 
 
@@ -2276,7 +2285,7 @@ end
                 GameTooltip:Show()
             end
             function btn:set_stat()
-                self:SetButtonState(self:get_value() and 'PUSHED' or 'NORMAL')
+                self:SetButtonState(self:get_value() and 'PUSHED' or 'NORMAL', true)
             end
             btn:SetScript('OnLeave', function(self)
                 GameTooltip:Hide()
