@@ -384,7 +384,12 @@ local function Get_Item_Lines(lines)
     local desc
     for index, line in pairs(lines) do
         local text= line.leftText
-        if index>1 and IsCN(text) and (
+        if index>1
+            and IsCN(text)
+            and not (text:find('已拥有：|cnHIGHLIGHT_FONT_COLOR:%d+（已放置：%d+，储存空间：%d）|r'))
+            and not text:find("已放置：%d+，储存空间：%d+")
+            and
+        (
             text:find('套装：(.+)')
             or text:find('使用：(.+)')
             or text:find('击中时可能：(.+)')
