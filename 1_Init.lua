@@ -29,48 +29,38 @@ local GameVer= select(4, GetBuildInfo())/1e4--12
 local VerTab={}
 if Ver=='12.0.1' then
     VerTab={
-        MaxUnitID= 261081,--https://wago.tools/db2/Creature
-        MaxItemID2= 270444,--https://wago.tools/db2/Item
-        MaxSetsID= 1990,--https://wago.tools/db2/ItemSet
-        MaxSpell2ID= 1288115,--https://wago.tools/db2/SpellName
+        MaxUnitID= 261081,-- https://wago.tools/db2/Creature
+        MaxItemID2= 270444,-- https://wago.tools/db2/Item
+        MaxSetsID= 1990,-- https://wago.tools/db2/ItemSet
+        MaxSpell2ID= 1288115,-- https://wago.tools/db2/SpellName
+        MaxSectionEncounterID=35537,-- https://wago.tools/db2/JournalEncounterSection
+        MaxAchievementID= 62517,-- https://wago.tools/db2/Achievement
+        MaxFactionID= 781,-- https://wago.tools/db2/Faction
+        MaxMountID= 2969,-- https://wago.tools/db2/Mount
+        MaxCurrencyID= 3436, -- https://wago.tools/db2/CurrencyTypes
+        MaxPerksActivityID= 938, -- https://wago.tools/db2/PerksActivity
     }
 end
 
 
-
-
-
-
-local MaxAchievementID= (GameVer-5)* 1e4--11.2.5 版本，最高61406 https://wago.tools/db2/Achievement
+local MaxAchievementID= VerTab.MaxAchievementID or ((GameVer-5)* 1e4)
 local MaxQuestID= GameVer* 1e4--11.2.5 版本 93516
 local MaxEncounterID= (GameVer-8)* 1e4--25000
-
-
-local MaxUnitID= VerTab.MaxUnitID or ((GameVer-9)*10e4)--30w0000 12.01 最高 26w1081 https://wago.tools/db2/Creature
-
-
+local MaxUnitID= VerTab.MaxUnitID or ((GameVer-9)*10e4)
 local MaxItemID= 15e4
-local MaxItemID2= VerTab.MaxItemID2 or ((GameVer-9)*10e4)--30w0000 11.2.5 最高 25w8483  https://wago.tools/db2/Item
-local MaxSetsID= VerTab.MaxSetsID or  ((GameVer-9)*1e3 + 100)-- 12.0 2000 https://wago.tools/db2/ItemSet
-local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseDecor?locale=zhCN
-
+local MaxItemID2= VerTab.MaxItemID2 or ((GameVer-9)*10e4)
+local MaxSetsID= VerTab.MaxSetsID or  ((GameVer-9)*1e3 + 100)
+--local MaxHouseItemID= (GameVer-8)*1e4--12.01 20632 https://wago.tools/db2/HouseDecor?locale=zhCN
 local MaxSpellID=(GameVer-6)* 10e4-- 50w0000 229270
 local MinSpell2ID= 12* 1e5
-local MaxSpell2ID= VerTab.MaxSpell2ID or ((GameVer+2)* 10e4)--120w- 150w https://wago.tools/db2/SpellName
+local MaxSpell2ID= VerTab.MaxSpell2ID or ((GameVer+2)* 10e4)
+local MaxSectionEncounterID= VerTab.MaxSectionEncounterID or ((GameVer-8))*1e4
+local MaxFactionID= VerTab.MaxFactionID or ((GameVer-9)*1e3+ 100)
+local MaxMountID= VerTab.MaxMountID or ((GameVer-9)*1e3+ 200)
+local MaxCurrencyID= VerTab.MaxCurrencyID or  ((GameVer-8)*1e3)
+local MaxPerksActivityID= VerTab.MaxPerksActivityID or ((GameVer-11)*1e3+100)
+--local MaxObjectiveID= (GameVer-7)*1e5
 
-
-
-local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
-local difficultyID= 1
-local difficultyIndex=1
-local MaxSectionEncounterID= (GameVer-8)*1e4--12.0版本，最高35159 https://wago.tools/db2/JournalEncounterSection
-
-local MaxFactionID=(GameVer-9)*1e3+ 100 --12.0 2781 https://wago.tools/db2/Faction
-local MaxMountID= (GameVer-9)*1e3+ 200 --12.01 2917 https://wago.tools/db2/Mount
-local MaxCurrencyID= (GameVer-8)*1e3 --12.01 3436 https://wago.tools/db2/CurrencyTypes
-local MaxPerksActivityID=(GameVer-11)*1e3+100--12.01 934 https://wago.tools/db2/PerksActivity
-
-local MaxObjectiveID= (GameVer-7)*1e5
 
 local Frame, MaxButtonLabel
 local Buttons={}
@@ -340,6 +330,7 @@ end
 
 local function RUN(self)
     WoWTools_SCData[self.name]= WoWTools_SCData[self.name] or {}
+    WoWTools_SCMixin:InitTable(self.name, WoWTools_SCData[self.name])
 
     self:settings()
     if not self.isStop then
@@ -1077,16 +1068,15 @@ function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
   end
 end
 ]]
+--local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
+--local difficultyID= 1
+--local difficultyIndex=1
 
 local function S_SectionEncounter(self, startIndex, count)
     count= count +1
 
-    if not EncounterJournal  then
-        EncounterJournal_LoadUI()
-    end
-
     if Is_StopRun(self, startIndex) then
-        if count>=MaxCount then
+        --[[if count>=MaxCount then
             print(self.text, '|cnWARNING_FONT_COLOR:难度结束', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
 
             if startIndex > self.max then
@@ -1096,49 +1086,61 @@ local function S_SectionEncounter(self, startIndex, count)
 
                 difficultyID= difficultyIDs[difficultyIndex]
             end
-        end
+        end]]
         return
     end
 
-    if EJ_GetDifficulty()~=difficultyID then
-        EJ_SetDifficulty(difficultyID)
-    end
+    --if EJ_GetDifficulty()~=difficultyID then
 
-    local id= difficultyID
-    for sectionID= startIndex, startIndex + MaxLoopCount do
-        local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-        if sectionInfo and not sectionInfo.filteredByDifficulty then
-            EJ_GetSectionPath(sectionID)
+    --end
 
-            local title, desc
-            if IsCN(sectionInfo.title) then
-                title= sectionInfo.title
-            end
-            if IsCN(sectionInfo.description) then
-                desc= sectionInfo.description
-            end
-            if title or desc then
-                if desc then
-                    desc= desc:gsub('^\r\n\r\n', '')
-                    desc= desc:gsub('|cffffffff', '|cff000000')
-                    desc= desc:gsub('%d+,%d+', function(number)
-                        return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
-                    end)
-                end
-
-                local tab= WoWTools_SCData[self.name][sectionID] or {}
-
-
-                tab.T= title or tab.T
-
-                tab[id]= desc or tab[id]
-
-                if count==1 then
-                    Save_Value(self, sectionID, tab)
-                end
-            end
+    --local id= difficultyID
+do
+    for _, difficultyID in pairs( {1,2,23, 17,14,15,16}) do
+        do
+            EJ_SetDifficulty(difficultyID)
         end
+do
+        for sectionID= startIndex, startIndex + MaxLoopCount do
+            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+            if sectionInfo then-- and sectionInfo.filteredByDifficulty then
+do
+                 difficultyID= EJ_GetDifficulty() or difficultyID
+                EJ_GetSectionPath(sectionID)
+
+                local title, desc
+                if IsCN(sectionInfo.title) then
+                    title= sectionInfo.title
+                end
+                if IsCN(sectionInfo.description) then
+                    desc= sectionInfo.description
+                end
+                if title or desc then
+                    if desc then
+                        desc= desc:gsub('^\r\n\r\n', '')
+                        desc= desc:gsub('|cffffffff', '|cff000000')
+                        desc= desc:gsub('%d+,%d+', function(number)
+                            return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
+                        end)
+                    end
+
+                    local tab= WoWTools_SCData[self.name][sectionID] or {}
+
+
+                    tab.T= title or tab.T
+
+                    tab[difficultyID]= desc or tab[difficultyID]
+
+                    if count==1 then
+                        Save_Value(self, sectionID, tab)
+                    end
+                end
+            end
+end
+        end
+end
     end
+end
     if count==1 then
         Set_ValueText(self, startIndex)
     end
@@ -2387,11 +2389,11 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
             EncounterJournal_LoadUI()
         end
 
-        EventRegistry:RegisterFrameEventAndCallback("CALENDAR_UPDATE_EVENT_LIST", function(owner)
+        EventRegistry:RegisterFrameEventAndCallback("CALENDAR_UPDATE_EVENT_LIST", function(owner2)
             if CalendarFrame:IsShown() then
                 ToggleCalendar()
             end
-            EventRegistry:UnregisterCallback('CALENDAR_UPDATE_EVENT_LIST', owner)
+            EventRegistry:UnregisterCallback('CALENDAR_UPDATE_EVENT_LIST', owner2)
         end)
         if not CalendarFrame then
             ToggleCalendar()
