@@ -1105,7 +1105,7 @@ do
             local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
             if sectionInfo then-- and sectionInfo.filteredByDifficulty then
 do
-                 difficultyID= EJ_GetDifficulty() or difficultyID
+                --difficultyID= EJ_GetDifficulty() or difficultyID
                 EJ_GetSectionPath(sectionID)
 
                 local title, desc
