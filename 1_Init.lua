@@ -1097,11 +1097,12 @@ local function S_SectionEncounter(self, startIndex, count)
     --local id= difficultyID
 do
     for _, difficultyID in pairs( {1,2,23, 17,14,15,16}) do
-        do
-            EJ_SetDifficulty(difficultyID)
-        end
+
 do
         for sectionID= startIndex, startIndex + MaxLoopCount do
+do
+            EJ_SetDifficulty(difficultyID)
+end
             local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
             if sectionInfo then-- and sectionInfo.filteredByDifficulty then
 do
