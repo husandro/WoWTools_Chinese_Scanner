@@ -1033,115 +1033,69 @@ end
 
 
 
+local function Save_SectionEncounter(self, sectionID, difficultyID)
+    EJ_SetDifficulty(difficultyID)
+    difficultyID= EJ_GetDifficulty() or difficultyID
 
+    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+    if sectionInfo then-- and sectionInfo.filteredByDifficulty then
 
-
-
---EncounterSection [字符sectionIDxdifficultyID]= {T=, D=}
---[[
-
-function WoWeuCN_Scanner_ScanEncounterSectionAuto(startIndex, attempt, counter)
-  if (startIndex > 50000) then
-    WoWeuCN_Scanner_Index = 0
-    return;
-  end
-  for difficultyId = 1, 45 do
-    EJ_SetDifficulty(difficultyId)
-    for i = startIndex, startIndex + 100 do
-      local sectionInfo =  C_EncounterJournal.GetSectionInfo(i)
-      if (sectionInfo and not sectionInfo.filteredByDifficulty) then
-        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i] = {}
-        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Title"] = sectionInfo.title
-        
-        print(sectionInfo.title)
-        WoWeuCN_Scanner_EncounterSectionData[EJ_GetDifficulty() .. 'x' .. i]["Description"] = sectionInfo.description
-      end
+        local title, desc
+        if IsCN(sectionInfo.title) then
+            title= sectionInfo.title
+        end
+        if IsCN(sectionInfo.description) then
+            desc= sectionInfo.description
+        end
+        if title or desc then
+            if desc then
+                desc= desc:gsub('^\r\n\r\n', '')
+                desc= desc:gsub('|cffffffff', '|cff000000')
+                desc= desc:gsub('%d+,%d+', function(number)
+                    return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
+                end)
+            end
+            local tab= WoWTools_SCData[self.name][sectionID] or {}
+            tab.T= title or tab.T
+            tab[difficultyID]= desc or tab[difficultyID]
+            Save_Value(self, sectionID, tab)
+        end
     end
-  end
-  print(attempt)
-  print('index ' .. startIndex)
-  WoWeuCN_Scanner_Index = startIndex
-  if (counter >= 2) then
-     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex + 100, attempt + 1, 0)
-  else
-     WoWeuCN_Scanner_wait(0.1, WoWeuCN_Scanner_ScanEncounterSectionAuto, startIndex, attempt + 1, counter + 1)
-  end
 end
-]]
---local difficultyIDs= {1,2,23, 17,14,15,16}-- 16史诗 15英雄 14普通 17随机, 1,2,23
---local difficultyID= 1
---local difficultyIndex=1
+
+local function Get_SectionEncounter(self, sectionID, difficultyID)
+    EJ_SetDifficulty(difficultyID)
+    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+    if sectionInfo then-- and sectionInfo.filteredByDifficulty then
+        local spellID= sectionInfo.spellID
+        if spellID then
+            if not C_Spell.IsSpellDataCached(spellID) then
+                SpellEventListener:AddCancelableCallback(spellID, function()
+                    Save_SectionEncounter(self, sectionID, difficultyID)
+                end)
+            else
+                Save_SectionEncounter(self, sectionID, difficultyID)
+            end
+        else
+            Save_SectionEncounter(self, sectionID, difficultyID)
+        end
+    end
+end
+
 
 local function S_SectionEncounter(self, startIndex, count)
     count= count +1
 
     if Is_StopRun(self, startIndex) then
-        --[[if count>=MaxCount then
-            print(self.text, '|cnWARNING_FONT_COLOR:难度结束', DifficultyUtil.GetDifficultyName(difficultyID)..'('..(select(10, GetDifficultyInfo(difficultyID))..'人)'), difficultyIndex..'/'..7)
-
-            if startIndex > self.max then
-                difficultyIndex= difficultyIndex+1
-
-                difficultyIndex= difficultyIndex> #difficultyIDs and 1 or difficultyIndex
-
-                difficultyID= difficultyIDs[difficultyIndex]
-            end
-        end]]
         return
     end
 
-    --if EJ_GetDifficulty()~=difficultyID then
-
-    --end
-
-    --local id= difficultyID
-do
-    for _, difficultyID in pairs( {1,2,23, 17,14,15,16}) do
-
-do
+    for _, difficultyID in pairs({1,2,23, 17,14,15,16}) do
         for sectionID= startIndex, startIndex + MaxLoopCount do
-do
-            EJ_SetDifficulty(difficultyID)
-end
-            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-            if sectionInfo then-- and sectionInfo.filteredByDifficulty then
-do
-                --difficultyID= EJ_GetDifficulty() or difficultyID
-                EJ_GetSectionPath(sectionID)
-
-                local title, desc
-                if IsCN(sectionInfo.title) then
-                    title= sectionInfo.title
-                end
-                if IsCN(sectionInfo.description) then
-                    desc= sectionInfo.description
-                end
-                if title or desc then
-                    if desc then
-                        desc= desc:gsub('^\r\n\r\n', '')
-                        desc= desc:gsub('|cffffffff', '|cff000000')
-                        desc= desc:gsub('%d+,%d+', function(number)
-                            return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
-                        end)
-                    end
-
-                    local tab= WoWTools_SCData[self.name][sectionID] or {}
-
-
-                    tab.T= title or tab.T
-
-                    tab[difficultyID]= desc or tab[difficultyID]
-
-                    if count==1 then
-                        Save_Value(self, sectionID, tab)
-                    end
-                end
-            end
-end
+            Get_SectionEncounter(self, sectionID, difficultyID)
         end
-end
     end
-end
+
     if count==1 then
         Set_ValueText(self, startIndex)
     end
