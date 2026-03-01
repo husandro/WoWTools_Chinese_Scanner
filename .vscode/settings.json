@@ -21546,11 +21546,15 @@
         "KIOSK_SESSION_STARTED_BODY",
         "KIOSK_SESSION_EXPIRED_SUBTITLE",
         "TableIsEmpty",
-        "CountTable"
+        "CountTable",
+        "ToggleEncounterJournal",
+        "MonthlyActivitiesFrame_OpenFrame"
     ],
     "Lua.diagnostics.disable": [
         "inject-field",
         "need-check-nil",
-        "undefined-field"
+        "undefined-field",
+        "missing-parameter",
+        "param-type-mismatch"
     ]
 }

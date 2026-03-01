@@ -222,20 +222,12 @@ local function clear_data(name)
         WoWTools_SCData[name]= nil
     end
 
---Boss 技能
-    if name=='SectionEncounter' then
-        difficultyID= 1
-        difficultyIndex=1
-    end
-
     local self= _G['WoWToolsSC'..name..'Button']
     if not self.isStop then
         self:settings()
     else
         self.time=nil
     end
-
-
 
     self.bar:SetValue(0)
     self.Value:SetText('')
@@ -1033,54 +1025,29 @@ end
 
 
 
-local function Save_SectionEncounter(self, sectionID, difficultyID)
-    EJ_SetDifficulty(difficultyID)
-    difficultyID= EJ_GetDifficulty() or difficultyID
-
-    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-    if sectionInfo then-- and sectionInfo.filteredByDifficulty then
-
-        local title, desc
-        if IsCN(sectionInfo.title) then
-            title= sectionInfo.title
+local function Save_SectionEncounter(self, sectionInfo, sectionID, difficultyID)
+    local title, desc
+    if IsCN(sectionInfo.title) then
+        title= sectionInfo.title
+    end
+    if IsCN(sectionInfo.description) then
+        desc= sectionInfo.description
+    end
+    if title or desc then
+        if desc then
+            desc= desc:gsub('^\r\n\r\n', '')
+            desc= desc:gsub('|cffffffff', '|cff000000')
+            desc= desc:gsub('%d+,%d%d%d', function(number)
+                return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
+            end)
         end
-        if IsCN(sectionInfo.description) then
-            desc= sectionInfo.description
-        end
-        if title or desc then
-            if desc then
-                desc= desc:gsub('^\r\n\r\n', '')
-                desc= desc:gsub('|cffffffff', '|cff000000')
-                desc= desc:gsub('%d+,%d+', function(number)
-                    return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
-                end)
-            end
-            local tab= WoWTools_SCData[self.name][sectionID] or {}
-            tab.T= title or tab.T
-            tab[difficultyID]= desc or tab[difficultyID]
-            Save_Value(self, sectionID, tab)
-        end
+        local tab= WoWTools_SCData[self.name][sectionID] or {}
+        tab.T= title or tab.T
+        tab[difficultyID]= desc or tab[difficultyID]
+        Save_Value(self, sectionID, tab)
     end
 end
 
-local function Get_SectionEncounter(self, sectionID, difficultyID)
-    EJ_SetDifficulty(difficultyID)
-    local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
-    if sectionInfo then-- and sectionInfo.filteredByDifficulty then
-        local spellID= sectionInfo.spellID
-        if spellID then
-            if not C_Spell.IsSpellDataCached(spellID) then
-                SpellEventListener:AddCancelableCallback(spellID, function()
-                    Save_SectionEncounter(self, sectionID, difficultyID)
-                end)
-            else
-                Save_SectionEncounter(self, sectionID, difficultyID)
-            end
-        else
-            Save_SectionEncounter(self, sectionID, difficultyID)
-        end
-    end
-end
 
 
 local function S_SectionEncounter(self, startIndex, count)
@@ -1089,17 +1056,25 @@ local function S_SectionEncounter(self, startIndex, count)
     if Is_StopRun(self, startIndex) then
         return
     end
+do
+    for difficultyID=1, 45 do-- in pairs({1,2,23, 17,14,15,16}) do
+        EJ_SetDifficulty(difficultyID)
 
-    for _, difficultyID in pairs({1,2,23, 17,14,15,16}) do
         for sectionID= startIndex, startIndex + MaxLoopCount do
-            Get_SectionEncounter(self, sectionID, difficultyID)
+            --Get_SectionEncounter(self, sectionID, difficultyID)
+
+            local sectionInfo = C_EncounterJournal.GetSectionInfo(sectionID)
+            if sectionInfo and not sectionInfo.filteredByDifficulty then
+                difficultyID= EJ_GetDifficulty() or difficultyID
+                Save_SectionEncounter(self, sectionInfo, sectionID, difficultyID)
+            end
         end
     end
-
+end
     if count==1 then
         Set_ValueText(self, startIndex)
     end
-    if count>=MaxCount then
+    if count>=(MaxCount+1) then
         C_Timer.After(0.3, function() S_SectionEncounter(self, startIndex + MaxLoopCount+1, 0) end)
     else
         C_Timer.After(0.3, function() S_SectionEncounter(self, startIndex, count) end)
@@ -1127,12 +1102,12 @@ end
 
 
 
-
+--[[
 local function Cahce_Achievement(achievementID)
     GetAchievementInfo(achievementID)
 end
 
---[[local function S_CacheAchievement(self, startIndex)
+local function S_CacheAchievement(self, startIndex)
     if Is_StopCahceRun(self, startIndex) then
         return
     end
@@ -2167,7 +2142,7 @@ do
         {name='Quest', func=S_Quest, tooltip='1w5724', max=MaxQuestID,text='任务', atlas='CampaignAvailableQuestIcon'},
 
         {name='Encounter', func=S_Encounter, tooltip='1k103', max=MaxEncounterID, text='Boss 综述', atlas='adventureguide-icon-whatsnew'},
-        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='12.0 5k363 6k384 4k257 8k499 9k 9k', atlas='KyrianAssaults-64x64'},
+        {name='SectionEncounter', func=S_SectionEncounter, max=MaxSectionEncounterID, text='Boss 技能', tooltip='2w0358 03:40', atlas='KyrianAssaults-64x64'},
 
         {name='Faction', func=S_Faction, max=MaxFactionID, text='派系', tooltip='12.0 1K713', atlas='VignetteEventElite'},
         {name='Mount', func=S_Mount, max=MaxFactionID, text='坐骑', tooltip=nil, atlas='shop-icon-mount-ground-up'},
@@ -2343,6 +2318,13 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", function(ow
         if not EncounterJournal then
             EncounterJournal_LoadUI()
         end
+        if not EncounterJournal:IsShown() then
+            ToggleEncounterJournal()
+        end
+        if EncounterJournal:IsShown() then
+            ToggleEncounterJournal()
+        end
+
 
         EventRegistry:RegisterFrameEventAndCallback("CALENDAR_UPDATE_EVENT_LIST", function(owner2)
             if CalendarFrame:IsShown() then
