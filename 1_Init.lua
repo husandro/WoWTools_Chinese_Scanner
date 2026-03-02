@@ -1036,7 +1036,7 @@ local function Save_SectionEncounter(self, sectionInfo, sectionID, difficultyID)
     if title or desc then
         if desc then
             desc= desc:gsub('^\r\n\r\n', '')
-            desc= desc:gsub("|cffffffff(.-)|r", "%1")
+            --desc= desc:gsub("|cffffffff(.-)|r", "%1")
             desc= desc:gsub('%d+,%d%d%d', function(number)
                 return WoWTools_SCMixin:MK(number:gsub(',', ''), true)
             end)
